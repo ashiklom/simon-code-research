@@ -1,0 +1,7 @@
+[tools]
+pixi = "0.84.1"
+"aqua:quarto-dev/quarto-cli" = "1.11.9"
+
+[tasks.setup]
+description = "Install the pixi environment"
+run = "pixi install --locked"

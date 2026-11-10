@@ -1,0 +1,8 @@
+.pixi/
+data/
+report/_site/
+report/.quarto/
+_site/
+__pycache__/
+*.egg-info/
+.pytest_cache/

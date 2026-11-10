@@ -1,0 +1,52 @@
+[workspace]
+name = "l2-swath-geolocation"
+channels = ["conda-forge"]
+platforms = ["linux-64"]
+
+[dependencies]
+python = "3.12.*"
+# I/O
+gdal = "*"
+libgdal-hdf4 = "*"
+libgdal-hdf5 = "*"
+libgdal-netcdf = "*"
+pyhdf = "*"
+h5py = "*"
+h5netcdf = "*"
+netcdf4 = "*"
+xarray = "*"
+zarr = ">=3"
+virtualizarr = ">=2"
+icechunk = "*"
+kerchunk = "*"
+obstore = "*"
+fsspec = "*"
+s3fs = "*"
+aiohttp = "*"
+requests = "*"
+earthaccess = "*"
+# spatial indexes
+scipy = "*"
+pykdtree = "*"
+xoak = "*"
+scikit-learn = "*"
+pys2index = "*"
+h3-py = ">=4"
+spherely = "*"
+shapely = ">=2"
+geopandas = "*"
+pyogrio = "*"
+pyarrow = "*"
+pyproj = "*"
+# misc
+numpy = "*"
+pandas = "*"
+matplotlib = "*"
+psutil = "*"
+pytest = "*"
+tomli-w = "*"
+
+[pypi-dependencies]
+moto = { version = "*", extras = ["server"] }
+s2sphere = "*"
+swathgeo = { path = ".", editable = true }
