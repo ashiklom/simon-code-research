@@ -1,0 +1,28 @@
+/* Shared style for the homepage and README-rendered experiment pages. */
+:root { color-scheme: light dark; }
+body {
+  margin: 0;
+  font: 16px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif;
+  color: #1f2328;
+  background: #fff;
+}
+.markdown-body { max-width: 50rem; margin: 0 auto; padding: 2rem 1.25rem; }
+h1, h2, h3 { line-height: 1.25; }
+h1, h2 { padding-bottom: .3em; border-bottom: 1px solid #d1d9e0; }
+a { color: #0969da; }
+img { max-width: 100%; }
+code, pre { font: 0.9em/1.45 ui-monospace, SFMono-Regular, Menlo, monospace; }
+code { padding: .15em .35em; border-radius: 4px; background: #eff1f3; }
+pre { padding: 1rem; overflow: auto; border-radius: 6px; background: #f6f8fa; }
+pre code { padding: 0; background: none; }
+table { border-collapse: collapse; }
+th, td { padding: .35em .75em; border: 1px solid #d1d9e0; }
+blockquote { margin: 0; padding: 0 1em; color: #59636e; border-left: .25em solid #d1d9e0; }
+@media (prefers-color-scheme: dark) {
+  body { color: #e6edf3; background: #0d1117; }
+  h1, h2, th, td, blockquote { border-color: #30363d; }
+  a { color: #4493f8; }
+  code { background: #262c36; }
+  pre { background: #151b23; }
+  blockquote { color: #9198a1; }
+}
