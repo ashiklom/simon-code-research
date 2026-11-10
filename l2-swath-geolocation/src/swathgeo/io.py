@@ -37,6 +37,8 @@ class Nav:
     vel: np.ndarray  # (n, 3) ECEF m/s
     rpy: np.ndarray | None = None  # (n, 3) roll/pitch/yaw radians, if available
     t_inst2ecr: np.ndarray | None = None  # (n, 3, 3) MODIS only
+    att_time: np.ndarray | None = None  # ECOSTRESS: attitude sample times
+    body2ecef: np.ndarray | None = None  # ECOSTRESS: (n, 3, 3) ISS body -> ECEF
 
 
 @dataclass
@@ -50,6 +52,7 @@ class Swath:
     line_time: np.ndarray | None = None  # per scan (MODIS/VIIRS) or per line (ECOSTRESS)
     nav: Nav | None = None
     lst: np.ndarray | None = None
+    height: np.ndarray | None = None  # terrain height of pixel centres (m)
     l2_path: Path | None = None
     attrs: dict = field(default_factory=dict)
 
@@ -101,6 +104,7 @@ def read_modis_geo(path: Path, nav: bool = True) -> Swath:
     lat = _sds(sd, "Latitude")
     lon = _sds(sd, "Longitude")
     vza = _sds(sd, "SensorZenith")
+    hgt = _sds(sd, "Height")
     n = None
     t = _sds(sd, "EV center time")
     if nav:
@@ -112,7 +116,7 @@ def read_modis_geo(path: Path, nav: bool = True) -> Swath:
             t_inst2ecr=_sds(sd, "T_inst2ECR"),
         )
     platform = "Terra" if Path(path).name.startswith("MOD") else "Aqua"
-    return Swath("modis", platform, Path(path), lat, lon, vza, line_time=t, nav=n)
+    return Swath("modis", platform, Path(path), lat, lon, vza, line_time=t, nav=n, height=hgt)
 
 
 def read_modis_lst(path: Path) -> np.ndarray:
@@ -147,6 +151,7 @@ def read_viirs_geo(path: Path, nav: bool = True) -> Swath:
         lat = _h5(g["latitude"])
         lon = _h5(g["longitude"])
         vza = _h5(g["sensor_zenith"])
+        hgt = _h5(g["height"])
         t = _h5(h["scan_line_attributes/ev_mid_time"])
         n = None
         if nav:
@@ -158,7 +163,7 @@ def read_viirs_geo(path: Path, nav: bool = True) -> Swath:
                 rpy=np.radians(_h5(nd["att_ang_mid"])),
             )
         platform = h.attrs.get("platform", b"").decode() if "platform" in h.attrs else ""
-    return Swath("viirs", platform, Path(path), lat, lon, vza, line_time=t, nav=n)
+    return Swath("viirs", platform, Path(path), lat, lon, vza, line_time=t, nav=n, height=hgt)
 
 
 def read_viirs_lst(path: Path) -> np.ndarray:
@@ -169,14 +174,46 @@ def read_viirs_lst(path: Path) -> np.ndarray:
 # --- ECOSTRESS -----------------------------------------------------------------------
 
 
+def _astropy_time(t_j2000):
+    from astropy import units as u
+    from astropy.time import Time
+
+    # ECOSTRESS time_j2000 = seconds since 2000-01-01T12:00:00; treated as TT.
+    return Time(2451545.0, format="jd", scale="tt") + t_j2000 * u.s
+
+
+def eci2ecef_matrices(t_j2000: np.ndarray) -> np.ndarray:
+    """(n, 3, 3) rotation GCRS -> ITRS (columns: images of the GCRS basis vectors)."""
+    from astropy import units as u
+    from astropy.coordinates import GCRS, ITRS, CartesianRepresentation
+
+    t = _astropy_time(t_j2000)
+    cols = []
+    for e in np.eye(3):
+        rep = CartesianRepresentation(*(np.repeat(e[:, None] * 1e7, len(t_j2000), 1) * u.m))
+        c = GCRS(rep, obstime=t).transform_to(ITRS(obstime=t)).cartesian
+        v = np.stack([c.x.to_value(u.m), c.y.to_value(u.m), c.z.to_value(u.m)], -1)
+        cols.append(v / np.linalg.norm(v, axis=-1, keepdims=True))
+    return np.stack(cols, -1)
+
+
+def quat_to_matrix(q: np.ndarray) -> np.ndarray:
+    """Scalar-first unit quaternions (n, 4) -> rotation matrices (n, 3, 3)."""
+    w, x, y, z = q.T
+    return np.stack([
+        np.stack([1 - 2 * (y * y + z * z), 2 * (x * y - w * z), 2 * (x * z + w * y)], -1),
+        np.stack([2 * (x * y + w * z), 1 - 2 * (x * x + z * z), 2 * (y * z - w * x)], -1),
+        np.stack([2 * (x * z - w * y), 2 * (y * z + w * x), 1 - 2 * (x * x + y * y)], -1),
+    ], -2)
+
+
 def eci_to_ecef(t_j2000: np.ndarray, pos: np.ndarray, vel: np.ndarray):
     """GCRS(~J2000) -> ITRS with astropy (precession, nutation, Earth rotation)."""
     from astropy import units as u
     from astropy.coordinates import GCRS, ITRS, CartesianDifferential, CartesianRepresentation
     from astropy.time import Time
 
-    t = Time(2451545.0, format="jd", scale="tt") + t_j2000 * u.s
-    # ECOSTRESS time_j2000 is "seconds since 2000-01-01T12:00:00 (J2000)"; treat as TT-ish.
+    t = _astropy_time(t_j2000)
     rep = CartesianRepresentation(pos.T * u.m, differentials=CartesianDifferential(vel.T * u.m / u.s))
     itrs = GCRS(rep, obstime=t).transform_to(ITRS(obstime=t))
     c = itrs.cartesian
@@ -200,6 +237,7 @@ def read_ecostress_geo(path: Path, nav: bool = True, att_path: Path | None = Non
         lat = g["latitude"][()]
         lon = g["longitude"][()]
         vza = g["view_zenith"][()].astype(np.float64)
+        hgt = g["height"][()].astype(np.float64)
         t = g["line_start_time_j2000"][()]
         attrs = {
             "pixel_spacing": float(h["StandardMetadata/ImagePixelSpacing"][()]),
@@ -215,8 +253,13 @@ def read_ecostress_geo(path: Path, nav: bool = True, att_path: Path | None = Non
                 te = a["Ephemeris/time_j2000"][()]
                 sel = (te > t.min() - 30) & (te < t.max() + 30)
                 pe, ve = eci_to_ecef(te[sel], a["Ephemeris/eci_position"][sel], a["Ephemeris/eci_velocity"][sel])
-                n = Nav(time=te[sel], pos=pe, vel=ve)
-    return Swath("ecostress", "ISS", Path(path), lat, lon, vza, line_time=t, nav=n, attrs=attrs)
+                tq = a["Attitude/time_j2000"][()]
+                sq = (tq > t.min() - 30) & (tq < t.max() + 30)
+                # quaternion = ISS body -> J2000 (scalar first); verified: body z within ~7 deg of nadir
+                b2eci = quat_to_matrix(a["Attitude/quaternion"][sq])
+                b2ecef = eci2ecef_matrices(tq[sq]) @ b2eci
+                n = Nav(time=te[sel], pos=pe, vel=ve, att_time=tq[sq], body2ecef=b2ecef)
+    return Swath("ecostress", "ISS", Path(path), lat, lon, vza, line_time=t, nav=n, height=hgt, attrs=attrs)
 
 
 def read_ecostress_lst(path: Path) -> np.ndarray:
@@ -260,12 +303,14 @@ def stack(swaths: list[Swath]) -> Swath:
             vel=cat([s.nav.vel for s in swaths]),
             rpy=cat([s.nav.rpy for s in swaths]),
             t_inst2ecr=cat([s.nav.t_inst2ecr for s in swaths]),
+            att_time=cat([s.nav.att_time for s in swaths]),
+            body2ecef=cat([s.nav.body2ecef for s in swaths]),
         )
     return Swath(
         s0.sensor, s0.platform, s0.geo_path,
         cat([s.lat for s in swaths]), cat([s.lon for s in swaths]), cat([s.vza for s in swaths]),
         line_time=cat([s.line_time for s in swaths]), nav=nav,
-        lst=cat([s.lst for s in swaths]), l2_path=s0.l2_path,
+        lst=cat([s.lst for s in swaths]), height=cat([s.height for s in swaths]), l2_path=s0.l2_path,
         attrs={**s0.attrs, "granules": [s.geo_path.name for s in swaths]},
     )
 
