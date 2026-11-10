@@ -1,0 +1,51 @@
+project:
+  type: website
+  output-dir: _site
+  render:
+    - "*.qmd"
+  resources:
+    - data/
+    - figures/
+
+website:
+  title: "L2 swath geolocation"
+  site-url: "https://ashiklom.github.io/simon-code-research/l2-swath-geolocation/"
+  repo-url: "https://github.com/ashiklom/simon-code-research"
+  page-navigation: true
+  navbar:
+    left:
+      - href: index.qmd
+        text: Overview
+      - text: "A · Locating pixels"
+        menu:
+          - href: locate.qmd
+            text: Results
+          - href: locate-methods.qmd
+            text: Methods & explainers
+      - text: "B · Footprints & PSF"
+        menu:
+          - href: footprint.qmd
+            text: Results
+          - href: footprint-methods.qmd
+            text: Methods & explainers
+      - text: "C · Read performance"
+        menu:
+          - href: read.qmd
+            text: Results
+          - href: read-methods.qmd
+            text: Methods & explainers
+      - href: reproduce.qmd
+        text: Reproduce
+
+format:
+  html:
+    theme: [cosmo, style.scss]
+    toc: true
+    toc-depth: 3
+    code-fold: true
+    fig-responsive: true
+    df-print: kable
+    html-math-method: katex
+
+execute:
+  enabled: false

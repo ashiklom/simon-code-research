@@ -1,0 +1,107 @@
+{
+ "Terra": {
+  "sensor": "modis",
+  "n_det": 10,
+  "n_samp": 1354,
+  "alpha": 0.0014179092178569729,
+  "j_c": 677.8944495979596,
+  "s": -1.0,
+  "delta": 0.0014180515338236728,
+  "d_c": 4.5,
+  "phi0": -0.00028007212550916266,
+  "kappa": 0.19240312085094413,
+  "t_off": -0.08952845896317381,
+  "rpy": [
+   0.0,
+   0.0,
+   0.0
+  ],
+  "frame": "inst",
+  "nadir": "geodetic",
+  "note": "MOD03 ATBD: 1 km IFOV = 1.418 mrad, 1354 frames, +-55 deg, 20.3 rpm two-sided mirror"
+ },
+ "Aqua": {
+  "sensor": "modis",
+  "n_det": 10,
+  "n_samp": 1354,
+  "alpha": 0.0014179863956205463,
+  "j_c": 678.0890196301943,
+  "s": -1.0,
+  "delta": 0.0014176321591838404,
+  "d_c": 4.5,
+  "phi0": -0.0009285211972788949,
+  "kappa": 0.22455867133586027,
+  "t_off": -0.16542817141353394,
+  "rpy": [
+   0.0,
+   0.0,
+   0.0
+  ],
+  "frame": "inst",
+  "nadir": "geodetic",
+  "note": "MOD03 ATBD: 1 km IFOV = 1.418 mrad, 1354 frames, +-55 deg, 20.3 rpm two-sided mirror"
+ },
+ "SNPP": {
+  "sensor": "viirs",
+  "n_det": 16,
+  "n_samp": 3200,
+  "alpha": 0.0003116723065550558,
+  "j_c": 3153.1499414641603,
+  "s": -1.0,
+  "delta": 0.000894948674017931,
+  "d_c": 7.5,
+  "phi0": 0.0014216858369489138,
+  "kappa": 0.25932336609563994,
+  "t_off": 0.7552925593370544,
+  "rpy": [
+   0.0,
+   -0.007644656791406074,
+   0.00039577282746469585
+  ],
+  "frame": "orbital",
+  "nadir": "geodetic",
+  "note": "VIIRS SDR/GEO ATBD: 6304 native M samples over +-56.06 deg, 1.7864 s scan, 16 detectors 742 m @ 829 km"
+ },
+ "NOAA-20": {
+  "sensor": "viirs",
+  "n_det": 16,
+  "n_samp": 3200,
+  "alpha": 0.0003103899873726206,
+  "j_c": 3156.6985266789284,
+  "s": -1.0,
+  "delta": 0.0008906698474146998,
+  "d_c": 7.5,
+  "phi0": -0.0015319776017933217,
+  "kappa": 0.25814976225169545,
+  "t_off": -0.8713266893025295,
+  "rpy": [
+   0.0,
+   0.010863460714757417,
+   0.0005142342847035243
+  ],
+  "frame": "orbital",
+  "nadir": "geodetic",
+  "note": "VIIRS SDR/GEO ATBD: 6304 native M samples over +-56.06 deg, 1.7864 s scan, 16 detectors 742 m @ 829 km"
+ },
+ "ISS": {
+  "sensor": "ecostress",
+  "n_det": 128,
+  "n_samp": 5400,
+  "alpha": 0.0001713654680696715,
+  "j_c": 2701.4389158833374,
+  "s": -1.0,
+  "delta": 0.0001846272265397009,
+  "d_c": 63.5,
+  "phi0": 2.489026161195841e-05,
+  "kappa": 0.13851624252028108,
+  "t_off": 0.138067273417581,
+  "rpy": [
+   0.0,
+   0.005169006407190017,
+   0.0015657476326813623
+  ],
+  "frame": "attitude",
+  "nadir": "geodetic",
+  "note": "ECOSTRESS L1 ATBD: +-25.5 deg, 5400 samples, 25.4 rpm two-sided mirror, 44 scans x 128 lines"
+ }
+}

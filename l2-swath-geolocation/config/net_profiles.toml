@@ -1,0 +1,75 @@
+# Network profiles for the throttling proxy (src/swathgeo/netsim.py).
+#   connect_ms        cost of the first request on each new TCP connection (TCP+TLS handshakes)
+#   ttfb_median_ms    time to first byte, lognormal(median, ttfb_sigma)
+#   tail_prob/tail_ms extra delay (uniform range) with that probability (cold starts, RTOs)
+#   bw_MBps           per-connection bandwidth median, lognormal(bw_sigma), capped at bw_max_MBps
+#   aggregate_MBps    shared cap over all connections
+#   stall_prob/ms     per-request mid-body stall
+#   error_prob        per-request 5xx (S3: 503 SlowDown)
+#   redirect          HTTP: every un-signed request -> 303 to a pre-signed URL (+ redirect_ms hop)
+#   max_concurrent    per-client connection cap (server queues the rest)
+# Citations/assumptions: see the Part C methods page. [C] = cited, [A] = assumed.
+
+[profile.zero_s3]            # proxy overhead only (S3 API via moto)
+kind = "s3"
+
+[profile.zero_http]          # proxy overhead only (plain HTTP range server)
+kind = "http"
+
+[profile.s3_in_region]       # EC2 us-west-2 -> NASA bucket us-west-2
+kind = "s3"
+connect_ms = 3               # 2 RTT TLS 1.3, in-AZ [C/A]
+ttfb_median_ms = 30          # "tens of ms" median; Durner et al. base ~30 ms [C]
+ttfb_sigma = 0.8             # p95 ~110, p99 ~190 ms; <5% >200 ms [C/A]
+tail_prob = 0.001            # rare lost request, client retries after ~2 s [C/A]
+tail_ms = [1000, 2000]
+bw_MBps = 58                 # per-request median 55-60 MiB/s [C: Durner]
+bw_sigma = 0.3
+bw_max_MBps = 95             # hard ceiling ~95 MiB/s [C]
+aggregate_MBps = 625         # 5 Gbps (instance < 32 vCPU) [C]
+error_prob = 0.0001          # [A]
+
+[profile.s3_cross_region]    # e.g. EC2 us-east-1 -> us-west-2 (RTT ~71 ms) (NASA buckets: 403!)
+kind = "s3"
+connect_ms = 180             # 2-3 RTT [A]
+ttfb_median_ms = 100         # RTT + S3 service time [A]; measured 130 ms median [M]
+ttfb_sigma = 0.5             # p99 ~300 ms [A]
+tail_prob = 0.003            # TCP RTO stalls [A]
+tail_ms = [200, 1000]
+bw_MBps = 25                 # window/RTT-limited, ~10-50 MB/s [A]
+bw_sigma = 0.4
+bw_max_MBps = 90
+aggregate_MBps = 400
+error_prob = 0.0001
+
+[profile.https_earthdata]    # Earthdata HTTPS via TEA (CloudFront -> Lambda -> 303 -> S3), outside AWS
+kind = "http"
+connect_ms = 180
+ttfb_median_ms = 100         # the S3 GET after the redirect [A]
+ttfb_sigma = 0.5
+redirect = true              # 303 per request; fsspec follows every time, GDAL caches [C]
+redirect_ms = 150            # TEA hop adds ~120-250 ms [M] [A]
+redirect_sigma = 0.5
+tail_prob = 0.01             # Lambda cold starts [A]
+tail_ms = [500, 1000]
+bw_MBps = 25
+bw_sigma = 0.4
+bw_max_MBps = 90
+aggregate_MBps = 400
+error_prob = 0.001           # 5xx/429 [A]
+
+[profile.nccs_portal]        # NCCS datashare: single on-prem nginx, HTTP/1.1, shared egress
+kind = "http"
+connect_ms = 210             # TLS 1.2 + TCP, no h2 [M/A]
+ttfb_median_ms = 150         # ~80 ms server + RTT [M/A]
+ttfb_sigma = 1.0             # heavy tail, p99 ~1.5 s [A]
+tail_prob = 0.01
+tail_ms = [1000, 5000]
+bw_MBps = 20                 # single connection ~20 MB/s [M]
+bw_sigma = 0.8               # very variable (load) [A]
+bw_max_MBps = 100
+aggregate_MBps = 35          # sublinear scaling, 35 MB/s at 16 streams [M]
+stall_prob = 0.01            # TCP RTO / overload stalls [A]
+stall_ms = [1000, 5000]
+error_prob = 0.005           # 502/503/504 under load [A]
+max_concurrent = 10          # per-IP cap by analogy with NCAR RDA [A]

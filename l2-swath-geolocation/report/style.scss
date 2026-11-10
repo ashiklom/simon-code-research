@@ -1,0 +1,9 @@
+/*-- scss:defaults --*/
+$body-bg: #fcfcfb;
+$body-color: #0b0b0b;
+$link-color: #256abf;
+$font-family-sans-serif: system-ui, -apple-system, "Segoe UI", sans-serif;
+/*-- scss:rules --*/
+.callout { border-left-width: 3px; }
+table { font-variant-numeric: tabular-nums; font-size: 0.9em; }
+.widget { background: #fff; border: 1px solid rgba(11,11,11,0.10); border-radius: 6px; padding: 12px 14px; margin: 1em 0; }

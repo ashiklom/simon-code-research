@@ -5,3 +5,47 @@ pixi = "0.84.1"
 [tasks.setup]
 description = "Install the pixi environment"
 run = "pixi install --locked"
+
+[tasks.download]
+description = "Download all granules (needs EARTHDATA_LOGIN_USER / EARTHDATA_LOGIN_PASSWORD)"
+run = ["pixi run python scripts/01_download.py"]
+
+[tasks.targets]
+run = "pixi run python scripts/02_targets.py"
+
+[tasks.consistency]
+description = "Part A: calibrate + test the analytic locator across scenes"
+run = "pixi run python scripts/11_analytic_consistency.py"
+
+[tasks.locate]
+description = "Part A: locator benchmark"
+run = "pixi run python scripts/10_bench_locate.py"
+
+[tasks.footprint]
+description = "Part B: footprints, Voronoi, PSF, areal means, synthetic test"
+run = "pixi run python scripts/20_footprints.py"
+
+[tasks.readbench]
+description = "Part C: read benchmark through the network simulator"
+run = "pixi run python scripts/30_bench_read.py"
+
+[tasks.figures]
+description = "Make figures and site data from results/"
+run = "pixi run python scripts/40_figures.py"
+
+[tasks.test]
+run = "pixi run pytest -q tests"
+
+[tasks.all]
+description = "Everything after download (long: ~3-4 h)"
+depends = ["consistency"]
+run = ["mise run locate", "mise run footprint", "mise run readbench", "mise run figures"]
+
+[tasks.site]
+description = "Render the Quarto site from committed results/figures (no analysis)"
+run = [
+  "rm -rf report/data report/figures",
+  "cp -r results report/data",
+  "cp -r figures report/figures",
+  "quarto render report",
+]

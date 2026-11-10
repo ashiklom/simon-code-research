@@ -1,0 +1,38 @@
+# Parametric separable PSFs in units of each pixel's own sample spacing (along-scan "s",
+# along-track "t"). Each axis = convolution of components: rect(width) / gauss(fwhm).
+# Sources (full references on the Part B methods page):
+#  [B98]  Barnes, Pagano & Salomonson 1998, IEEE TGRS 36(4) - MODIS prelaunch LSF/MTF (Table III)
+#  [Tan06] Tan et al. 2006, RSE 105 - triangular along-scan weighting, ~75% from nominal pixel
+#  [Lin13] Lin et al. 2013, Proc SPIE 8866 - SNPP VIIRS spatial response per aggregation zone
+#  [W13]  Wolfe et al. 2013, JGR 118 - VIIRS track LSF "essentially square"
+#  [VGeoATBD] JPSS VIIRS Geolocation ATBD (2014) - aggregation zones, 6304 native samples
+#  [H24]  Holmes et al. 2024, JGR-Biogeosciences 129 - on-orbit ECOSTRESS PSF (bridge transects)
+# Gaussian sigma = FWHM / 2.355. Optical-blur Gaussians below were fitted (by us) so that the
+# model MTF at Nyquist matches the measured value.
+
+[modis]  # bands 31/32, 1 km
+# along-scan: detector rect (1) * scan-motion integration rect (1) = triangle, FWHM 1 [B98, Tan06]
+# + optical blur sigma 0.16 -> MTF_Nyquist ~0.35 (measured 0.34-0.37) [B98]
+along_scan = [{type = "rect", width = 1.0}, {type = "rect", width = 1.0}, {type = "gauss", fwhm = 0.377}]
+# along-track: rect (1) + optical blur sigma 0.175 -> MTF_Nyquist ~0.55 (measured 0.54-0.55) [B98]
+along_track = [{type = "rect", width = 1.0}, {type = "gauss", fwhm = 0.412}]
+
+# VIIRS M15/M16: along-scan shape depends on the on-board aggregation factor k:
+# rect(1) aggregate of k native samples, each a (native detector rect * dwell rect) of width 1/k
+# [VGeoATBD, Lin13]; measured MTF_N 0.59 / 0.54 / 0.35 for k = 3 / 2 / 1 vs ideal 0.58 / 0.52 / 0.405.
+[viirs.agg3]
+along_scan = [{type = "rect", width = 1.0}, {type = "rect", width = 0.3333}, {type = "rect", width = 0.3333}]
+along_track = [{type = "rect", width = 1.0}]  # "essentially square" [W13]
+[viirs.agg2]
+along_scan = [{type = "rect", width = 1.0}, {type = "rect", width = 0.5}, {type = "rect", width = 0.5}]
+along_track = [{type = "rect", width = 1.0}]
+[viirs.agg1]
+along_scan = [{type = "rect", width = 1.0}, {type = "rect", width = 1.0}, {type = "gauss", fwhm = 0.3}]
+along_track = [{type = "rect", width = 1.0}]
+
+[ecostress]
+# On-orbit measured Gaussian FWHM 157 m along-track x 162 m across-track [H24] for ~75 x 69 m
+# L1B samples => FWHM ~2.07 samples (track), ~2.36 samples (scan). Ideal geometric model would
+# be ~1 sample wide but is not achieved in practice [H24].
+along_scan = [{type = "gauss", fwhm = 2.36}]
+along_track = [{type = "gauss", fwhm = 2.07}]
