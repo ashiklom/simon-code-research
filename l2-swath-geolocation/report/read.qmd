@@ -1,0 +1,74 @@
+---
+title: "C · Read performance — results"
+---
+
+::: {.callout-note appearance="simple"}
+**Bottom line.** <!-- C-BOTTOM -->
+:::
+
+## Small window (one site)
+
+![](figures/read_window_site.png)
+
+<!-- C-SITE -->
+
+## County-sized window
+
+![](figures/read_window_poly.png)
+
+## Full granule
+
+![](figures/read_full.png)
+
+<!-- C-FULL -->
+
+## Requests and bytes
+
+The proxy counts every request. Requests × latency and bytes ÷ bandwidth explain almost all of
+the differences between readers:
+
+```{ojs}
+//| echo: false
+bench = FileAttachment("data/site/read_bench.csv").csv({typed: true})
+viewof rbSensor = Inputs.radio(["modis", "viirs", "ecostress"], {value: "viirs", label: "sensor"})
+viewof rbTask = Inputs.radio(["window_site", "window_poly", "full"], {value: "window_site", label: "task"})
+rbRows = {
+  const sub = bench.filter(d => d.sensor === rbSensor && d.task === rbTask);
+  const out = [];
+  for (const [key, g] of d3.group(sub, d => d.reader + "|" + d.profile)) {
+    const [reader, profile] = key.split("|");
+    const ok = g.filter(d => d.seconds != null && !isNaN(d.seconds));
+    out.push({reader, profile, "median s": ok.length ? d3.median(ok, d => d.seconds).toFixed(2) : "fail",
+              "min–max s": ok.length ? `${d3.min(ok, d => d.seconds).toFixed(2)}–${d3.max(ok, d => d.seconds).toFixed(2)}` : "",
+              ok: `${ok.length}/${g.length}`, requests: d3.median(ok, d => d.net_requests) ?? "",
+              MB: ok.length && ok[0].net_bytes != null ? (d3.median(ok, d => d.net_bytes) / 1e6).toFixed(1) : "",
+              redirects: d3.median(ok, d => d.net_redirects) ?? "",
+              error: ok.length < g.length ? String(g.find(d => d.error)?.error ?? "").slice(0, 90) : ""});
+  }
+  const order = ["local", "zero_http", "zero_s3", "s3_in_region", "s3_cross_region", "https_earthdata", "nccs_portal"];
+  return out.sort((a, b) => order.indexOf(a.profile) - order.indexOf(b.profile) || a.reader.localeCompare(b.reader));
+}
+Inputs.table(rbRows, {rows: 25})
+```
+
+## Building the virtual references
+
+```{ojs}
+//| echo: false
+vb = FileAttachment("data/site/virtual_build.csv").csv({typed: true})
+vbRows = {
+  const out = [];
+  for (const [key, g] of d3.group(vb, d => d.file + "|" + d.parser + "|" + d.profile)) {
+    const [file, parser, profile] = key.split("|");
+    const ok = g.filter(d => d.seconds != null && !isNaN(d.seconds));
+    out.push({file: file.split("/")[1].slice(0, 28), parser, profile,
+              "median s": ok.length ? d3.median(ok, d => d.seconds).toFixed(2) : "fail",
+              requests: ok.length ? d3.median(ok, d => d.net_requests) ?? "" : "", MB: ok.length && ok[0].net_bytes != null ? (d3.median(ok, d => d.net_bytes) / 1e6).toFixed(1) : "",
+              error: ok.length < g.length ? String(g.find(d => d.error)?.error ?? "").slice(0, 80) : ""});
+  }
+  return out;
+}
+Inputs.table(vbRows, {rows: 25})
+```
+
+<!-- C-BUILD -->

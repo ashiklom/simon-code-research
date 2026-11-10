@@ -67,6 +67,7 @@ PROFILES = ["local", "zero_s3", "zero_http", "s3_in_region", "s3_cross_region", 
 REPS = {"local": 3, "zero_s3": 2, "zero_http": 2, "s3_in_region": 3, "s3_cross_region": 3,
         "https_earthdata": 3, "nccs_portal": 5}
 TIMEOUT_S = 300
+REP_BUDGET_S = 90  # stop repeating a reader/profile/task once it has used this much time
 ICE = config.DATA / "icechunk"
 MOTO_PORT = 17999
 BASE_PORT = 18000
@@ -280,7 +281,10 @@ def _read_worker(reader_name, profile, ports, sensor, task, window, reps, q):
     port = ports.get(profile)
     rdr = make_reader(reader_name)
     out = []
+    spent = 0.0
     for rep in range(reps):
+        if rep >= 1 and spent > REP_BUDGET_S:  # slow combination: fewer repetitions
+            break
         try:
             if hasattr(rdr, "retries_used"):
                 rdr.retries_used = 0
@@ -291,11 +295,13 @@ def _read_worker(reader_name, profile, ports, sensor, task, window, reps, q):
                 key, fmt, vars_ = FILES[sensor][part]
                 arrs.update(rdr.read_many(acc, key, vars_, window))
             dt = time.perf_counter() - t
+            spent += dt
             nb = sum(a.nbytes for a in arrs.values())
             out.append({"rep": rep, "seconds": dt, "array_MB": nb / 1e6, "digest": digest(arrs),
                         "app_retries": getattr(rdr, "retries_used", 0),
                         **{f"net_{k}": v for k, v in stats(port).items()}})
         except Exception as e:  # noqa: BLE001
+            spent += time.perf_counter() - t
             out.append({"rep": rep, "error": f"{type(e).__name__}: {e}"[:300]})
         q.put(out[-1])
     q.put(None)

@@ -46,6 +46,7 @@ description = "Render the Quarto site from committed results/figures (no analysi
 run = [
   "rm -rf report/data report/figures",
   "cp -r results report/data",
+  "cp -r config/targets report/data/targets",
   "cp -r figures report/figures",
   "quarto render report",
 ]

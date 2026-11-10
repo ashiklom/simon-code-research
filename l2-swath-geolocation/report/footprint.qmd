@@ -1,0 +1,96 @@
+---
+title: "B · Footprints & PSF — results"
+---
+
+::: {.callout-note appearance="simple"}
+**Bottom line.** <!-- B-BOTTOM -->
+:::
+
+## Pixel size vs. view angle
+
+![](figures/footprint_size.png)
+
+The spherical-Earth model (lines) matches the spacing of pixel centres in the geolocation files
+(dots) for all three sensors, including the VIIRS saw-tooth caused by on-board aggregation (3:1 →
+2:1 at 31.6°, 2:1 → 1:1 at 44.7°). Model sizes at the swath edge: MODIS 4.8 × 2.0 km
+(from 1 × 1 km at nadir), VIIRS 1.6 × 1.6 km (from 0.78 × 0.74 km), ECOSTRESS ~90 × 86 m (from
+71 × 77 m). ECOSTRESS centre spacing scatters more because its L1B geolocation is
+terrain-corrected and its scans overlap.
+
+## Pixels as vectors
+
+![](figures/footprint_maps.png)
+
+Every pixel near a target is exported as an oriented quadrilateral (trigonometric footprint) and
+as its Voronoi cell, with view zenith, size, LST and all weights as attributes
+(FlatGeobuf, [`results/vectors/`](https://github.com/ashiklom/simon-code-research/tree/main/l2-swath-geolocation/results/vectors); county-sized exports are produced by
+`scripts/20_footprints.py` into `data/vectors/`). At nadir, footprints and Voronoi cells are
+nearly the same squares. At the MODIS swath edge, footprints of consecutive scans overlap by
+~50 % (the bow-tie), so each pixel can only claim about half its footprint; Voronoi cells instead
+split the overlap into irregular slivers. VIIRS' bow-tie-deleted pixels (no data) are removed
+before either construction.
+
+```{ojs}
+//| echo: false
+viewof fpScene = Inputs.select(["modis_aqua_nadir", "modis_aqua_edge", "viirs_n20_nadir", "viirs_snpp_edge", "ecostress"], {value: "modis_aqua_edge", label: "scene"})
+viewof fpPoly = Inputs.radio(["circle_10km", "box_3km"], {value: "box_3km", label: "polygon"})
+viewof fpKind = Inputs.radio(["footprints", "voronoi"], {value: "footprints", label: "pixel shape"})
+viewof fpColor = Inputs.select(["lst_K", "vza", "w_naive_center", "w_voronoi", "w_footprint_pou", "w_psf_pou"], {value: "lst_K", label: "colour by"})
+fpData = {
+  try { return await d3.json(`data/site/${fpScene}__${fpPoly}__${fpKind}.geojson`); }
+  catch (e) { return {type: "FeatureCollection", features: []}; }
+}
+polysAll = FileAttachment("data/targets/polygons.geojson").json()
+fpTarget = ({type: "FeatureCollection", features: polysAll.features.filter(f => f.properties.name === fpPoly)})
+```
+
+::: {.widget}
+```{ojs}
+//| echo: false
+Plot.plot({width: 640, height: 520, projection: {type: "azimuthal-equal-area", domain: fpData.features.length ? fpData : fpTarget, inset: 10},
+  color: {type: "linear", scheme: "blues", legend: true, label: fpColor},
+  marks: [Plot.geo(fpData, {fill: d => d.properties[fpColor], stroke: "#52514e", strokeWidth: 0.3, fillOpacity: 0.85,
+                            title: d => `row ${d.properties.row}, col ${d.properties.col}\nVZA ${d.properties.vza}°\n${d.properties.W_s_m} × ${d.properties.W_t_m} m\nLST ${d.properties.lst_K} K`}),
+          Plot.geo(fpTarget, {stroke: "#e34948", strokeWidth: 2, fill: "none"})]})
+```
+Hover a pixel for its geometry. Large ECOSTRESS subsets are not shipped to the browser.
+:::
+
+## Areal means of real LST
+
+![](figures/areal_real.png)
+
+Differences relative to the PSF-aware (overlap-aware) mean, for the three polygons in each scene:
+
+```{ojs}
+//| echo: false
+areal = FileAttachment("data/site/areal_means.csv").csv({typed: true})
+schemes = ["naive_center", "naive_square", "voronoi", "footprint", "footprint_pou", "psf", "psf_pou", "psf_lsq"]
+Inputs.table(areal.map(d => Object.fromEntries([["scene", d.scene], ["polygon", d.polygon], ["VZA", d.vza_mean.toFixed(1)],
+  ["centres in", d.n_center_in], ["pixels touching", d.n_touching],
+  ...schemes.map(s => [s, d[`mean_${s}`] == null || isNaN(d[`mean_${s}`]) ? "–" : d[`mean_${s}`].toFixed(2)])])), {rows: 18})
+```
+
+<!-- B-REAL -->
+
+## Synthetic truth: which pixel model gets the polygon mean right?
+
+![](figures/areal_synthetic.png)
+
+<!-- B-SYNTH -->
+
+```{ojs}
+//| echo: false
+synth = FileAttachment("data/site/synthetic_errors.csv").csv({typed: true})
+synthTable = {
+  const out = [];
+  for (const [scene, g1] of d3.group(synth, d => d.scene)) for (const [size, g2] of d3.group(g1, d => d.size_m)) {
+    const row = {scene, "size km": size / 1000, n: g2.length};
+    for (const s of schemes) { const v = g2.map(d => d[`err_${s}`]).filter(x => x != null && !isNaN(x)); row[s] = v.length ? Math.sqrt(d3.mean(v, x => x * x)).toFixed(2) : "–"; }
+    out.push(row);
+  }
+  return out;
+}
+Inputs.table(synthTable, {rows: 20})
+```
+RMSE (K) of the polygon-mean LST over the random polygons, per scene and polygon size.
