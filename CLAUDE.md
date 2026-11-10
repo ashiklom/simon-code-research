@@ -61,12 +61,12 @@ first:
   git history.
 
 ### TRANSCRIPT.md
-- When the experiment is done, generate it from this session's Claude Code log
-  (`~/.claude/projects/<project>/<session-id>.jsonl`) using `_helpers/transcript.py`.
-  Create the helper if it doesn't exist yet.
-- Keep: user and assistant text, plus a one-line summary for each tool call.
-- Drop: tool output, thinking, and system/context messages.
-- Redact: home-directory paths and my email address.
+- When the experiment is done, run `uv run _helpers/transcript.py -o <folder>/TRANSCRIPT.md`.
+  It defaults to the current session; pass `-s <session-id>` (repeatable) when the work spanned
+  several sessions.
+- The helper keeps user/assistant text and one-line tool-call summaries, drops tool output,
+  thinking, and system context, and redacts the home directory and email addresses. Skim the
+  output for anything else sensitive before committing; use `--redact <string>` if needed.
 
 ## Dependencies
 
@@ -96,8 +96,13 @@ reasonably be pinned (e.g. CUDA drivers, credentials), list it in the README und
 
 ## Publishing (GitHub Pages)
 
-The site is deployed by a GitHub Actions workflow. CI **never re-runs experiments**: it only
-renders and publishes outputs already committed or uploaded to releases.
+`.github/workflows/pages.yml` runs `_helpers/build_site.py` on every push to `main` and every
+release publish/edit. CI **never re-runs experiments**: it only renders and publishes outputs
+already committed or uploaded to releases.
+
+- Preview one experiment locally: `uv run _helpers/build_site.py --only <folder>`, then open
+  `_site/<folder>/index.html`. Add `--skip-assets` if the release doesn't exist yet.
+- A failing experiment build fails the whole deploy, so the build must pass locally first.
 
 ### publish.toml (per-experiment manifest)
 
@@ -119,11 +124,14 @@ dest = "figures/fig-results.png"  # path relative to <folder>/
 
 - Each experiment chooses its own site generator (Quarto, MkDocs, plain HTML, Vite, …).
   Install it through the experiment's own mise/pixi/uv config so CI can reproduce the build.
+  CI only provides `mise`, `uv`, and `gh`. `build` runs from `<folder>/` with
+  `SITE_BASE_URL` set to the experiment's Pages URL.
+- Without `build`, `README.md` becomes the page: embedded images (`![](figures/x.png)`) are
+  copied over, and links to other repo files point to GitHub.
 - CI renders the homepage from `/README.md` and adds a colophon footer to every experiment page
   with: build timestamp, last-updated date (last commit touching `<folder>/`), short commit SHA
   linked to `<folder>/` on GitHub, models and tools from `publish.toml`, and links to
   `PROMPT.md`, `PLAN.md` (if present), and `TRANSCRIPT.md`.
-- Before finishing, run the experiment's site build locally and check that it works.
 
 ### Releases
 
