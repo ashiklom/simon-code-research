@@ -1,0 +1,43 @@
+# Main scene set: 2023-06-03 (DOY 154), Sacramento Valley, California.
+# Chosen because a near-cloud-free daytime ECOSTRESS scene (13:25 PDT) overlaps same-day
+# Aqua/Terra MODIS and SNPP/NOAA-20 VIIRS passes, giving near-nadir and swath-edge views of
+# the same target. The MODIS swath-edge case is Aqua one day earlier (no same-day edge pass).
+# View zenith at the single-site target is noted for each scene.
+#
+# Each scene = a list of consecutive granules that are stacked along-track (targets near
+# granule boundaries). "geo" and "l2" lists are paired element-wise.
+
+[scenes.modis_aqua_nadir]          # VZA ~10 deg
+sensor = "modis"
+geo = ["https://data.laadsdaac.earthdatacloud.nasa.gov/prod-lads/MYD03/MYD03.A2023154.2120.061.2023155150843.hdf",
+       "https://data.laadsdaac.earthdatacloud.nasa.gov/prod-lads/MYD03/MYD03.A2023154.2125.061.2023155150831.hdf"]
+l2  = ["https://data.lpdaac.earthdatacloud.nasa.gov/lp-prod-protected/MYD11_L2.061/MYD11_L2.A2023154.2120.061.2023155165509/MYD11_L2.A2023154.2120.061.2023155165509.hdf",
+       "https://data.lpdaac.earthdatacloud.nasa.gov/lp-prod-protected/MYD11_L2.061/MYD11_L2.A2023154.2125.061.2023155175206/MYD11_L2.A2023154.2125.061.2023155175206.hdf"]
+
+[scenes.modis_terra_mid]           # VZA ~24 deg
+sensor = "modis"
+geo = ["https://data.laadsdaac.earthdatacloud.nasa.gov/prod-lads/MOD03/MOD03.A2023154.1825.061.2023155004551.hdf"]
+l2  = ["https://data.lpdaac.earthdatacloud.nasa.gov/lp-prod-protected/MOD11_L2.061/MOD11_L2.A2023154.1825.061.2023155151846/MOD11_L2.A2023154.1825.061.2023155151846.hdf"]
+
+[scenes.modis_aqua_edge]           # VZA ~60 deg, 2023-06-02
+sensor = "modis"
+geo = ["https://data.laadsdaac.earthdatacloud.nasa.gov/prod-lads/MYD03/MYD03.A2023153.2040.061.2023154153227.hdf"]
+l2  = ["https://data.lpdaac.earthdatacloud.nasa.gov/lp-prod-protected/MYD11_L2.061/MYD11_L2.A2023153.2040.061.2023154181012/MYD11_L2.A2023153.2040.061.2023154181012.hdf"]
+
+[scenes.viirs_n20_nadir]           # VZA ~0.5 deg
+sensor = "viirs"
+geo = ["https://data.laadsdaac.earthdatacloud.nasa.gov/prod-lads/VJ103MOD/VJ103MOD.A2023154.2100.021.2023155020601.nc",
+       "https://data.laadsdaac.earthdatacloud.nasa.gov/prod-lads/VJ103MOD/VJ103MOD.A2023154.2106.021.2023155020610.nc"]
+l2  = ["https://data.lpdaac.earthdatacloud.nasa.gov/lp-prod-protected/VJ121.002/VJ121.A2023154.2100.002.2023156223610/VJ121.A2023154.2100.002.2023156223610.nc",
+       "https://data.lpdaac.earthdatacloud.nasa.gov/lp-prod-protected/VJ121.002/VJ121.A2023154.2106.002.2023156224229/VJ121.A2023154.2106.002.2023156224229.nc"]
+
+[scenes.viirs_snpp_edge]           # VZA ~58 deg
+sensor = "viirs"
+geo = ["https://data.laadsdaac.earthdatacloud.nasa.gov/prod-lads/VNP03MOD/VNP03MOD.A2023154.2012.002.2023155044803.nc"]
+l2  = ["https://data.lpdaac.earthdatacloud.nasa.gov/lp-prod-protected/VNP21.002/VNP21.A2023154.2012.002.2023156230312/VNP21.A2023154.2012.002.2023156230312.nc"]
+
+[scenes.ecostress]                 # VZA ~12 deg
+sensor = "ecostress"
+geo = ["https://data.lpdaac.earthdatacloud.nasa.gov/lp-prod-protected/ECO_L1B_GEO.002/ECOv002_L1B_GEO_27837_005_20230603T202541_0711_02/ECOv002_L1B_GEO_27837_005_20230603T202541_0711_02.h5"]
+l2  = ["https://data.lpdaac.earthdatacloud.nasa.gov/lp-prod-protected/ECO_L2_LSTE.002/ECOv002_L2_LSTE_27837_005_20230603T202541_0711_03/ECOv002_L2_LSTE_27837_005_20230603T202541_0711_03.h5"]
+att = ["https://data.lpdaac.earthdatacloud.nasa.gov/lp-prod-protected/ECO_L1B_ATT.002/ECOv002_L1B_ATT_27837_20230603T201243_0711_02/ECOv002_L1B_ATT_27837_20230603T201243_0711_02.h5"]

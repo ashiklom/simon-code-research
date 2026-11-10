@@ -43,6 +43,7 @@ numpy = "*"
 pandas = "*"
 matplotlib = "*"
 psutil = "*"
+astropy = "*"
 pytest = "*"
 tomli-w = "*"
 

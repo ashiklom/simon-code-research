@@ -1,0 +1,568 @@
+[[scene]]
+sensor = "modis"
+platform = "Terra"
+product = "MOD03"
+epoch = "2013-06"
+location = "amazon"
+lat = -3.0
+lon = -60.0
+time_start = "2013-06-01T02:55:00.000Z"
+day_night = "NIGHT"
+url = "https://data.laadsdaac.earthdatacloud.nasa.gov/prod-lads/MOD03/MOD03.A2013152.0255.061.2017298171945.hdf"
+
+[[scene]]
+sensor = "modis"
+platform = "Terra"
+product = "MOD03"
+epoch = "2013-06"
+location = "sahara"
+lat = 23.0
+lon = 10.0
+time_start = "2013-06-01T21:10:00.000Z"
+day_night = "NIGHT"
+url = "https://data.laadsdaac.earthdatacloud.nasa.gov/prod-lads/MOD03/MOD03.A2013152.2110.061.2017298165437.hdf"
+
+[[scene]]
+sensor = "modis"
+platform = "Terra"
+product = "MOD03"
+epoch = "2013-06"
+location = "siberia"
+lat = 65.0
+lon = 100.0
+time_start = "2013-06-01T06:45:00.000Z"
+day_night = "DAY"
+url = "https://data.laadsdaac.earthdatacloud.nasa.gov/prod-lads/MOD03/MOD03.A2013152.0645.061.2017298172122.hdf"
+
+[[scene]]
+sensor = "modis"
+platform = "Terra"
+product = "MOD03"
+epoch = "2013-06"
+location = "argentina"
+lat = -35.0
+lon = -62.0
+time_start = "2013-06-02T14:30:00.000Z"
+day_night = "DAY"
+url = "https://data.laadsdaac.earthdatacloud.nasa.gov/prod-lads/MOD03/MOD03.A2013153.1430.061.2017298122455.hdf"
+
+[[scene]]
+sensor = "modis"
+platform = "Terra"
+product = "MOD03"
+epoch = "2013-06"
+location = "fiji_dateline"
+lat = -17.5
+lon = 179.8
+time_start = "2013-06-01T11:05:00.000Z"
+day_night = "NIGHT"
+url = "https://data.laadsdaac.earthdatacloud.nasa.gov/prod-lads/MOD03/MOD03.A2013152.1105.061.2017298171649.hdf"
+
+[[scene]]
+sensor = "modis"
+platform = "Terra"
+product = "MOD03"
+epoch = "2013-06"
+location = "california"
+lat = 39.4
+lon = -122.2
+time_start = "2013-06-01T18:25:00.000Z"
+day_night = "DAY"
+url = "https://data.laadsdaac.earthdatacloud.nasa.gov/prod-lads/MOD03/MOD03.A2013152.1825.061.2017298170611.hdf"
+
+[[scene]]
+sensor = "modis"
+platform = "Terra"
+product = "MOD03"
+epoch = "2024-06"
+location = "amazon"
+lat = -3.0
+lon = -60.0
+time_start = "2024-06-02T01:30:00.000Z"
+day_night = "NIGHT"
+url = "https://data.laadsdaac.earthdatacloud.nasa.gov/prod-lads/MOD03/MOD03.A2024154.0130.061.2024154070325.hdf"
+
+[[scene]]
+sensor = "modis"
+platform = "Terra"
+product = "MOD03"
+epoch = "2024-06"
+location = "sahara"
+lat = 23.0
+lon = 10.0
+time_start = "2024-06-02T21:20:00.000Z"
+day_night = "NIGHT"
+url = "https://data.laadsdaac.earthdatacloud.nasa.gov/prod-lads/MOD03/MOD03.A2024154.2120.061.2024155025716.hdf"
+
+[[scene]]
+sensor = "modis"
+platform = "Terra"
+product = "MOD03"
+epoch = "2024-06"
+location = "siberia"
+lat = 65.0
+lon = 100.0
+time_start = "2024-06-01T03:00:00.000Z"
+day_night = "DAY"
+url = "https://data.laadsdaac.earthdatacloud.nasa.gov/prod-lads/MOD03/MOD03.A2024153.0300.061.2024153094847.hdf"
+
+[[scene]]
+sensor = "modis"
+platform = "Terra"
+product = "MOD03"
+epoch = "2024-06"
+location = "argentina"
+lat = -35.0
+lon = -62.0
+time_start = "2024-06-01T13:20:00.000Z"
+day_night = "DAY"
+url = "https://data.laadsdaac.earthdatacloud.nasa.gov/prod-lads/MOD03/MOD03.A2024153.1320.061.2024153184804.hdf"
+
+[[scene]]
+sensor = "modis"
+platform = "Terra"
+product = "MOD03"
+epoch = "2024-06"
+location = "fiji_dateline"
+lat = -17.5
+lon = 179.8
+time_start = "2024-06-02T09:40:00.000Z"
+day_night = "NIGHT"
+url = "https://data.laadsdaac.earthdatacloud.nasa.gov/prod-lads/MOD03/MOD03.A2024154.0940.061.2024154152031.hdf"
+
+[[scene]]
+sensor = "modis"
+platform = "Terra"
+product = "MOD03"
+epoch = "2024-06"
+location = "california"
+lat = 39.4
+lon = -122.2
+time_start = "2024-06-02T18:35:00.000Z"
+day_night = "DAY"
+url = "https://data.laadsdaac.earthdatacloud.nasa.gov/prod-lads/MOD03/MOD03.A2024154.1835.061.2024155011552.hdf"
+
+[[scene]]
+sensor = "modis"
+platform = "Aqua"
+product = "MYD03"
+epoch = "2013-06"
+location = "amazon"
+lat = -3.0
+lon = -60.0
+time_start = "2013-06-01T05:50:00.000Z"
+day_night = "NIGHT"
+url = "https://data.laadsdaac.earthdatacloud.nasa.gov/prod-lads/MYD03/MYD03.A2013152.0550.061.2018046160038.hdf"
+
+[[scene]]
+sensor = "modis"
+platform = "Aqua"
+product = "MYD03"
+epoch = "2013-06"
+location = "sahara"
+lat = 23.0
+lon = 10.0
+time_start = "2013-06-01T13:25:00.000Z"
+day_night = "DAY"
+url = "https://data.laadsdaac.earthdatacloud.nasa.gov/prod-lads/MYD03/MYD03.A2013152.1325.061.2018046160253.hdf"
+
+[[scene]]
+sensor = "modis"
+platform = "Aqua"
+product = "MYD03"
+epoch = "2013-06"
+location = "siberia"
+lat = 65.0
+lon = 100.0
+time_start = "2013-06-01T07:00:00.000Z"
+day_night = "DAY"
+url = "https://data.laadsdaac.earthdatacloud.nasa.gov/prod-lads/MYD03/MYD03.A2013152.0700.061.2018046160235.hdf"
+
+[[scene]]
+sensor = "modis"
+platform = "Aqua"
+product = "MYD03"
+epoch = "2013-06"
+location = "argentina"
+lat = -35.0
+lon = -62.0
+time_start = "2013-06-02T18:45:00.000Z"
+day_night = "DAY"
+url = "https://data.laadsdaac.earthdatacloud.nasa.gov/prod-lads/MYD03/MYD03.A2013153.1845.061.2018046142914.hdf"
+
+[[scene]]
+sensor = "modis"
+platform = "Aqua"
+product = "MYD03"
+epoch = "2013-06"
+location = "fiji_dateline"
+lat = -17.5
+lon = 179.8
+time_start = "2013-06-01T01:40:00.000Z"
+day_night = "DAY"
+url = "https://data.laadsdaac.earthdatacloud.nasa.gov/prod-lads/MYD03/MYD03.A2013152.0140.061.2018046160123.hdf"
+
+[[scene]]
+sensor = "modis"
+platform = "Aqua"
+product = "MYD03"
+epoch = "2013-06"
+location = "california"
+lat = 39.4
+lon = -122.2
+time_start = "2013-06-01T21:40:00.000Z"
+day_night = "DAY"
+url = "https://data.laadsdaac.earthdatacloud.nasa.gov/prod-lads/MYD03/MYD03.A2013152.2140.061.2018046160650.hdf"
+
+[[scene]]
+sensor = "modis"
+platform = "Aqua"
+product = "MYD03"
+epoch = "2024-06"
+location = "amazon"
+lat = -3.0
+lon = -60.0
+time_start = "2024-06-02T05:50:00.000Z"
+day_night = "NIGHT"
+url = "https://data.laadsdaac.earthdatacloud.nasa.gov/prod-lads/MYD03/MYD03.A2024154.0550.061.2024154171049.hdf"
+
+[[scene]]
+sensor = "modis"
+platform = "Aqua"
+product = "MYD03"
+epoch = "2024-06"
+location = "sahara"
+lat = 23.0
+lon = 10.0
+time_start = "2024-06-02T13:20:00.000Z"
+day_night = "DAY"
+url = "https://data.laadsdaac.earthdatacloud.nasa.gov/prod-lads/MYD03/MYD03.A2024154.1320.061.2024156164946.hdf"
+
+[[scene]]
+sensor = "modis"
+platform = "Aqua"
+product = "MYD03"
+epoch = "2024-06"
+location = "siberia"
+lat = 65.0
+lon = 100.0
+time_start = "2024-06-01T04:35:00.000Z"
+day_night = "DAY"
+url = "https://data.laadsdaac.earthdatacloud.nasa.gov/prod-lads/MYD03/MYD03.A2024153.0435.061.2024153152747.hdf"
+
+[[scene]]
+sensor = "modis"
+platform = "Aqua"
+product = "MYD03"
+epoch = "2024-06"
+location = "argentina"
+lat = -35.0
+lon = -62.0
+time_start = "2024-06-01T18:55:00.000Z"
+day_night = "DAY"
+url = "https://data.laadsdaac.earthdatacloud.nasa.gov/prod-lads/MYD03/MYD03.A2024153.1855.061.2024154165925.hdf"
+
+[[scene]]
+sensor = "modis"
+platform = "Aqua"
+product = "MYD03"
+epoch = "2024-06"
+location = "fiji_dateline"
+lat = -17.5
+lon = 179.8
+time_start = "2024-06-02T01:35:00.000Z"
+day_night = "DAY"
+url = "https://data.laadsdaac.earthdatacloud.nasa.gov/prod-lads/MYD03/MYD03.A2024154.0135.061.2024154170910.hdf"
+
+[[scene]]
+sensor = "modis"
+platform = "Aqua"
+product = "MYD03"
+epoch = "2024-06"
+location = "california"
+lat = 39.4
+lon = -122.2
+time_start = "2024-06-02T10:35:00.000Z"
+day_night = "NIGHT"
+url = "https://data.laadsdaac.earthdatacloud.nasa.gov/prod-lads/MYD03/MYD03.A2024154.1035.061.2024156163742.hdf"
+
+[[scene]]
+sensor = "viirs"
+platform = "SNPP"
+product = "VNP03MOD"
+epoch = "2013-06"
+location = "amazon"
+lat = -3.0
+lon = -60.0
+time_start = "2013-06-01T05:48:00.000Z"
+day_night = "NIGHT"
+url = "https://data.laadsdaac.earthdatacloud.nasa.gov/prod-lads/VNP03MOD/VNP03MOD.A2013152.0548.002.2021005223903.nc"
+
+[[scene]]
+sensor = "viirs"
+platform = "SNPP"
+product = "VNP03MOD"
+epoch = "2013-06"
+location = "sahara"
+lat = 23.0
+lon = 10.0
+time_start = "2013-06-01T11:54:00.000Z"
+day_night = "DAY"
+url = "https://data.laadsdaac.earthdatacloud.nasa.gov/prod-lads/VNP03MOD/VNP03MOD.A2013152.1154.002.2021005223954.nc"
+
+[[scene]]
+sensor = "viirs"
+platform = "SNPP"
+product = "VNP03MOD"
+epoch = "2013-06"
+location = "siberia"
+lat = 65.0
+lon = 100.0
+time_start = "2013-06-01T07:00:00.000Z"
+day_night = "DAY"
+url = "https://data.laadsdaac.earthdatacloud.nasa.gov/prod-lads/VNP03MOD/VNP03MOD.A2013152.0700.002.2021005223920.nc"
+
+[[scene]]
+sensor = "viirs"
+platform = "SNPP"
+product = "VNP03MOD"
+epoch = "2013-06"
+location = "argentina"
+lat = -35.0
+lon = -62.0
+time_start = "2013-06-02T04:00:00.000Z"
+day_night = "NIGHT"
+url = "https://data.laadsdaac.earthdatacloud.nasa.gov/prod-lads/VNP03MOD/VNP03MOD.A2013153.0400.002.2021005231219.nc"
+
+[[scene]]
+sensor = "viirs"
+platform = "SNPP"
+product = "VNP03MOD"
+epoch = "2013-06"
+location = "fiji_dateline"
+lat = -17.5
+lon = 179.8
+time_start = "2013-06-01T01:30:00.000Z"
+day_night = "DAY"
+url = "https://data.laadsdaac.earthdatacloud.nasa.gov/prod-lads/VNP03MOD/VNP03MOD.A2013152.0130.002.2021005223839.nc"
+
+[[scene]]
+sensor = "viirs"
+platform = "SNPP"
+product = "VNP03MOD"
+epoch = "2013-06"
+location = "california"
+lat = 39.4
+lon = -122.2
+time_start = "2013-06-01T10:42:00.000Z"
+day_night = "NIGHT"
+url = "https://data.laadsdaac.earthdatacloud.nasa.gov/prod-lads/VNP03MOD/VNP03MOD.A2013152.1042.002.2021005223928.nc"
+
+[[scene]]
+sensor = "viirs"
+platform = "SNPP"
+product = "VNP03MOD"
+epoch = "2024-06"
+location = "amazon"
+lat = -3.0
+lon = -60.0
+time_start = "2024-06-05T05:36:00.000Z"
+day_night = "NIGHT"
+url = "https://data.laadsdaac.earthdatacloud.nasa.gov/prod-lads/VNP03MOD/VNP03MOD.A2024157.0536.002.2024157153420.nc"
+
+[[scene]]
+sensor = "viirs"
+platform = "SNPP"
+product = "VNP03MOD"
+epoch = "2024-06"
+location = "sahara"
+lat = 23.0
+lon = 10.0
+time_start = "2024-06-05T11:42:00.000Z"
+day_night = "DAY"
+url = "https://data.laadsdaac.earthdatacloud.nasa.gov/prod-lads/VNP03MOD/VNP03MOD.A2024157.1142.002.2024157184914.nc"
+
+[[scene]]
+sensor = "viirs"
+platform = "SNPP"
+product = "VNP03MOD"
+epoch = "2024-06"
+location = "siberia"
+lat = 65.0
+lon = 100.0
+time_start = "2024-06-04T03:42:00.000Z"
+day_night = "DAY"
+url = "https://data.laadsdaac.earthdatacloud.nasa.gov/prod-lads/VNP03MOD/VNP03MOD.A2024156.0342.002.2024157155515.nc"
+
+[[scene]]
+sensor = "viirs"
+platform = "SNPP"
+product = "VNP03MOD"
+epoch = "2024-06"
+location = "argentina"
+lat = -35.0
+lon = -62.0
+time_start = "2024-06-04T06:06:00.000Z"
+day_night = "NIGHT"
+url = "https://data.laadsdaac.earthdatacloud.nasa.gov/prod-lads/VNP03MOD/VNP03MOD.A2024156.0606.002.2024157160532.nc"
+
+[[scene]]
+sensor = "viirs"
+platform = "SNPP"
+product = "VNP03MOD"
+epoch = "2024-06"
+location = "fiji_dateline"
+lat = -17.5
+lon = 179.8
+time_start = "2024-06-05T01:18:00.000Z"
+day_night = "DAY"
+url = "https://data.laadsdaac.earthdatacloud.nasa.gov/prod-lads/VNP03MOD/VNP03MOD.A2024157.0118.002.2024157153419.nc"
+
+[[scene]]
+sensor = "viirs"
+platform = "SNPP"
+product = "VNP03MOD"
+epoch = "2024-06"
+location = "california"
+lat = 39.4
+lon = -122.2
+time_start = "2024-06-04T22:12:00.000Z"
+day_night = "DAY"
+url = "https://data.laadsdaac.earthdatacloud.nasa.gov/prod-lads/VNP03MOD/VNP03MOD.A2024156.2212.002.2024157155515.nc"
+
+[[scene]]
+sensor = "viirs"
+platform = "NOAA-20"
+product = "VJ103MOD"
+epoch = "2024-06"
+location = "amazon"
+lat = -3.0
+lon = -60.0
+time_start = "2024-06-01T05:36:00.000Z"
+day_night = "NIGHT"
+url = "https://data.laadsdaac.earthdatacloud.nasa.gov/prod-lads/VJ103MOD/VJ103MOD.A2024153.0536.021.2024153095534.nc"
+
+[[scene]]
+sensor = "viirs"
+platform = "NOAA-20"
+product = "VJ103MOD"
+epoch = "2024-06"
+location = "sahara"
+lat = 23.0
+lon = 10.0
+time_start = "2024-06-01T11:42:00.000Z"
+day_night = "DAY"
+url = "https://data.laadsdaac.earthdatacloud.nasa.gov/prod-lads/VJ103MOD/VJ103MOD.A2024153.1142.021.2024153155302.nc"
+
+[[scene]]
+sensor = "viirs"
+platform = "NOAA-20"
+product = "VJ103MOD"
+epoch = "2024-06"
+location = "siberia"
+lat = 65.0
+lon = 100.0
+time_start = "2024-06-01T06:48:00.000Z"
+day_night = "DAY"
+url = "https://data.laadsdaac.earthdatacloud.nasa.gov/prod-lads/VJ103MOD/VJ103MOD.A2024153.0648.021.2024153122556.nc"
+
+[[scene]]
+sensor = "viirs"
+platform = "NOAA-20"
+product = "VJ103MOD"
+epoch = "2024-06"
+location = "argentina"
+lat = -35.0
+lon = -62.0
+time_start = "2024-06-01T18:12:00.000Z"
+day_night = "DAY"
+url = "https://data.laadsdaac.earthdatacloud.nasa.gov/prod-lads/VJ103MOD/VJ103MOD.A2024153.1812.021.2024154003109.nc"
+
+[[scene]]
+sensor = "viirs"
+platform = "NOAA-20"
+product = "VJ103MOD"
+epoch = "2024-06"
+location = "fiji_dateline"
+lat = -17.5
+lon = 179.8
+time_start = "2024-06-01T01:18:00.000Z"
+day_night = "DAY"
+url = "https://data.laadsdaac.earthdatacloud.nasa.gov/prod-lads/VJ103MOD/VJ103MOD.A2024153.0118.021.2024153054827.nc"
+
+[[scene]]
+sensor = "viirs"
+platform = "NOAA-20"
+product = "VJ103MOD"
+epoch = "2024-06"
+location = "california"
+lat = 39.4
+lon = -122.2
+time_start = "2024-06-01T10:30:00.000Z"
+day_night = "NIGHT"
+url = "https://data.laadsdaac.earthdatacloud.nasa.gov/prod-lads/VJ103MOD/VJ103MOD.A2024153.1030.021.2024153155311.nc"
+
+[[scene]]
+sensor = "ecostress"
+platform = "ISS"
+product = "ECO_L1B_GEO"
+epoch = "2019-06"
+location = "california"
+lat = 39.4
+lon = -122.2
+time_start = "2019-06-19T16:35:42.096Z"
+day_night = "DAY"
+url = "https://data.lpdaac.earthdatacloud.nasa.gov/lp-prod-protected/ECO_L1B_GEO.002/ECOv002_L1B_GEO_05407_001_20190619T163541_0712_03/ECOv002_L1B_GEO_05407_001_20190619T163541_0712_03.h5"
+att = "https://data.lpdaac.earthdatacloud.nasa.gov/lp-prod-protected/ECO_L1B_ATT.002/ECOv002_L1B_ATT_05407_20190619T163541_0712_03/ECOv002_L1B_ATT_05407_20190619T163541_0712_03.h5"
+
+[[scene]]
+sensor = "ecostress"
+platform = "ISS"
+product = "ECO_L1B_GEO"
+epoch = "2019-06"
+location = "kazakhstan"
+lat = 49.0
+lon = 70.0
+time_start = "2019-07-11T23:48:53.947Z"
+day_night = "DAY"
+url = "https://data.lpdaac.earthdatacloud.nasa.gov/lp-prod-protected/ECO_L1B_GEO.002/ECOv002_L1B_GEO_05753_003_20190711T234853_0712_03/ECOv002_L1B_GEO_05753_003_20190711T234853_0712_03.h5"
+att = "https://data.lpdaac.earthdatacloud.nasa.gov/lp-prod-protected/ECO_L1B_ATT.002/ECOv002_L1B_ATT_05753_20190711T233816_0712_03/ECOv002_L1B_ATT_05753_20190711T233816_0712_03.h5"
+
+[[scene]]
+sensor = "ecostress"
+platform = "ISS"
+product = "ECO_L1B_GEO"
+epoch = "2024-06"
+location = "amazon"
+lat = -3.0
+lon = -60.0
+time_start = "2024-06-03T01:15:26.731Z"
+day_night = "NIGHT"
+url = "https://data.lpdaac.earthdatacloud.nasa.gov/lp-prod-protected/ECO_L1B_GEO.002/ECOv002_L1B_GEO_33500_023_20240603T011526_0711_01/ECOv002_L1B_GEO_33500_023_20240603T011526_0711_01.h5"
+att = "https://data.lpdaac.earthdatacloud.nasa.gov/lp-prod-protected/ECO_L1B_ATT.002/ECOv002_L1B_ATT_33500_20240603T002959_0711_01/ECOv002_L1B_ATT_33500_20240603T002959_0711_01.h5"
+
+[[scene]]
+sensor = "ecostress"
+platform = "ISS"
+product = "ECO_L1B_GEO"
+epoch = "2024-06"
+location = "california"
+lat = 39.4
+lon = -122.2
+time_start = "2024-06-03T19:14:06.621Z"
+day_night = "DAY"
+url = "https://data.lpdaac.earthdatacloud.nasa.gov/lp-prod-protected/ECO_L1B_GEO.002/ECOv002_L1B_GEO_33512_005_20240603T191406_0711_01/ECOv002_L1B_GEO_33512_005_20240603T191406_0711_01.h5"
+att = "https://data.lpdaac.earthdatacloud.nasa.gov/lp-prod-protected/ECO_L1B_ATT.002/ECOv002_L1B_ATT_33512_20240603T190306_0711_01/ECOv002_L1B_ATT_33512_20240603T190306_0711_01.h5"
+
+[[scene]]
+sensor = "ecostress"
+platform = "ISS"
+product = "ECO_L1B_GEO"
+epoch = "2024-06"
+location = "kazakhstan"
+lat = 49.0
+lon = 70.0
+time_start = "2024-06-14T04:20:56.889Z"
+day_night = "DAY"
+url = "https://data.lpdaac.earthdatacloud.nasa.gov/lp-prod-protected/ECO_L1B_GEO.002/ECOv002_L1B_GEO_33673_014_20240614T042056_0711_01/ECOv002_L1B_GEO_33673_014_20240614T042056_0711_01.h5"
+att = "https://data.lpdaac.earthdatacloud.nasa.gov/lp-prod-protected/ECO_L1B_ATT.002/ECOv002_L1B_ATT_33673_20240614T040259_0711_01/ECOv002_L1B_ATT_33673_20240614T040259_0711_01.h5"
