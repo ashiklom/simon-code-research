@@ -53,12 +53,19 @@ def locate_figs():
             sub = head[head.sensor == s].set_index("locator").reindex(order)
             y = np.arange(len(order)) + (k - 1) * 0.22
             v = sub[col].clip(lower=1e-5)
+            if col == "build_s":  # methods without an index: nothing to build
+                v = v.where(~sub.index.str.startswith("naive"))
             ax.scatter(v, y, s=26, color=ps.SENSOR_COLOR[s], label=s.upper() if s != "ecostress" else "ECOSTRESS",
                        zorder=3, edgecolor=ps.SURFACE, linewidth=0.8)
         ax.set_xscale("log")
         ax.set_title(title)
         ax.set_xlabel("seconds (log scale)")
         ax.grid(axis="y", visible=False)
+        if col == "build_s":
+            for i, o in enumerate(order):
+                if o.startswith("naive"):
+                    ax.text(0.02, i, "no index", transform=ax.get_yaxis_transform(), va="center",
+                            color=ps.MUTED, fontsize=8.5)
     axes[0].set_yticks(np.arange(len(order)), [LOC_LABEL[o] for o in order])
     axes[0].invert_yaxis()
     axes[2].legend(loc="lower right")

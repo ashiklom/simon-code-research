@@ -176,6 +176,7 @@ class PyKDTree(Locator):
     """pykdtree (OpenMP; what pyresample uses). No ball query -> polygon via bbox prefilter."""
 
     name = "kdtree_pykdtree"
+    max_k = 2**18  # k-NN with huge k is pathologically slow; give up beyond this
 
     def _build(self):
         from pykdtree.kdtree import KDTree
@@ -202,7 +203,9 @@ class PyKDTree(Locator):
             i = i[0][np.isfinite(d[0])].astype(np.int64)
             if len(i) < min(k, len(self.idx)):
                 break
-            k *= 4
+            if k >= self.max_k:
+                raise RuntimeError(f"k-NN emulation of a radius query exceeded k={self.max_k}")
+            k *= 8
         return _filter_in_poly(poly_b, self.lat_flat, self.lon_flat, self.idx[i])
 
 

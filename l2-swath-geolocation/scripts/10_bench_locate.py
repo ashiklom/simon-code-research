@@ -110,7 +110,11 @@ def worker(scene, name, q):
 
         if loc.supports_polygon:
             for pname, poly in polys.items():
-                tq, n, (r, c) = timeit(lambda: loc.query_polygon(poly, L.POLY_BUFFER_M[sw.sensor]), 3, budget_s=30)
+                try:
+                    tq, n, (r, c) = timeit(lambda: loc.query_polygon(poly, L.POLY_BUFFER_M[sw.sensor]), 3, budget_s=30)
+                except Exception as e:  # noqa: BLE001
+                    rec[f"q_{pname}_error"] = f"{type(e).__name__}: {e}"[:300]
+                    continue
                 rec[f"q_{pname}_s"] = tq
                 rec[f"q_{pname}_n"] = len(r)
                 answers[pname] = (r.tolist(), c.tolist())
@@ -123,16 +127,26 @@ def worker(scene, name, q):
         q.put((rec, {}))
 
 
+WORKER_TIMEOUT_S = 1200
+
+
 def main(scenes):
     ctx = mp.get_context("spawn")
-    recs, ans_rows = [], []
+    path = config.RESULTS / "locate_bench.csv"
+    old = pd.read_csv(path) if path.exists() else pd.DataFrame(columns=["scene"])
+    recs = old[~old.scene.isin(scenes)].to_dict("records")  # keep other scenes, rerun these
+    ans_rows = []
     for scene in scenes:
         answers = {}
         for name in LOCATORS:
             q = ctx.Queue()
             p = ctx.Process(target=worker, args=(scene, name, q))
             p.start()
-            rec, ans = q.get()
+            try:
+                rec, ans = q.get(timeout=WORKER_TIMEOUT_S)
+            except Exception:  # noqa: BLE001
+                rec, ans = {"scene": scene, "locator": name, "error": f"timeout after {WORKER_TIMEOUT_S} s"}, {}
+                p.kill()
             p.join()
             answers[name] = ans
             recs.append(rec)
@@ -157,8 +171,8 @@ def main(scenes):
             for tname, v in a.items():
                 ans_rows.append({"scene": scene, "locator": rec["locator"], "target": tname,
                                  "rows": v[0], "cols": v[1]})
-        pd.DataFrame(recs).to_csv(config.RESULTS / "locate_bench.csv", index=False)
-    pd.DataFrame(ans_rows).to_parquet(config.DATA / "locate_answers.parquet")
+        pd.DataFrame(recs).to_csv(path, index=False)
+    pd.DataFrame(ans_rows).to_parquet(config.DATA / f"locate_answers_{'_'.join(scenes)}.parquet")
 
 
 if __name__ == "__main__":
