@@ -1,7 +1,9 @@
 """Network simulator: throttling reverse proxy for S3-API and plain-HTTPS-like access.
 
-    reader --HTTP--> [proxy :port (profile)] --> moto S3 server (S3 profiles)
-                                         \\--> local files with Range support (HTTP profiles)
+    reader --HTTP--> [proxy :port (profile)] --> local files, served either through a minimal
+                                                 S3 API (path-style GET/HEAD/ListObjectsV2;
+                                                 signatures accepted, not verified) or as plain
+                                                 HTTP with Range support
 
 Every request gets, per the profile (config/net_profiles.toml):
   * connection setup cost on the first request of each TCP connection (TCP+TLS handshakes),
@@ -31,7 +33,7 @@ import time
 import tomllib
 from pathlib import Path
 
-from aiohttp import ClientSession, ClientTimeout, TCPConnector, web
+from aiohttp import web
 
 CHUNK = 64 * 1024
 
@@ -124,18 +126,10 @@ def parse_range(h, size):
     return a, min(b, size - 1)
 
 
-def make_app(profile: Profile, files_root: Path, backend: str | None):
+def make_app(profile: Profile, files_root: Path):
     stats = Stats()
     seen_conns: set = set()
     signed: set = set()
-    session: dict = {}
-
-    async def get_session():
-        if "s" not in session:
-            session["s"] = ClientSession(connector=TCPConnector(limit=256), timeout=ClientTimeout(total=600),
-                                         auto_decompress=False)
-        return session["s"]
-
     async def stats_handler(request):
         out = dict(stats.d)
         if request.query.get("reset"):
@@ -243,42 +237,68 @@ def make_app(profile: Profile, files_root: Path, backend: str | None):
                 profile.sem.release()
 
     async def s3_handler(request):
-        """Forward S3-API requests to the moto backend, throttled."""
+        """Minimal S3 REST API over files_root/<key> for bucket BUCKET (path-style)."""
         if profile.sem:
             await profile.sem.acquire()
         try:
             stats.d["requests"] += 1
+            path = request.path.lstrip("/")
+            bucket, _, key = path.partition("/")
             m = request.method
+            listing = m == "GET" and not key
             if m == "HEAD":
                 stats.d["heads"] += 1
+            elif listing:
+                stats.d["lists"] += 1
             elif m == "GET" and "Range" in request.headers:
                 stats.d["range_gets"] += 1
-            elif m == "GET" and ("list-type" in request.query or request.path.count("/") <= 1):
-                stats.d["lists"] += 1
             elif m == "GET":
                 stats.d["full_gets"] += 1
-            elif m in ("PUT", "POST"):
-                stats.d["puts"] += 1
             await preamble(request)
-            if profile.error_prob and m in ("GET", "HEAD") and random.random() < profile.error_prob:
+            if profile.error_prob and random.random() < profile.error_prob:
                 stats.d["errors"] += 1
                 body = ("<?xml version=\"1.0\" encoding=\"UTF-8\"?><Error><Code>SlowDown</Code>"
                         "<Message>Please reduce your request rate.</Message></Error>")
                 return web.Response(status=503, text=body, content_type="application/xml")
-            s = await get_session()
-            data = await request.read() if request.can_read_body else None
-            headers = {k: v for k, v in request.headers.items() if k.lower() not in ("host", "content-length")}
-            headers["Host"] = backend.split("//", 1)[1]
-            async with s.request(m, backend + request.path_qs, headers=headers, data=data,
-                                 allow_redirects=False) as up:
-                hdr = {k: v for k, v in up.headers.items()
-                       if k.lower() not in ("transfer-encoding", "connection", "content-encoding")}
-                resp = web.StreamResponse(status=up.status, headers=hdr)
-                await resp.prepare(request)
-                if m == "HEAD":
-                    await resp.write_eof()
-                    return resp
-                return await stream_body(resp, up.content.iter_chunked(CHUNK))
+            if listing:
+                prefix = request.query.get("prefix", "")
+                items = []
+                for f in sorted(files_root.rglob("*")):
+                    if f.is_file():
+                        k = str(f.relative_to(files_root))
+                        if k.startswith(prefix):
+                            st = f.stat()
+                            items.append(f"<Contents><Key>{k}</Key><Size>{st.st_size}</Size>"
+                                         f"<ETag>\"{int(st.st_mtime)}-{st.st_size}\"</ETag>"
+                                         f"<LastModified>{time.strftime('%Y-%m-%dT%H:%M:%S.000Z', time.gmtime(st.st_mtime))}</LastModified>"
+                                         f"<StorageClass>STANDARD</StorageClass></Contents>")
+                    if len(items) >= 1000:
+                        break
+                xml = ('<?xml version="1.0" encoding="UTF-8"?><ListBucketResult xmlns="http://s3.amazonaws.com/doc/2006-03-01/">'
+                       f"<Name>{bucket}</Name><Prefix>{prefix}</Prefix><KeyCount>{len(items)}</KeyCount>"
+                       f"<MaxKeys>1000</MaxKeys><IsTruncated>false</IsTruncated>{''.join(items)}</ListBucketResult>")
+                return web.Response(text=xml, content_type="application/xml")
+            fpath = files_root / key
+            if not fpath.is_file():
+                body = ("<?xml version=\"1.0\" encoding=\"UTF-8\"?><Error><Code>NoSuchKey</Code>"
+                        f"<Message>The specified key does not exist.</Message><Key>{key}</Key></Error>")
+                return web.Response(status=404, text=body if m != "HEAD" else None, content_type="application/xml")
+            st = fpath.stat()
+            size = st.st_size
+            hdr = {"Accept-Ranges": "bytes", "Content-Type": "binary/octet-stream",
+                   "ETag": f'"{int(st.st_mtime)}-{size}"',
+                   "Last-Modified": time.strftime("%a, %d %b %Y %H:%M:%S GMT", time.gmtime(st.st_mtime))}
+            if m == "HEAD":
+                return web.Response(status=200, headers={**hdr, "Content-Length": str(size)})
+            rng = request.headers.get("Range")
+            a, b = parse_range(rng, size)
+            status = 206 if rng else 200
+            if rng:
+                hdr["Content-Range"] = f"bytes {a}-{b}/{size}"
+            hdr["Content-Length"] = str(b - a + 1)
+            resp = web.StreamResponse(status=status, headers=hdr)
+            await resp.prepare(request)
+            return await stream_body(resp, file_chunks(fpath, a, b))
         finally:
             if profile.sem:
                 profile.sem.release()
@@ -297,10 +317,10 @@ def load_profiles(path: Path) -> dict:
     return tomllib.loads(path.read_text())["profile"]
 
 
-async def serve(profiles: dict, ports: dict, files_root: Path, backend: str | None):
+async def serve(profiles: dict, ports: dict, files_root: Path):
     runners = []
     for name, cfg in profiles.items():
-        app = make_app(Profile(name, cfg), files_root, backend)
+        app = make_app(Profile(name, cfg), files_root)
         runner = web.AppRunner(app, access_log=None)
         await runner.setup()
         site = web.TCPSite(runner, "127.0.0.1", ports[name], backlog=1024)
@@ -317,7 +337,6 @@ def main():
     ap.add_argument("--profiles", required=True)
     ap.add_argument("--base-port", type=int, default=18000)
     ap.add_argument("--files-root", required=True)
-    ap.add_argument("--backend", default=None, help="moto S3 endpoint for S3 profiles")
     ap.add_argument("--seed", type=int, default=0)
     a = ap.parse_args()
     random.seed(a.seed)
@@ -325,7 +344,7 @@ def main():
     names = a.profiles.split(",")
     profiles = {n: allp[n] for n in names}
     ports = {n: a.base_port + i for i, n in enumerate(names)}
-    asyncio.run(serve(profiles, ports, Path(a.files_root), a.backend))
+    asyncio.run(serve(profiles, ports, Path(a.files_root)))
 
 
 if __name__ == "__main__":

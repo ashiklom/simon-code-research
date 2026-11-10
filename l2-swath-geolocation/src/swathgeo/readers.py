@@ -44,10 +44,14 @@ class Access:
 S3_KW = dict(key="testing", secret="testing")
 
 
-def fsspec_open(access: Access, key: str, cache_type="readahead", block_size=None):
+def fsspec_open(access: Access, key: str, cache_type=None, block_size=None):
+    """fsspec file object; cache_type/block_size None -> the library defaults
+    (HTTP: "bytes" cache, 5 MiB blocks; s3fs: "readahead", 50 MiB blocks)."""
     import fsspec
 
-    kw = {"cache_type": cache_type}
+    kw = {}
+    if cache_type:
+        kw["cache_type"] = cache_type
     if block_size:
         kw["block_size"] = block_size
     if access.kind == "http":
@@ -84,7 +88,7 @@ class Reader:
 class H5pyReader(Reader):
     formats = ("hdf5",)
 
-    def __init__(self, cache_type="readahead", block_size=None, name="h5py"):
+    def __init__(self, cache_type=None, block_size=None, name="h5py"):
         self.cache_type, self.block_size, self.name = cache_type, block_size, name
 
     def read_many(self, access, key, vars_, window):
@@ -94,6 +98,26 @@ class H5pyReader(Reader):
             f = h5py.File(access.url(key), "r")
         else:
             f = h5py.File(fsspec_open(access, key, self.cache_type, self.block_size), "r")
+        with f:
+            return {v: np.asarray(f[v][_win(window)]) for v in vars_}
+
+
+class H5pyRos3Reader(Reader):
+    """HDF5's native read-only S3 driver (ROS3), also works for plain HTTP(S) URLs."""
+
+    name = "h5py_ros3"
+    formats = ("hdf5",)
+    kinds = ("http", "s3")
+
+    def read_many(self, access, key, vars_, window):
+        import h5py
+
+        if access.kind == "s3":
+            url = f"{access.endpoint}/{BUCKET}/{key}"
+            f = h5py.File(url, "r", driver="ros3", aws_region=b"us-west-2", secret_id=b"testing",
+                          secret_key=b"testing")
+        else:
+            f = h5py.File(access.url(key), "r", driver="ros3")
         with f:
             return {v: np.asarray(f[v][_win(window)]) for v in vars_}
 
@@ -227,9 +251,7 @@ class DownloadThenRead(Reader):
                 from obstore.store import S3Store
 
                 st = S3Store(BUCKET, endpoint=access.endpoint, access_key_id="testing", secret_access_key="testing",
-                             region="us-west-2", client_options={"allow_http": True},
-                             retry_config={"max_retries": 8, "backoff": {"init_backoff": 0.2, "max_backoff": 5, "base": 2},
-                                           "retry_timeout": 600})
+                             region="us-west-2", client_options={"allow_http": True}, retry_config=RETRY)
                 obstore.download(st, key, str(dest)) if hasattr(obstore, "download") else \
                     dest.write_bytes(obstore.get(st, key).bytes())
             local = Access("local")
@@ -248,12 +270,14 @@ class IcechunkVirtualReader(Reader):
     name = "icechunk_virtual"
     formats = ("hdf5", "hdf4")
 
-    def __init__(self, repo_root: Path, concurrency: int = 16):
+    def __init__(self, repo_root: Path, concurrency: int = 16, app_retries: int = 0):
         self.repo_root = repo_root
         self.concurrency = concurrency
+        self.app_retries = app_retries  # icechunk 2.3 does not retry 5xx on HTTP virtual chunks
+        self.name = "icechunk_virtual" + ("_retry" if app_retries else "")
+        self.retries_used = 0
 
     def read_many(self, access, key, vars_, window):
-        import icechunk
         import zarr
 
         repo_path = self.repo_root / access.profile / key.replace("/", "__")
@@ -263,7 +287,14 @@ class IcechunkVirtualReader(Reader):
         out = {}
         for v in vars_:
             arr = root[v]
-            out[v] = np.asarray(arr[_win(window)] if window else arr[...])
+            for attempt in range(self.app_retries + 1):
+                try:
+                    out[v] = np.asarray(arr[_win(window)] if window else arr[...])
+                    break
+                except Exception:  # noqa: BLE001
+                    if attempt == self.app_retries:
+                        raise
+                    self.retries_used += 1
         return out
 
 
@@ -293,7 +324,7 @@ def open_repo(repo_path: Path, access: Access, concurrency=16, create=False):
 
     cfg = icechunk.RepositoryConfig.default()
     cfg.set_virtual_chunk_container(container(access))
-    cfg.max_concurrent_requests_for_object = concurrency
+    cfg.max_concurrent_requests = concurrency
     if access.kind == "s3":
         creds = icechunk.containers_credentials(
             {container_prefix(access): icechunk.s3_credentials(access_key_id="testing", secret_access_key="testing")})
@@ -305,19 +336,26 @@ def open_repo(repo_path: Path, access: Access, concurrency=16, create=False):
     return icechunk.Repository.open(storage, config=cfg, authorize_virtual_chunk_access=creds)
 
 
+def _retry():
+    from datetime import timedelta
+
+    return {"max_retries": 8, "retry_timeout": timedelta(seconds=600),
+            "backoff": {"init_backoff": timedelta(seconds=0.2), "max_backoff": timedelta(seconds=5), "base": 2}}
+
+
+RETRY = _retry()
+
+
 def obstore_registry(access: Access):
     from obspec_utils.registry import ObjectStoreRegistry
     from obstore.store import HTTPStore, LocalStore, S3Store
 
     if access.kind == "s3":
         st = S3Store(BUCKET, endpoint=access.endpoint, access_key_id="testing", secret_access_key="testing",
-                     region="us-west-2", client_options={"allow_http": True},
-                     retry_config={"max_retries": 8, "backoff": {"init_backoff": 0.2, "max_backoff": 5, "base": 2},
-                                   "retry_timeout": 600})
+                     region="us-west-2", client_options={"allow_http": True}, retry_config=RETRY)
         return ObjectStoreRegistry({f"s3://{BUCKET}": st})
     if access.kind == "http":
         st = HTTPStore.from_url(f"http://127.0.0.1:{access.port}", client_options={"allow_http": True},
-                                retry_config={"max_retries": 8, "backoff": {"init_backoff": 0.2, "max_backoff": 5, "base": 2},
-                                              "retry_timeout": 600})
+                                retry_config=RETRY)
         return ObjectStoreRegistry({f"http://127.0.0.1:{access.port}": st})
     return ObjectStoreRegistry({"file://": LocalStore()})

@@ -1,0 +1,8 @@
+[submodule "l2-swath-geolocation/vendor/VirtualiZarr"]
+	path = l2-swath-geolocation/vendor/VirtualiZarr
+	url = https://github.com/zarr-developers/VirtualiZarr
+	shallow = true
+[submodule "l2-swath-geolocation/vendor/kerchunk"]
+	path = l2-swath-geolocation/vendor/kerchunk
+	url = https://github.com/fsspec/kerchunk
+	shallow = true

@@ -1,8 +1,8 @@
 """Part C: read performance of different readers, locally and through simulated networks.
 
 Setup (all local processes):
-  * moto S3 server holding the benchmark granules (bucket "earthdata-sim"),
-  * the throttling proxy (swathgeo.netsim) with one port per profile in config/net_profiles.toml,
+  * the throttling proxy (serves the granules as S3 bucket "earthdata-sim" and as HTTP),
+  * the same proxy (swathgeo.netsim) with one port per profile in config/net_profiles.toml,
   * icechunk repos of *virtual* references (VirtualiZarr) per (profile, file).
 
 Tasks per sensor (one geolocation + one L2 granule):
@@ -59,10 +59,14 @@ VIRTUAL_GROUPS = {  # group -> variables to drop (VNP21 has string _FillValue='n
     "ecostress/ECOv002_L1B_GEO_27837_005_20230603T202541_0711_02.h5": [("Geolocation", [])],
     "ecostress/ECOv002_L2_LSTE_27837_005_20230603T202541_0711_03.h5": [("SDS", [])],
 }
+# MODIS HDF4: only possible with the patched VirtualiZarr/kerchunk in vendor/ (see patches/)
+HDF4_KEYS = ["modis/MYD03.A2023154.2125.061.2023155150831.hdf", "modis/MYD11_L2.A2023154.2125.061.2023155175206.hdf"]
+VENDOR = [str(config.ROOT / "vendor" / "VirtualiZarr"), str(config.ROOT / "vendor" / "kerchunk")]
+
 PROFILES = ["local", "zero_s3", "zero_http", "s3_in_region", "s3_cross_region", "https_earthdata", "nccs_portal"]
 REPS = {"local": 3, "zero_s3": 2, "zero_http": 2, "s3_in_region": 3, "s3_cross_region": 3,
         "https_earthdata": 3, "nccs_portal": 5}
-TIMEOUT_S = 400
+TIMEOUT_S = 300
 ICE = config.DATA / "icechunk"
 MOTO_PORT = 17999
 BASE_PORT = 18000
@@ -77,19 +81,10 @@ def free(port):
 def start_services(profiles):
     procs = []
     env = {**os.environ, "PYTHONUNBUFFERED": "1"}
-    if free(MOTO_PORT):
-        procs.append(subprocess.Popen([shutil.which("moto_server") or "moto_server", "-H", "127.0.0.1", "-p",
-                                       str(MOTO_PORT)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, env=env))
-        for _ in range(100):
-            if not free(MOTO_PORT):
-                break
-            time.sleep(0.1)
-        upload()
     net = [p for p in profiles if p != "local"]
     allp = list(R.config.load_toml("net_profiles.toml")["profile"])
     proxy = subprocess.Popen([sys.executable, "-m", "swathgeo.netsim", "--config", str(config.CONFIG / "net_profiles.toml"),
-                              "--profiles", ",".join(allp), "--files-root", str(config.RAW), "--base-port", str(BASE_PORT),
-                              "--backend", f"http://127.0.0.1:{MOTO_PORT}"], stdout=subprocess.PIPE, text=True, env=env)
+                              "--profiles", ",".join(allp), "--files-root", str(config.RAW), "--base-port", str(BASE_PORT)], stdout=subprocess.PIPE, text=True, env=env)
     line = proxy.stdout.readline()
     assert line.startswith("READY"), line
     ports = json.loads(line.split(" ", 1)[1])
@@ -154,20 +149,55 @@ def build_virtual_repos(profiles, ports):
                 v2.vz.to_icechunk(s.store, group=g)
             s.commit("virtual refs")
         print("virtual repos for", key, flush=True)
+    # MODIS HDF4 via the vendored + patched parser, in a child process
+    env = {**os.environ, "PYTHONPATH": os.pathsep.join(VENDOR)}
+    subprocess.run([sys.executable, __file__, "--profiles", ",".join(profiles), "--steps", "virtual_hdf4"],
+                   check=True, env=env)
+
+
+def build_virtual_hdf4(profiles, ports):
+    """Runs with PYTHONPATH=vendor/... (patched HDF4Parser)."""
+    import virtualizarr
+    from virtualizarr import open_virtual_dataset
+    from virtualizarr.parsers import HDF4Parser
+
+    assert "vendor" in virtualizarr.__file__, virtualizarr.__file__
+    reg = R.obstore_registry(R.Access("local"))
+    for key in HDF4_KEYS:
+        vds = open_virtual_dataset("file://" + str(config.RAW / key), registry=reg, parser=HDF4Parser())
+        for profile in profiles:
+            acc = access_for(profile, ports)
+            path = ICE / profile / key.replace("/", "__")
+            if path.exists():
+                continue
+            prefix = R.container_prefix(acc)
+            repo = R.open_repo(path, acc, create=True)
+            s = repo.writable_session("main")
+            vds.vz.rename_paths(lambda old: prefix + key).vz.to_icechunk(s.store)
+            s.commit("virtual refs (patched HDF4 parser)")
+        print("virtual repos for", key, "(patched HDF4)", flush=True)
 
 
 def _virtual_build_worker(profile, ports, key, parser_name, q):
+    if parser_name == "hdf4_scan_patched":
+        sys.path[:0] = VENDOR
     from virtualizarr import open_virtual_dataset
-    from virtualizarr.parsers import DMRPPParser, HDFParser
+    from virtualizarr.parsers import DMRPPParser, HDF4Parser, HDFParser
 
     acc = access_for(profile, ports)
     port = ports.get(profile)
     try:
         stats(port)
         reg = R.obstore_registry(acc)
-        g, drop = VIRTUAL_GROUPS[key][0]
+        g, drop = VIRTUAL_GROUPS.get(key, [("", [])])[0]
         t = time.perf_counter()
-        if parser_name == "hdf5_scan":
+        if parser_name == "hdf4_scan_patched":
+            url = acc.url(key) if acc.kind != "local" else "file://" + acc.url(key)
+            so = {}
+            if acc.kind == "s3":
+                so = {"endpoint_url": acc.endpoint, **R.S3_KW, "client_kwargs": {"region_name": "us-west-2"}}
+            vds = open_virtual_dataset(url, registry=reg, parser=HDF4Parser(reader_options={"storage_options": so}))
+        elif parser_name == "hdf5_scan":
             url = acc.url(key) if acc.kind != "local" else "file://" + acc.url(key)
             vds = open_virtual_dataset(url, registry=reg, parser=HDFParser(group=g, drop_variables=drop))
         else:
@@ -182,8 +212,8 @@ def _virtual_build_worker(profile, ports, key, parser_name, q):
 def bench_virtual_build(profiles, ports, reps=2):
     rows = []
     ctx = mp.get_context("spawn")
-    for key in VIRTUAL_GROUPS:
-        for parser_name in ("hdf5_scan", "dmrpp"):
+    for key in list(VIRTUAL_GROUPS) + HDF4_KEYS:
+        for parser_name in (("hdf4_scan_patched",) if key.endswith(".hdf") else ("hdf5_scan", "dmrpp")):
             if parser_name == "dmrpp" and not (config.RAW / (key + ".dmrpp")).exists():
                 continue
             for profile in profiles:
@@ -204,6 +234,8 @@ def bench_virtual_build(profiles, ports, reps=2):
 def make_reader(name):
     if name == "h5py":
         return R.H5pyReader()
+    if name == "h5py_ros3":
+        return R.H5pyRos3Reader()
     if name == "h5py_blockcache":
         return R.H5pyReader("blockcache", 8 * 2**20, name="h5py_blockcache")
     if name == "xarray_h5netcdf":
@@ -218,11 +250,13 @@ def make_reader(name):
         return R.DownloadThenRead()
     if name == "icechunk_virtual":
         return R.IcechunkVirtualReader(ICE)
+    if name == "icechunk_virtual_retry":
+        return R.IcechunkVirtualReader(ICE, app_retries=5)
     raise KeyError(name)
 
 
-READERS = ["h5py", "h5py_blockcache", "xarray_h5netcdf", "gdal", "gdal_tuned", "pyhdf", "download_then_read",
-           "icechunk_virtual"]
+READERS = ["h5py", "h5py_blockcache", "h5py_ros3", "xarray_h5netcdf", "gdal", "gdal_tuned", "pyhdf", "download_then_read",
+           "icechunk_virtual", "icechunk_virtual_retry"]
 
 
 def digest(arrs):
@@ -241,6 +275,8 @@ def _read_worker(reader_name, profile, ports, sensor, task, window, reps, q):
     out = []
     for rep in range(reps):
         try:
+            if hasattr(rdr, "retries_used"):
+                rdr.retries_used = 0
             stats(port)
             t = time.perf_counter()
             arrs = {}
@@ -250,6 +286,7 @@ def _read_worker(reader_name, profile, ports, sensor, task, window, reps, q):
             dt = time.perf_counter() - t
             nb = sum(a.nbytes for a in arrs.values())
             out.append({"rep": rep, "seconds": dt, "array_MB": nb / 1e6, "digest": digest(arrs),
+                        "app_retries": getattr(rdr, "retries_used", 0),
                         **{f"net_{k}": v for k, v in stats(port).items()}})
         except Exception as e:  # noqa: BLE001
             out.append({"rep": rep, "error": f"{type(e).__name__}: {e}"[:300]})
@@ -275,9 +312,9 @@ def bench_reads(profiles, sensors, ports, reps_override=None):
                     rdr = make_reader(reader_name)
                     if not rdr.supports(fmt, acc.kind):
                         continue
-                    if reader_name == "icechunk_virtual" and fmt == "hdf4":
-                        continue  # no working virtual parser for MODIS HDF4 (see virtual_build)
                     reps = reps_override or REPS[profile]
+                    if task == "full" and sensor == "ecostress":
+                        reps = min(reps, 2)
                     q = ctx.Queue()
                     p = ctx.Process(target=_read_worker,
                                     args=(reader_name, profile, ports, sensor, task, window, reps, q))
@@ -341,6 +378,10 @@ def main():
     steps = a.steps.split(",")
     if "windows" in steps and not (config.RESULTS / "read_windows.json").exists():
         compute_windows()
+    if "virtual_hdf4" in steps:  # child process: the proxy already runs in the parent
+        allp = list(R.config.load_toml("net_profiles.toml")["profile"])
+        build_virtual_hdf4(profiles, {n: BASE_PORT + i for i, n in enumerate(allp)})
+        return
     procs, ports = start_services(profiles)
     try:
         if "virtual" in steps:

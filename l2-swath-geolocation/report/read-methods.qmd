@@ -1,0 +1,154 @@
+---
+title: "C · Read performance — methods"
+---
+
+## What is read
+
+One geolocation + one L2 granule per sensor, the same files as Parts A–B:
+
+| Sensor | Geolocation | L2 | Format | Chunking of lat/lon |
+|---|---|---|---|---|
+| MODIS Aqua | MYD03 (37 MB) | MYD11_L2 (4 MB) | HDF4 | — (HDF4 SDS) |
+| VIIRS SNPP | VNP03MOD (52 MB) | VNP21 (93 MB) | NetCDF4/HDF5 | 16 × 3200, gzip |
+| ECOSTRESS | ECO_L1B_GEO (780 MB) | ECO_L2_LSTE (157 MB) | HDF5 | 88 × 169 (lat/lon float64), gzip |
+
+Tasks: **window_site** — a 33 × 33 pixel window of latitude, longitude and LST around the site
+(what the analytic locator needs); **window_poly** — the bounding window of Colusa County;
+**full** — the three full arrays (what any index-based locator needs). Arrays are returned raw
+and checksummed against the local read, so every reader returns identical numbers.
+
+## Readers
+
+| Reader | How | Local | HTTP | S3 |
+|---|---|---|---|---|
+| `h5py` | h5py on an fsspec file object, **library defaults** (HTTP: 5 MiB "bytes" cache; s3fs: 50 MiB readahead) | ✓ | ✓ | ✓ |
+| `h5py_blockcache` | fsspec `blockcache`, 8 MiB blocks (what `earthaccess.open` does for 100 MB–1 GB files) | ✓ | ✓ | ✓ |
+| `h5py_ros3` | HDF5's native read-only S3/HTTP driver (`driver="ros3"`, HDF5 1.14.6) | | ✓ | ✓ |
+| `xarray_h5netcdf` | `xr.open_dataset(fileobj, engine="h5netcdf", group=...)`, then `.isel` | ✓ | ✓ | ✓ |
+| `gdal` | GDAL 3.13 HDF5/HDF4 drivers, `/vsicurl/` and `/vsis3/`, defaults + 5 retries | ✓ | ✓ HDF5 | ✓ HDF5 |
+| `gdal_tuned` | + `GDAL_HTTP_MULTIRANGE`, merge consecutive ranges, 2 MiB chunks, 512 MiB cache | ✓ | ✓ HDF5 | ✓ HDF5 |
+| `pyhdf` | HDF4 C library | ✓ HDF4 | | |
+| `download_then_read` | one streamed GET of the whole file, then h5py/pyhdf locally | | ✓ | ✓ |
+| `icechunk_virtual` | VirtualiZarr (`HDFParser`) → icechunk repo of *virtual* chunk references into the original file → `zarr` | ✓ HDF5 | ✓ HDF5 | ✓ HDF5 |
+
+GDAL's HDF4 driver and pyhdf need a real local file, so remote MODIS (HDF4) can only be
+downloaded first — or virtualised, which failed (below).
+
+**Virtual references.** For each HDF5 file VirtualiZarr scans the HDF5 metadata once and records
+the byte range of every chunk; icechunk stores those references (here locally) and zarr then
+fetches only the chunks it needs, concurrently. Building the references is an *index build* cost,
+measured separately over every network profile for (a) scanning the HDF5 file remotely and
+(b) parsing the NASA-provided **DMR++** sidecar (a small XML file with the same chunk map).
+
+Problems hit along the way (all are results):
+
+* **VNP21** declares `_FillValue = "n/a"` (a string) on integer variables `PWV`, `QC`, `oceanpix`;
+  VirtualiZarr refuses the file unless they are dropped.
+* **MODIS HDF4**: VirtualiZarr's `HDF4Parser` (kerchunk's HDF4 reader) fails on both MYD03
+  (`KeyError: 'data'`) and MYD11_L2 (fill-value decoding). Only the Terra MOD11_L2 granule had a
+  DMR++ sidecar on LP DAAC; parsing it hits the same string-fill-value issue. LAADS (MOD03/MYD03,
+  VNP03MOD/VJ103MOD) publishes **no** DMR++ sidecars. So there is no working virtual-Zarr path
+  for MODIS C6.1 today.
+* GDAL's default `GDAL_HTTP_MAX_RETRY=0` turns the first transient 5xx into a failed read.
+* HDF5 ROS3 (1.14) does not follow the Earthdata 303 redirect ("could not find Content-Length").
+
+## The network simulator
+
+Real cloud endpoints cannot be benchmarked reproducibly from a sandbox, so all remote reads go
+through a local **throttling reverse proxy** (`src/swathgeo/netsim.py`, aiohttp, separate process):
+
+```
+reader ──HTTP──▶ proxy :port(profile) ──▶ moto S3 server          (S3 profiles: real S3 API, SigV4, ranges)
+                                     └──▶ local files with Range  (HTTP profiles)
+```
+
+Per request the proxy injects: a **connection cost** on the first request of every TCP
+connection (TCP+TLS handshakes), a lognormal **time to first byte**, rare long **tail delays**,
+a lognormal **per-connection bandwidth** (with a ceiling) plus a shared **aggregate** cap, random
+mid-body **stalls**, **5xx errors** (S3: `503 SlowDown`), an optional **per-client connection cap**,
+and — for Earthdata HTTPS — a **303 redirect to a pre-signed S3 URL on every request**, exactly as
+NASA's Thin Egress App does (fsspec follows it every time; GDAL recognises the signed URL and
+caches it). The proxy counts requests, bytes, redirects and errors per run. Because the readers
+do real network I/O, their own behaviour (block sizes, concurrency, retries, redirect caching)
+is what is being measured. Two "zero" profiles measure the proxy's own overhead.
+
+| Profile | TTFB median (σ<sub>log</sub>) | Connect | Bandwidth / conn. | Aggregate | Other | Basis |
+|---|---|---|---|---|---|---|
+| S3 in-region | 30 ms (0.8) | 3 ms | 58 MB/s median, ≤ 95 | 625 MB/s | 0.1 % +1–2 s, 0.01 % 503 | AWS docs; Durner et al. 2023; dvassallo |
+| S3 cross-region | 100 ms (0.5) | 180 ms | 25 MB/s, ≤ 90 | 400 MB/s | 0.3 % +0.2–1 s | ~71 ms RTT us-east-1↔us-west-2; measured ~130 ms TTFB |
+| Earthdata HTTPS | 100 ms (0.5) + 150 ms redirect hop (0.5) | 180 ms | 25 MB/s | 400 MB/s | 303 per request, 1 % cold start +0.5–1 s, 0.1 % 5xx | TEA source; measured TEA hop ~120–250 ms |
+| NCCS portal | 150 ms (1.0) | 210 ms | 20 MB/s (σ 0.8), ≤ 100 | 35 MB/s | 1 % stalls 1–5 s, 0.5 % 5xx, ≤ 10 connections | measured single-stream ~20 MB/s and sublinear scaling; assumptions |
+
+Notes: NASA Earthdata Cloud buckets can only be read directly from AWS us-west-2, so the
+cross-region S3 profile is a what-if for NASA data (it is realistic for other buckets). Almost
+nothing is published about the NCCS data portal's performance; its profile combines a few
+indicative measurements (nginx 1.14, HTTP/1.1 only, ~20 MB/s per stream, 35 MB/s at 16 streams)
+with explicit assumptions for the heavy tails. Sources: [`notes/network_sources.md`](https://github.com/ashiklom/simon-code-research/blob/main/l2-swath-geolocation/notes/network_sources.md).
+
+```{ojs}
+//| echo: false
+profiles = FileAttachment("data/site/net_profiles.json").json()
+lognormPdf = (x, med, s) => x <= 0 ? 0 : Math.exp(-((Math.log(x) - Math.log(med)) ** 2) / (2 * s * s)) / (x * s * Math.sqrt(2 * Math.PI))
+ttfbCurves = ["s3_in_region", "s3_cross_region", "https_earthdata", "nccs_portal"].flatMap(p => {
+  const c = profiles[p], med = c.ttfb_median_ms + (c.redirect ? c.redirect_ms : 0), s = c.ttfb_sigma || 0.01;
+  return d3.range(1, 3000, 4).map(x => ({profile: p, ms: x, density: lognormPdf(x, med, s)}));
+})
+```
+
+::: {.widget}
+**Time-to-first-byte distributions** (Earthdata includes the redirect hop):
+```{ojs}
+//| echo: false
+Plot.plot({height: 220, x: {type: "log", label: "ms per request (log)"}, y: {label: "density", axis: null},
+  color: {legend: true, domain: ["s3_in_region", "s3_cross_region", "https_earthdata", "nccs_portal"],
+          range: ["#2a78d6", "#eb6834", "#1baf7a", "#e34948"]},
+  marks: [Plot.line(ttfbCurves, {x: "ms", y: "density", stroke: "profile"})]})
+```
+:::
+
+## What-if simulator
+
+Read time is roughly *requests × latency / concurrency + bytes / bandwidth*. The table below
+takes the request counts and bytes each reader actually needed (measured through the zero-latency
+proxy) and lets you set your own network.
+
+```{ojs}
+//| echo: false
+bench = FileAttachment("data/site/read_bench.csv").csv({typed: true})
+viewof simSensor = Inputs.radio(["viirs", "ecostress", "modis"], {value: "viirs", label: "sensor"})
+viewof simTask = Inputs.radio(["window_site", "window_poly", "full"], {value: "window_site", label: "task"})
+viewof simKind = Inputs.radio(["http", "s3"], {value: "http", label: "protocol of the baseline"})
+viewof lat = Inputs.range([1, 1000], {value: 150, step: 1, label: "latency per request (ms)"})
+viewof bw = Inputs.range([1, 200], {value: 25, step: 1, label: "bandwidth (MB/s)"})
+viewof redirect = Inputs.toggle({label: "redirect per request (fsspec-style HTTPS)", value: false})
+simRows = {
+  const base = bench.filter(d => d.sensor === simSensor && d.task === simTask && d.profile === (simKind === "http" ? "zero_http" : "zero_s3") && d.seconds != null);
+  const by = d3.rollup(base, v => ({req: d3.median(v, d => d.net_requests), mb: d3.median(v, d => d.net_bytes) / 1e6}), d => d.reader);
+  const conc = {icechunk_virtual: 16, gdal_tuned: 4};
+  return Array.from(by, ([reader, v]) => {
+    const per = lat / 1000 * (redirect && simKind === "http" && !reader.startsWith("gdal") ? 2 : 1);
+    const t = v.req * per / (conc[reader] || 1) + v.mb / bw;
+    return {reader, requests: v.req, MB: v.mb, predicted_s: t};
+  }).sort((a, b) => a.predicted_s - b.predicted_s);
+}
+```
+
+::: {.widget}
+```{ojs}
+//| echo: false
+Plot.plot({height: 30 + 26 * simRows.length, marginLeft: 140, x: {type: "log", label: "predicted seconds (log)", grid: true},
+  marks: [Plot.barX(simRows, {y: "reader", x: "predicted_s", fill: "#2a78d6", sort: {y: "x"}}),
+          Plot.text(simRows, {y: "reader", x: "predicted_s", text: d => `${d.requests} req, ${d.MB.toFixed(1)} MB`, dx: 4, textAnchor: "start"})]})
+```
+Concurrency assumed: icechunk 16, GDAL multi-range 4, others 1 (sequential). Compare with the
+measured distributions on the [results page](read.qmd).
+:::
+
+## Protocol
+
+* moto S3 server + proxy run as separate processes; every (reader, profile, task) runs in a fresh
+  process; per-run proxy counters are reset before each repetition.
+* Repetitions: 3 (local, S3 profiles, HTTPS), 5 (NCCS), 2 (zero-latency proxy). Timeout 400 s.
+* Local reads hit the OS page cache (warm), i.e. they measure decode cost, not disk.
+* The container has 4 vCPUs; the proxy shares them with the reader, so the zero-latency profiles
+  show the simulator's own ceiling (~hundreds of MB/s), well above all simulated bandwidths.

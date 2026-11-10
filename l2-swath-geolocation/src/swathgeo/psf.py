@@ -115,7 +115,8 @@ class Raster:
         return X.ravel(), Y.ravel()
 
 
-def psf_weights(pg: PixelGeom, poly_local, psf, k=None, cell=None, pou=True, batch=20000, group=None):
+def psf_weights(pg: PixelGeom, poly_local, psf, k=None, cell=None, pou=True, batch=20000, group=None,
+                cell_factor=0.5):
     """Weights of each pixel for polygon `poly_local` (local metres) under `psf`.
 
     pou=False: w_i = |F_i| * ∫_A p_i ;  pou=True: w_i = ∫_A p_i / Σ_j p_j.
@@ -128,7 +129,7 @@ def psf_weights(pg: PixelGeom, poly_local, psf, k=None, cell=None, pou=True, bat
     group = np.asarray(group) if group is not None else np.zeros(n, int)
     # raster cell ~ half the typical short pixel side; node spacing must not exceed it,
     # otherwise raster cells receive no PSF mass (holes in the partition of unity)
-    cell = cell or 0.5 * float(np.nanmedian(np.minimum(pg.W_s, pg.W_t)))
+    cell = cell or cell_factor * float(np.nanmedian(np.minimum(pg.W_s, pg.W_t)))
     quads = {}
     for g, p in psfs.items():
         m = group == g

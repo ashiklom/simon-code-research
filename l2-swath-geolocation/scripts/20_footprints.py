@@ -124,13 +124,14 @@ def weights_for(sw, poly_ll, rows, cols, origin, schemes=SCHEMES, psf_override=N
     if "footprint" in schemes:
         W["footprint"] = P.area_weights(fp.local_polygons(pg, "model"), poly_loc)
     k = None  # adaptive node count (see psf.psf_weights)
+    cf = 1.0 if len(rows) > 50000 else 0.5  # coarser raster for very large subsets (ECOSTRESS county)
     if "footprint_pou" in schemes:
-        W["footprint_pou"] = P.psf_weights(pg, poly_loc, P.BOX, k=k, pou=True)
+        W["footprint_pou"] = P.psf_weights(pg, poly_loc, P.BOX, k=k, pou=True, cell_factor=cf)
     spsf, grp = psf_override or sensor_psf(sw.sensor, cols)
     if "psf" in schemes:
-        W["psf"] = P.psf_weights(pg, poly_loc, spsf, k=k, pou=False, group=grp)
+        W["psf"] = P.psf_weights(pg, poly_loc, spsf, k=k, pou=False, group=grp, cell_factor=cf)
     if "psf_pou" in schemes:
-        W["psf_pou"] = P.psf_weights(pg, poly_loc, spsf, k=k, pou=True, group=grp)
+        W["psf_pou"] = P.psf_weights(pg, poly_loc, spsf, k=k, pou=True, group=grp, cell_factor=cf)
     return pg, poly_loc, W
 
 

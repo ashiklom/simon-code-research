@@ -32,7 +32,7 @@ def apply():
         "axes.spines.top": False, "axes.spines.right": False, "axes.grid": True,
         "grid.color": GRID, "grid.linewidth": 0.6, "grid.linestyle": "-",
         "xtick.color": MUTED, "ytick.color": MUTED, "xtick.labelcolor": INK2, "ytick.labelcolor": INK2,
-        "font.family": "sans-serif", "font.size": 9.5, "axes.titlesize": 11, "axes.titleweight": "semibold",
+        "font.family": "sans-serif", "font.size": 9.5, "axes.titlesize": 11, "axes.titleweight": "bold",
         "axes.titlelocation": "left", "legend.frameon": False, "legend.fontsize": 8.5,
         "lines.linewidth": 2.0, "lines.markersize": 5, "axes.prop_cycle": mpl.cycler(color=CAT),
         "figure.dpi": 110, "savefig.dpi": 160, "savefig.bbox": "tight",

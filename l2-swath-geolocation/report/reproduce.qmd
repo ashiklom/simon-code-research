@@ -1,0 +1,35 @@
+---
+title: "Reproduce"
+---
+
+Everything is pinned: tools with [mise](https://mise.jdx.dev) (`mise.toml`: pixi, Quarto) and the
+Python/GDAL/HDF stack with [pixi](https://pixi.sh) (`pixi.toml` + `pixi.lock`, conda-forge).
+
+```bash
+cd l2-swath-geolocation
+mise install          # pixi + quarto
+mise run setup        # pixi environment (GDAL with HDF4/HDF5, h5py, VirtualiZarr, icechunk, ...)
+export EARTHDATA_LOGIN_USER=... EARTHDATA_LOGIN_PASSWORD=...
+mise run download     # ~7 GB into data/raw (git-ignored): main scenes + 47 geolocation-only scenes
+mise run all          # consistency, locate, footprint, readbench, figures (~3-4 h on 4 vCPUs)
+mise run site         # render this site from results/ and figures/ (no analysis)
+mise run test         # unit checks (S2 ids, footprint trig, PSF normalisation, netsim latency/bandwidth)
+```
+
+| Step | Script | Output |
+|---|---|---|
+| scene selection | `scripts/00_select_geo_scenes.py` | `config/geo_scenes.toml` (committed) |
+| download | `scripts/01_download.py` | `data/raw/` |
+| targets | `scripts/02_targets.py` | `config/targets/*.geojson` (committed) |
+| locator benchmark | `scripts/10_bench_locate.py` | `results/locate_bench.csv` |
+| analytic consistency | `scripts/11_analytic_consistency.py` | `results/analytic_*.csv/json` |
+| footprints, PSF, areal means, synthetic test | `scripts/20_footprints.py` | `results/footprint_*.csv`, `areal_means.csv`, `synthetic_errors.csv`, `vectors/` |
+| read benchmark | `scripts/30_bench_read.py` | `results/read_bench.csv`, `virtual_build.csv` |
+| figures + site data | `scripts/40_figures.py` | `figures/`, `results/site/` |
+
+Library code lives in `src/swathgeo/` (`io`, `analytic`, `locate`, `footprint`, `psf`,
+`netsim`, `readers`). Timings depend on the machine; these were measured in a 4-vCPU, 16 GB
+Linux container.
+
+Requirements that cannot be pinned: an Earthdata Login account (for downloading); ~15 GB free
+disk; the benchmarks bind local ports 17999-18010.

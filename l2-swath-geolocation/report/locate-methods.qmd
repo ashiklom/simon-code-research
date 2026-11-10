@@ -1,0 +1,146 @@
+---
+title: "A · Locating pixels — methods"
+---
+
+The problem: L2 swath products store a 2-D array of values plus 2-D arrays of pixel-centre
+latitude and longitude. There is no grid, so "which pixel covers this point?" is a
+nearest-neighbour search on the sphere, and "which pixels touch this polygon?" is a region
+query. We compared six families of approaches on the same granules, targets and machine (4 vCPU
+container), each in a fresh process.
+
+## Targets and scenes
+
+* **Single site**: a point in the Sacramento National Wildlife Refuge, California (wetland /
+  rice / orchard mosaic).
+* **100 points**: uniformly random (seed 42) inside the area seen by all six scenes.
+* **Polygons**: a 3 km square and a 10 km-radius circle centred on the site, and Colusa County
+  (US Census 1:500k boundary, ~3000 km²).
+* **Scenes** (2023-06-02/03): MODIS Aqua near nadir (2 stacked granules) and swath edge, MODIS Terra mid-swath,
+  VIIRS NOAA-20 near nadir (2 granules), VIIRS SNPP swath edge, ECOSTRESS (one 5632 × 5400 scene).
+  Full-resolution lat/lon come from the separate geolocation products (MOD03/MYD03, VNP03MOD/VJ103MOD,
+  ECO_L1B_GEO). Note that the lat/lon inside MOD11_L2 are subsampled 5×5 — a common trap.
+
+All point queries return the nearest pixel centre by **great-circle distance** and are
+checked against brute force. Polygon queries return all pixel centres inside the polygon grown by
+the largest pixel half-diagonal (3.5 km MODIS, 1.3 km VIIRS, 80 m ECOSTRESS); the exact
+"does the footprint touch the polygon, and how much of it" step is Part B.
+
+## The methods
+
+| Method | Build | Point query | Polygon query |
+|---|---|---|---|
+| **Naive: full** | nothing | haversine to every pixel, `argmin` | `shapely.contains_xy` on every centre |
+| **Naive: box** (`numpy.where`) | nothing | `|Δlat|, |Δlon|` box mask, then `argmin` inside it | bbox mask + `contains_xy` |
+| **xarray `.sel(method="nearest")`** | – | **fails**: 2-D lat/lon are not indexed by default | – |
+| **KD-tree** (scipy `cKDTree`, `pykdtree`) | tree on unit vectors (x, y, z) | nearest neighbour; chord distance is monotone in arc length, so no dateline/pole issues | ball query around the polygon centroid + `contains_xy` (pykdtree: k-NN with distance bound) |
+| **xarray `NDPointIndex`** (+ [xoak](https://xoak.readthedocs.io/) adapters) | `ds.set_xindex(("lat","lon"), NDPointIndex, tree_adapter_cls=...)` | `ds.sel(lat=..., lon=..., method="nearest")` | not supported |
+| **S2** (pys2index) | C++ `S2PointIndex` | nearest neighbour | no region API in the binding |
+| **S2 sorted ids** | leaf cell id of every centre (vectorised port of the S2 Hilbert-curve code, validated against `s2sphere`), sorted | target cell at level *L* + 8 neighbours → `searchsorted` ranges → `argmin` | S2 covering of the polygon → id ranges → `contains_xy` |
+| **H3 sorted ids** | `h3ronpy.coordinates_to_cells` at resolution *r*, sorted | `grid_disk(cell, 1)` → lookup → `argmin` | `polygon_to_cells(..., contain="overlap")` → lookup → `contains_xy` |
+| **Analytic** | per-scan orbit state (a few kB) | predict (line, sample) from geometry, then search a small window of the real lat/lon | predict the polygon outline in (line, sample) space → read that window |
+
+The S2 level / H3 resolution is chosen so that cells are at least as large as the largest pixel
+(S2 level 10/11/15, H3 res 5/6/9 for MODIS/VIIRS/ECOSTRESS). The true nearest centre is then always
+in the target cell or a direct neighbour.
+
+```{ojs}
+//| echo: false
+h3Edge = [1281256, 483056, 182512, 68979, 26071, 9854, 3724, 1406, 531, 201, 76, 29, 11, 4, 1.5, 0.6]
+s2Edge = d3.range(0, 21).map(l => 7842000 * Math.pow(0.5, l) * 1.0)
+viewof pix = Inputs.range([50, 6000], {value: 1000, step: 10, label: "largest pixel size (m)"})
+pickH3 = h3Edge.findLastIndex(e => e * 1.0 >= pix)
+pickS2 = s2Edge.findLastIndex(e => e >= pix)
+```
+
+::: {.widget}
+**Index resolution for a pixel size.** For a sensor whose largest pixel is
+**${pix} m**, choose H3 resolution **${pickH3}** (average edge ≈ ${Math.round(h3Edge[pickH3])} m) or S2 level
+**${pickS2}** (average cell ≈ ${Math.round(s2Edge[pickS2])} m). Finer cells mean fewer candidate
+pixels per lookup but more cells to visit for polygons; coarser cells mean more `argmin` work per point.
+:::
+
+## The analytic method in detail
+
+The three instruments are cross-track scanners: a mirror (MODIS, ECOSTRESS) or rotating telescope
+(VIIRS) sweeps the line of sight (LOS) across the track while the platform moves. Each **scan**
+images `N_det` lines at once (MODIS 10, VIIRS 16, ECOSTRESS 128 L1B lines). Given the spacecraft
+position **S** and attitude for every scan — which the products ship as metadata — the inverse
+problem is closed-form:
+
+1. **Frame.** MODIS: the per-scan instrument→Earth matrix `T_inst2ECR` from MOD03. VIIRS: an orbital
+   frame (x along the *inertial* velocity, z to geodetic nadir). ECOSTRESS: the ISS attitude
+   quaternions from `ECO_L1B_ATT` (the ISS flies pitched ~7° and yawed a few degrees; ignoring this
+   puts swath-edge pixels hundreds of lines off).
+2. **Angles.** For the target **T** (ECEF, with or without terrain height), the LOS
+   **u** = (T − S)/|T − S| expressed in that frame gives the scan angle θ = atan2(u<sub>y</sub>, u<sub>z</sub>)
+   and the along-track angle φ = asin(u<sub>x</sub>).
+3. **Timing.** Sample *j* is observed at t<sub>scan</sub> + t<sub>off</sub> + κθ, so **S** is moved along the
+   orbit to that time (MODIS: ~3 km across the Earth view) and the angles recomputed.
+4. **Sample.** MODIS/ECOSTRESS: j = j<sub>c</sub> + sθ/α. VIIRS: native index n = n<sub>c</sub> + sθ/α
+   (6304 native samples), then mapped through the on-board aggregation zones
+   (640 × 1:1, 368 × 2:1, 1184 × 3:1, 368 × 2:1, 640 × 1:1).
+5. **Line.** detector d = d<sub>c</sub> + (φ − φ<sub>0</sub>)/δ. The target belongs to the scan whose detector array
+   contains it; at bow-tie / scan overlaps several scans qualify and all are searched.
+6. **Refine.** Read a (2k+1)² window of the real lat/lon around the prediction in each candidate
+   scan and take the nearest centre.
+
+The constants (j<sub>c</sub>, α, φ<sub>0</sub>, δ, κ, t<sub>off</sub>, and for VIIRS/ECOSTRESS a small pitch/yaw) start
+from the instrument documentation ("spec"). Because documentation alone misses timing offsets and
+mounting angles, we also **calibrate** them by least squares on one reference granule per platform
+(June 2024, California) using that granule's own pixel centres, then **freeze** them and test on 53
+scenes: 6 regions (equatorial, Sahara, Siberia, Argentina, near the dateline, California),
+ascending and descending passes, 2013 vs 2024 (before/after the Terra and Aqua orbit lowering and
+drift), SNPP vs NOAA-20, and ECOSTRESS in 2019 and 2024 (different ISS altitudes). The orbit itself
+is never assumed: each granule's own ephemeris is used, which is why orbit drift does not matter.
+
+### Why a window, and how big?
+
+```{ojs}
+//| echo: false
+viewof sensorA = Inputs.radio(["MODIS", "VIIRS", "ECOSTRESS"], {value: "MODIS", label: "sensor"})
+viewof thetaA = Inputs.range([0, 55], {value: 40, step: 0.5, label: "scan angle (°)"})
+viewof terrain = Inputs.range([0, 3000], {value: 800, step: 50, label: "terrain height ignored (m)"})
+cfgA = ({MODIS: {h: 705e3, a: 1.418e-3, max: 55}, VIIRS: {h: 829e3, a: 0.312e-3, max: 56}, ECOSTRESS: {h: 415e3, a: 0.171e-3, max: 25.5}})[sensorA]
+geomA = {
+  const R = 6371e3, th = Math.min(thetaA, cfgA.max) * Math.PI / 180, Rs = R + cfgA.h;
+  const eta = Math.asin(Rs / R * Math.sin(th));
+  const r = Rs * Math.cos(th) - Math.sqrt(R * R - Rs * Rs * Math.sin(th) ** 2);
+  let agg = 1;
+  if (sensorA === "VIIRS") agg = thetaA < 31.59 ? 3 : thetaA < 44.68 ? 2 : 1;
+  const Ws = r * cfgA.a * agg / Math.cos(eta);
+  const shift = terrain * Math.tan(eta);
+  return {vza: eta * 180 / Math.PI, r, Ws, shift, px: shift / Ws};
+}
+```
+
+::: {.widget}
+At a scan angle of **${Math.min(thetaA, cfgA.max)}°** the view zenith angle is **${geomA.vza.toFixed(1)}°** and the
+along-scan pixel is **${(geomA.Ws).toFixed(0)} m** wide. Predicting the pixel for a target at sea level when it
+actually sits **${terrain} m** up shifts the line of sight by h·tan(VZA) = **${geomA.shift.toFixed(0)} m**, i.e.
+**${geomA.px.toFixed(1)} pixels** along-scan. That parallax, not the orbit model, sets the search window when
+no DEM is used — which is why ECOSTRESS (70 m pixels) needs a much larger window than MODIS without terrain heights.
+:::
+
+## Benchmark protocol
+
+* Each (scene, method) runs in a new process; geolocation is read once (timed separately as "load").
+* Build: median of up to 3 runs (fewer if > 30 s total). Queries: median of up to 5 (single site), 3 (100 points, polygons).
+* "Index MB": growth of the process RSS during the build (an upper bound on index size).
+* Correctness: identical pixel to brute force (points), identical candidate set to the KD-tree (polygons).
+* The analytic method runs **without** terrain heights, with the half-window found for that platform
+  in the consistency test (Terra 3, Aqua 2, SNPP 9, NOAA-20 7, ISS 16 pixels), so it is
+  exact by construction on those scenes; the pixels it reads are reported.
+
+## Usability notes (xarray / xoak)
+
+* `ds.sel(lat=..., lon=..., method="nearest")` on 2-D coordinates raises
+  `ValueError: Could not automatically create PandasIndex` — xarray only indexes 1-D dimension coordinates.
+* `xarray.indexes.NDPointIndex` (xarray ≥ 2025.07) is the supported route. Its **default adapter
+  is a scipy KD-tree on raw (lat, lon) degrees**, i.e. Euclidean distance in degree space: wrong
+  near the poles, across the dateline, and off by tens of metres at mid-latitudes (4 % of our
+  100 points got the wrong MODIS pixel).
+* xoak 0.2 now *only* supplies tree adapters for `NDPointIndex` (`SklearnGeoBallTreeAdapter` with the
+  haversine metric, `S2PointTreeAdapter`); its own `ds.xoak.set_index/.sel` API is deprecated.
+  With the right adapter, selection is one line and returns a Dataset with all variables; but there is
+  no polygon/region query, no out-of-swath flag (the nearest pixel is always returned, however far),
+  NaN coordinates are not allowed in the trees, and the index must be rebuilt for every granule.

@@ -1,0 +1,265 @@
+---
+title: "B · Footprints & PSF — methods"
+---
+
+## Pixel size from view geometry
+
+A cross-track scanner samples in **angle**: every pixel subtends the same angular width α along-scan
+and δ along-track. On a spherical Earth of radius R, seen from altitude h at scan angle θ:
+
+$$
+\eta = \arcsin\!\Big(\tfrac{R+h}{R}\sin\theta\Big),\qquad
+r = (R+h)\cos\theta - \sqrt{R^2 - (R+h)^2\sin^2\theta},
+$$
+$$
+W_\text{scan} = \frac{r\,\alpha}{\cos\eta},\qquad W_\text{track} = r\,\delta,
+$$
+
+with η the view zenith angle at the ground and r the slant range. The along-scan size grows both
+with range and with the oblique incidence (1/cos η); the along-track size only with range. For
+real pixels we use the product's own view zenith and the satellite radius from the orbit data:
+r = √(R<sub>s</sub>² − R² sin²η) − R cos η, which handles altitude changes (e.g. the lowered Terra/Aqua
+orbits) automatically.
+
+| | altitude | α (along-scan) | δ (along-track) | nadir | swath edge |
+|---|---|---|---|---|---|
+| MODIS 1 km | 705 km | 1.418 mrad | 1.418 mrad | 1.0 × 1.0 km | 4.8 × 2.0 km (55°) |
+| VIIRS M | 829 km | 0.312 mrad × aggregation (3/2/1) | 0.891 mrad | 0.78 × 0.74 km | 1.6 × 1.6 km (56°) |
+| ECOSTRESS | ~400–420 km | 0.171 mrad | 0.185 mrad | 69 × 77 m | ~90 × 90 m (25.5°) |
+
+VIIRS keeps its pixels nearly square by **aggregating** 3, 2 or 1 native samples on board depending
+on scan angle (zones at 31.59° and 44.68°), so its along-scan size jumps at the zone boundaries rather
+than growing smoothly.
+
+```{ojs}
+//| echo: false
+presets = ({MODIS: {h: 705, a: 1.418, d: 1.418, max: 55}, "VIIRS M": {h: 829, a: 0.312, d: 0.891, max: 56.06},
+            ECOSTRESS: {h: 415, a: 0.171, d: 0.185, max: 25.5}})
+viewof preset = Inputs.radio(Object.keys(presets), {value: "MODIS", label: "sensor preset"})
+viewof hkm = Inputs.range([300, 900], {value: presets[preset].h, step: 1, label: "altitude (km)"})
+viewof alpha = Inputs.range([0.1, 2], {value: presets[preset].a, step: 0.001, label: "α along-scan (mrad)"})
+viewof delta = Inputs.range([0.1, 2], {value: presets[preset].d, step: 0.001, label: "δ along-track (mrad)"})
+viewof thSel = Inputs.range([0, presets[preset].max], {value: presets[preset].max * 0.8, step: 0.1, label: "scan angle (°)"})
+fpCurve = {
+  const R = 6371, out = [];
+  for (let t = 0; t <= presets[preset].max; t += 0.25) {
+    const th = t * Math.PI / 180, Rs = R + hkm, eta = Math.asin(Math.min(1, Rs / R * Math.sin(th)));
+    const r = Rs * Math.cos(th) - Math.sqrt(Math.max(0, R * R - Rs * Rs * Math.sin(th) ** 2));
+    const agg = preset === "VIIRS M" ? (t < 31.59 ? 3 : t < 44.68 ? 2 : 1) : 1;
+    out.push({theta: t, km: r * alpha * agg / 1000 / Math.cos(eta), axis: "along-scan"});
+    out.push({theta: t, km: r * delta / 1000, axis: "along-track"});
+  }
+  return out;
+}
+fpAt = fpCurve.filter(d => Math.abs(d.theta - Math.round(thSel * 4) / 4) < 1e-6)
+```
+
+::: {.widget}
+```{ojs}
+//| echo: false
+Plot.plot({height: 260, marginLeft: 50, x: {label: "scan angle (°)"}, y: {label: "pixel size (km)", zero: true},
+  color: {domain: ["along-scan", "along-track"], range: ["#2a78d6", "#eb6834"], legend: true},
+  marks: [Plot.line(fpCurve, {x: "theta", y: "km", stroke: "axis", strokeWidth: 2}),
+          Plot.ruleX([thSel], {stroke: "#898781"}),
+          Plot.dot(fpAt, {x: "theta", y: "km", fill: "axis", r: 5, tip: true})]})
+```
+```{ojs}
+//| echo: false
+Plot.plot({height: 200, width: 360, aspectRatio: 1, x: {label: "along-scan (km)", domain: [-3, 3]}, y: {label: "along-track (km)", domain: [-3, 3]},
+  marks: [Plot.rect([{x1: -0.5, x2: 0.5, y1: -0.5, y2: 0.5}], {x1: "x1", x2: "x2", y1: "y1", y2: "y2", stroke: "#898781", fill: "none"}),
+          Plot.rect([{x1: -fpAt[0].km / 2, x2: fpAt[0].km / 2, y1: -fpAt[1].km / 2, y2: fpAt[1].km / 2}],
+                    {x1: "x1", x2: "x2", y1: "y1", y2: "y2", fill: "#2a78d6", fillOpacity: 0.25, stroke: "#2a78d6"}),
+          Plot.text([`${fpAt[0].km.toFixed(2)} × ${fpAt[1].km.toFixed(2)} km`], {frameAnchor: "top-left", dx: 6, dy: 6})]})
+```
+Grey square: 1 km reference.
+:::
+
+## Bow-tie: overlapping scans
+
+Each scan covers a strip `N_det` detectors wide. At nadir consecutive strips just touch; because the
+strip widens with range while the spacecraft advances a fixed distance per scan, strips **overlap**
+off-nadir — by ~50 % at the MODIS swath edge. MODIS keeps all overlapping pixels (so a ground point can
+be in two pixels of different scans); VIIRS deletes the duplicated edge detectors on board ("bow-tie
+deletion", which is why VNP21 has fill values at the edges of scans off-nadir); ECOSTRESS scans overlap by
+15–30 L1B lines.
+
+```{ojs}
+//| echo: false
+viewof btTheta = Inputs.range([0, 55], {value: 50, step: 1, label: "MODIS scan angle (°)"})
+btOverlap = {
+  const R = 6371, h = 705, th = btTheta * Math.PI / 180, Rs = R + h;
+  const r = Rs * Math.cos(th) - Math.sqrt(R * R - Rs * Rs * Math.sin(th) ** 2);
+  const strip = r * 1.418e-3 * 10; // km, 10 detectors
+  return {strip, overlap: Math.max(0, 1 - 10 / strip)};
+}
+btRects = d3.range(4).map(k => ({k, y1: k * 10 - btOverlap.strip / 2 + 5, y2: k * 10 + btOverlap.strip / 2 + 5}))
+```
+
+::: {.widget}
+At ${btTheta}° each scan's strip is **${btOverlap.strip.toFixed(1)} km** long along-track but the spacecraft advances
+only 10 km per scan: **${(100 * btOverlap.overlap).toFixed(0)} %** overlap.
+```{ojs}
+//| echo: false
+Plot.plot({height: 180, x: {label: "along-scan (arbitrary)", domain: [0, 1], axis: null}, y: {label: "along-track (km)", domain: [-15, 50]},
+  color: {range: ["#2a78d6", "#eb6834", "#1baf7a", "#eda100"]},
+  marks: [Plot.rect(btRects, {x1: 0.1, x2: 0.9, y1: "y1", y2: "y2", fill: "k", fillOpacity: 0.3, stroke: "k"})]})
+```
+:::
+
+## Voronoi cells
+
+Nearest-neighbour extraction implicitly assigns every ground point to the closest pixel centre:
+the **Voronoi cell** of that centre. It is therefore the "pixel" that point-extraction code
+actually uses. We build planar Voronoi diagrams of pixel centres in a local Lambert
+equal-area projection (`shapely.voronoi_polygons`). Voronoi cells tile the plane without
+overlap and adapt automatically to growing pixel spacing — so their areas match the
+trigonometric footprints well where scans do not overlap. In bow-tie zones they shrink and
+become slivers (two centres from different scans sit close together), and they never include the
+PSF tails. They need no sensor model at all, only the centres.
+
+## Point spread functions
+
+The radiance assigned to a pixel is a weighted average of the scene under the instrument's
+**PSF**, which is wider than the nominal footprint. We model each PSF as separable
+along-scan × along-track, each axis a convolution of boxes and Gaussians in units of the pixel's
+own sample spacing (so it automatically stretches with view angle). Values and sources
+(full references below; see `config/psf.toml`):
+
+* **MODIS** bands 31/32: along-scan = detector box ⊗ scan-motion box = **triangle** (FWHM 1, base 2 samples;
+  ~75 % of the signal from the nominal pixel) ⊗ optical blur; along-track ≈ box ⊗ blur. Blur Gaussians fitted to the
+  measured pre-launch MTF at Nyquist (0.34–0.37 scan, 0.54–0.55 track) [B98, Tan06].
+* **VIIRS** M15/M16: along-scan = box(1) ⊗ native sample trapezoid of width 1/k for aggregation k = 3, 2, 1
+  (MTF<sub>N</sub> measured 0.59/0.54/0.35 vs. ideal 0.58/0.52/0.405); along-track ≈ box ("essentially square") [Lin13, W13].
+* **ECOSTRESS**: the ideal geometric response would be ~1 sample wide, but on-orbit bridge transects
+  show a **Gaussian with FWHM 157 m (along-track) × 162 m (across)** — about **twice** the 70 m sample spacing [H24].
+
+```{ojs}
+//| echo: false
+function rect(w) { return u => (Math.abs(u) <= w / 2 ? 1 : 0) }
+function gauss(f) { const s = f / 2.355; return u => Math.exp(-0.5 * (u / s) ** 2) }
+function conv(fs, du = 0.01, L = 4) {
+  const n = Math.round(2 * L / du) + 1, xs = d3.range(n).map(i => -L + i * du);
+  let cur = null;
+  for (const f of fs) {
+    let k = xs.map(f); const s = d3.sum(k); k = k.map(v => v / s);
+    if (!cur) { cur = k; continue; }
+    const out = new Array(n).fill(0), h = (n - 1) / 2;
+    for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) { const m = i + j - h; if (m >= 0 && m < n) out[m] += cur[i] * k[j]; }
+    cur = out;
+  }
+  const s = d3.sum(cur); return xs.map((x, i) => ({u: x, f: cur[i] / s / du}));
+}
+psfDefs = ({
+  "MODIS": {s: [rect(1), rect(1), gauss(0.377)], t: [rect(1), gauss(0.412)]},
+  "VIIRS (3:1 zone)": {s: [rect(1), rect(1/3), rect(1/3)], t: [rect(1)]},
+  "VIIRS (1:1 zone)": {s: [rect(1), rect(1), gauss(0.3)], t: [rect(1)]},
+  "ECOSTRESS (measured)": {s: [gauss(2.36)], t: [gauss(2.07)]},
+  "Box (no PSF)": {s: [rect(1)], t: [rect(1)]}})
+viewof psfSel = Inputs.select(Object.keys(psfDefs), {value: "MODIS", label: "PSF"})
+lsfS = conv(psfDefs[psfSel].s)
+lsfT = conv(psfDefs[psfSel].t)
+inPix = a => d3.sum(a.filter(d => Math.abs(d.u) <= 0.5), d => d.f) * 0.01
+```
+
+::: {.widget}
+```{ojs}
+//| echo: false
+Plot.plot({height: 240, x: {label: "distance from pixel centre (samples)", domain: [-3, 3]}, y: {label: "response"},
+  color: {domain: ["along-scan", "along-track"], range: ["#2a78d6", "#eb6834"], legend: true},
+  marks: [Plot.rectY([{x1: -0.5, x2: 0.5}], {x1: "x1", x2: "x2", y: 1.05, fill: "#e1e0d9", fillOpacity: 0.5}),
+          Plot.line(lsfS, {x: "u", y: "f", stroke: () => "along-scan"}),
+          Plot.line(lsfT, {x: "u", y: "f", stroke: () => "along-track"})]})
+```
+Energy from inside the nominal pixel: along-scan **${(100 * inPix(lsfS)).toFixed(0)} %**, along-track
+**${(100 * inPix(lsfT)).toFixed(0)} %**, so the nominal footprint holds only **${(100 * inPix(lsfS) * inPix(lsfT)).toFixed(0)} %** of the signal
+(grey band = nominal pixel).
+:::
+
+## Areal averages: weighting schemes
+
+For a polygon A the areal mean is estimated as Σ w<sub>i</sub> x<sub>i</sub> / Σ w<sub>i</sub>. We compare:
+
+| Scheme | weight w<sub>i</sub> | assumption |
+|---|---|---|
+| Centre in polygon | 1 if the centre is in A | pixels are points |
+| Nominal square | area of (nadir-size square at the centre) ∩ A | all pixels the same size |
+| Voronoi | area of (Voronoi cell) ∩ A | nearest-neighbour partition |
+| Trig footprint | area of (footprint quadrilateral) ∩ A | true size, overlap double-counted |
+| Trig footprint, overlap-aware | ∫<sub>A</sub> b<sub>i</sub> / Σ<sub>j</sub> b<sub>j</sub> | true size; overlapping footprints share the ground |
+| PSF | \|F<sub>i</sub>\| ∫<sub>A</sub> p<sub>i</sub> | true size + PSF, overlap double-counted |
+| PSF, overlap-aware | ∫<sub>A</sub> p<sub>i</sub> / Σ<sub>j</sub> p<sub>j</sub> | true size + PSF ("partition of unity") |
+
+where b<sub>i</sub> is the box PSF of footprint i and p<sub>i</sub> the sensor PSF (both normalised). The
+overlap-aware forms let every point of A distribute its unit area among the pixels that see it,
+in proportion to how strongly each sees it; their weights sum to the polygon area exactly. They are
+integrated by quadrature in each pixel's own frame, with the denominator accumulated on a fine
+raster in a local equal-area plane (node spacing adapted to the largest pixel so the raster has no holes).
+
+```{ojs}
+//| echo: false
+viewof aLo = Inputs.range([0, 20], {value: 6.3, step: 0.1, label: "polygon start (km)"})
+viewof aHi = Inputs.range([0, 20], {value: 9.1, step: 0.1, label: "polygon end (km)"})
+viewof growth = Inputs.range([1, 5], {value: 3, step: 0.1, label: "pixel growth across the line"})
+pix1d = {
+  // pixels along a line whose size grows linearly (like a swath towards its edge)
+  const out = []; let x = 0, i = 0;
+  while (x < 20) { const w = 0.6 * (1 + (growth - 1) * x / 20); out.push({i, x0: x, x1: x + w, c: x + w / 2, w}); x += w; i++; }
+  return out;
+}
+field = x => 300 + 8 * Math.sin(x * 1.3) + (x > 8 ? 6 : 0)
+obs1d = pix1d.map(p => { // triangle PSF of base 2 samples
+  let s = 0, n = 0; for (let u = -1; u <= 1; u += 0.02) { const wt = 1 - Math.abs(u); s += wt * field(p.c + u * p.w); n += wt; }
+  return {...p, x: s / n};
+})
+truth1d = { let s = 0, n = 0; for (let x = aLo; x < aHi; x += 0.001) { s += field(x); n++; } return n ? s / n : NaN; }
+schemes1d = {
+  const lo = Math.min(aLo, aHi), hi = Math.max(aLo, aHi), ov = (a, b) => Math.max(0, Math.min(b, hi) - Math.max(a, lo));
+  const est = w => { const sw = d3.sum(w); return sw ? d3.sum(obs1d.map((p, i) => w[i] * p.x)) / sw : NaN; };
+  return [
+    {scheme: "Centre in polygon", est: est(obs1d.map(p => (p.c >= lo && p.c <= hi ? 1 : 0)))},
+    {scheme: "Nominal size (0.6 km)", est: est(obs1d.map(p => ov(p.c - 0.3, p.c + 0.3)))},
+    {scheme: "True footprint", est: est(obs1d.map(p => ov(p.x0, p.x1)))},
+    {scheme: "Footprint + PSF", est: est(obs1d.map(p => { let s = 0; for (let u = -1; u <= 1; u += 0.02) { const x = p.c + u * p.w; if (x >= lo && x <= hi) s += 1 - Math.abs(u); } return s; }))},
+  ].map(d => ({...d, err: d.est - truth1d}));
+}
+```
+
+::: {.widget}
+**1-D toy.** Pixels grow ${growth}× from left to right (like a swath edge); the scene has a 6 K step at
+x = 8 km; each pixel observes it through a triangular PSF. Drag the polygon over the step and towards the
+large pixels.
+```{ojs}
+//| echo: false
+Plot.plot({height: 200, x: {label: "x (km)", domain: [0, 20]}, y: {label: "LST (K)"},
+  marks: [Plot.rectY([{a: Math.min(aLo, aHi), b: Math.max(aLo, aHi)}], {x1: "a", x2: "b", y1: 290, y2: 316, fill: "#e34948", fillOpacity: 0.08}),
+          Plot.line(d3.range(0, 20, 0.02).map(x => ({x, y: field(x)})), {x: "x", y: "y", stroke: "#898781"}),
+          Plot.rect(obs1d, {x1: "x0", x2: "x1", y1: d => d.x - 0.25, y2: d => d.x + 0.25, fill: "#2a78d6"}),
+          Plot.tickX(obs1d, {x: "c", y: "x", stroke: "#fcfcfb"})]})
+```
+```{ojs}
+//| echo: false
+Inputs.table(schemes1d.map(d => ({Scheme: d.scheme, "Estimate (K)": d.est.toFixed(2), "Error vs truth (K)": d.err.toFixed(2)})), {sort: null})
+```
+True mean over the polygon: **${truth1d.toFixed(2)} K**. (Even the best scheme cannot fully undo the PSF:
+it recovers the mean of the *blurred* scene.)
+:::
+
+## Synthetic-truth test
+
+Real LST has no known truth, so we also simulated it: the 70 m ECOSTRESS LST of the same afternoon
+(gaps filled with the nearest valid value) is treated as the true field. Every MODIS/VIIRS pixel of
+the real scenes "observes" it through its trigonometric footprint and PSF (31 × 31 quadrature
+nodes, nearest 70 m pixel). For 60 random squares and circles of 2, 5, 10 and 20 km, each weighting
+scheme estimates the polygon mean, compared with the mean of the 70 m pixels inside it. This isolates
+the effect of the pixel model (no retrieval error, no time difference, no geolocation error).
+
+## References
+
+* [B98] Barnes, Pagano & Salomonson (1998) Prelaunch characteristics of the MODIS on EOS-AM1. *IEEE TGRS* 36(4):1088–1100.
+* [Tan06] Tan et al. (2006) The impact of gridding artifacts on the local spatial properties of MODIS data. *RSE* 105:98–114.
+* [Lin13] Lin, Tilton, Wolfe, Tewari & Nishihama (2013) SNPP VIIRS spectral bands co-registration and spatial response characterization. *Proc. SPIE* 8866, 88661G.
+* [W13] Wolfe et al. (2013) Suomi NPP VIIRS prelaunch and on-orbit geometric calibration and characterization. *JGR-Atmos.* 118:11508.
+* [VGeoATBD] NASA (2014) Revised JPSS VIIRS Geolocation ATBD (423-ATBD-002).
+* [H24] Holmes et al. (2024) On-orbit spatial performance characterization for thermal infrared imagers of Landsat 7, 8, and 9, ECOSTRESS and CTI. *JGR-Biogeosciences* 129, e2023JG007506.
+* ECOSTRESS L1 Calibration ATBD; L1B Geolocation ATBD (JPL D-94641); L1 Product User Guide (JPL D-57151).
+* Full notes with page/table pointers: [`notes/psf_sources.md`](https://github.com/ashiklom/simon-code-research/blob/main/l2-swath-geolocation/notes/psf_sources.md).

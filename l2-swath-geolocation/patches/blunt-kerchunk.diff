@@ -1,0 +1,36 @@
+diff --git a/kerchunk/hdf4.py b/kerchunk/hdf4.py
+index 729b7e9..5043070 100644
+--- a/kerchunk/hdf4.py
++++ b/kerchunk/hdf4.py
+@@ -210,6 +210,9 @@ class HDF4ToZarr:
+             elif t == "NT":
+                 out["dtype"] = inf2["typ"]
+             elif t == "SD":
++                if "data" not in inf2:
++                    # BLUNT FIX: plain (non-extended) SD tag = contiguous, uncompressed data
++                    inf2["data"] = ("NONE", inf2["offset"], inf2["length"])
+                 if isinstance(inf2["data"][-1], (tuple, list)):
+                     out["refs"] = inf2["data"][:-1]
+                     out["chunks"] = [_["chunk_length"] for _ in inf2["data"][-1]]
+@@ -335,8 +338,8 @@ class HDF4ToZarr:
+         self.f.seek(6, 1)
+ 
+         data_ref = self.read_int(2)
+-        # model = self.read_int(2)  # always 0
+-        ctype = "DEFLATE"  # comp[self.read_int(2)]
++        self.read_int(2)  # model, always 0
++        ctype = comp.get(self.read_int(2), "UNKNOWN")  # BLUNT FIX: read the real coder
+         tag = self.tags[("COMPRESSED", data_ref)]
+         return ctype, tag["offset"], tag["length"]
+ 
+@@ -504,8 +507,8 @@ spec = {
+ 
+ # hdf4/hdf/src/hntdefs.h
+ dtypes = {
+-    5: "f4",
+-    6: "f8",
++    5: ">f4",  # BLUNT FIX: HDF4 (non-LITEND) floats are big-endian like the ints
++    6: ">f8",
+     20: "i1",
+     21: "u1",
+     4: "str",  # special case, size given in header
