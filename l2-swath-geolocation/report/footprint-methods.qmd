@@ -80,8 +80,10 @@ Each scan covers a strip `N_det` detectors wide. At nadir consecutive strips jus
 strip widens with range while the spacecraft advances a fixed distance per scan, strips **overlap**
 off-nadir — by ~50 % at the MODIS swath edge. MODIS keeps all overlapping pixels (so a ground point can
 be in two pixels of different scans); VIIRS deletes the duplicated edge detectors on board ("bow-tie
-deletion", which is why VNP21 has fill values at the edges of scans off-nadir); ECOSTRESS scans overlap by
-15–30 L1B lines.
+deletion", which is why VNP21 has fill values at the edges of scans off-nadir — detectors 0 and 15 in the 2:1
+zones and 0, 1, 14, 15 in the 1:1 zones, confirmed in our granules); ECOSTRESS scans overlap by
+15–30 L1B lines. The geolocation file still carries lat/lon for the deleted VIIRS pixels, so we drop
+them before building footprints or Voronoi cells — otherwise they claim ground for which no value exists.
 
 ```{ojs}
 //| echo: false
@@ -188,10 +190,16 @@ For a polygon A the areal mean is estimated as Σ w<sub>i</sub> x<sub>i</sub> / 
 | Trig footprint, overlap-aware | ∫<sub>A</sub> b<sub>i</sub> / Σ<sub>j</sub> b<sub>j</sub> | true size; overlapping footprints share the ground |
 | PSF | \|F<sub>i</sub>\| ∫<sub>A</sub> p<sub>i</sub> | true size + PSF, overlap double-counted |
 | PSF, overlap-aware | ∫<sub>A</sub> p<sub>i</sub> / Σ<sub>j</sub> p<sub>j</sub> | true size + PSF ("partition of unity") |
+| PSF-optimal (NNLS) | argmin<sub>w ≥ 0</sub> ‖Σ<sub>i</sub> w<sub>i</sub> p<sub>i</sub> − 1<sub>A</sub>‖² | weights whose combined PSFs best reproduce the polygon |
 
 where b<sub>i</sub> is the box PSF of footprint i and p<sub>i</sub> the sensor PSF (both normalised). The
 overlap-aware forms let every point of A distribute its unit area among the pixels that see it,
-in proportion to how strongly each sees it; their weights sum to the polygon area exactly. They are
+in proportion to how strongly each sees it; their weights sum to the polygon area exactly.
+They still give an edge pixel weight for the part of its PSF inside A even though its *value* also
+carries the part outside A. The **PSF-optimal** weights instead solve a non-negative least-squares
+problem on the raster: find the combination of the pixels' PSFs that best reproduces the polygon's
+indicator function. That is the best a linear estimator can do with blurred observations (it
+down-weights pixels that straddle the boundary); computed for subsets up to 8,000 pixels. They are
 integrated by quadrature in each pixel's own frame, with the denominator accumulated on a fine
 raster in a local equal-area plane (node spacing adapted to the largest pixel so the raster has no holes).
 

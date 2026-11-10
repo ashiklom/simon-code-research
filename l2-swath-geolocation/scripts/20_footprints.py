@@ -40,7 +40,7 @@ NOMINAL_M = {"modis": 1000.0, "viirs": 750.0, "ecostress": 70.0}  # "all pixels 
 QUAD_K = {"modis": 9, "viirs": 9, "ecostress": 5}
 MARGIN_M = {"modis": 12000.0, "viirs": 5000.0, "ecostress": 400.0}  # pixels around A for Σ_j p_j
 
-SCHEMES = ["naive_center", "naive_square", "voronoi", "footprint", "footprint_pou", "psf", "psf_pou"]
+SCHEMES = ["naive_center", "naive_square", "voronoi", "footprint", "footprint_pou", "psf", "psf_pou", "psf_lsq"]
 
 
 def sensor_psf(sensor, cols=None):
@@ -105,6 +105,9 @@ def validate():
 # ---------------------------------------------------------------------------------------
 def subset(sw, loc, poly_ll, margin_m):
     rows, cols = loc.query_polygon(poly_ll, margin_m)
+    if sw.sensor == "viirs":  # bow-tie-deleted pixels have geolocation but never data
+        keep = ~fp.viirs_bowtie_deleted(rows, cols)
+        rows, cols = rows[keep], cols[keep]
     return rows, cols
 
 
@@ -132,6 +135,8 @@ def weights_for(sw, poly_ll, rows, cols, origin, schemes=SCHEMES, psf_override=N
         W["psf"] = P.psf_weights(pg, poly_loc, spsf, k=k, pou=False, group=grp, cell_factor=cf)
     if "psf_pou" in schemes:
         W["psf_pou"] = P.psf_weights(pg, poly_loc, spsf, k=k, pou=True, group=grp, cell_factor=cf)
+    if "psf_lsq" in schemes:
+        W["psf_lsq"] = P.psf_lsq_weights(pg, poly_loc, spsf, group=grp)
     return pg, poly_loc, W
 
 
@@ -192,7 +197,7 @@ def export(sw, name, pname, pg, W, lst):
 
 
 # ---------------------------------------------------------------------------------------
-def synthetic(n_poly=60, seed=3):
+def synthetic(n_poly=200, seed=3):
     """ECOSTRESS 70 m LST as truth; simulate MODIS/VIIRS observations through the PSF."""
     eco, eloc = scene("ecostress")
     T = eco.lst.astype(float)

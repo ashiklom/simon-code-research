@@ -53,6 +53,14 @@ def viirs_agg_factor(cols):
     return facs[z]
 
 
+def viirs_bowtie_deleted(rows, cols):
+    """True for VIIRS M-band pixels removed on board by bow-tie deletion: detectors 0/15 in the
+    2:1 aggregation zones, 0/1/14/15 in the 1:1 zones (they have lat/lon but never data)."""
+    det = np.asarray(rows) % 16
+    k = viirs_agg_factor(np.asarray(cols))
+    return ((k == 2) & ((det == 0) | (det == 15))) | ((k == 1) & ((det <= 1) | (det >= 14)))
+
+
 def angular_widths(sensor: str, model: an.SensorModel, cols):
     """(alpha_eff, delta) in radians for pixels in columns `cols`."""
     cols = np.asarray(cols)

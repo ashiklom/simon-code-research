@@ -1,0 +1,238 @@
+diff --git a/virtualizarr/parsers/dmrpp.py b/virtualizarr/parsers/dmrpp.py
+index c6b7b3a..ff12e5e 100644
+--- a/virtualizarr/parsers/dmrpp.py
++++ b/virtualizarr/parsers/dmrpp.py
+@@ -463,6 +463,8 @@ class DMRParser:
+         shape: tuple[int, ...] = tuple(dims.values())
+         chunks_shape = shape
+         chunks_tag = var_tag.find("dmrpp:chunks", self._NS)
++        if chunks_tag is not None and self._get_attrib(chunks_tag, "byteOrder") == "BE":
++            dtype = dtype.newbyteorder(">")  # e.g. DMR++ of HDF4 files
+         array_fill_value = np.array(0).astype(dtype)[()]
+         if chunks_tag is not None:
+             # Chunks
+@@ -490,7 +492,10 @@ class DMRParser:
+             attrs.update(self._parse_attribute(attr_tag))
+         if "_FillValue" in attrs:
+             encoded_cf_fill_value = encode_cf_fill_value(attrs["_FillValue"], dtype)
+-            attrs["_FillValue"] = encoded_cf_fill_value
++            if encoded_cf_fill_value is None:
++                del attrs["_FillValue"]
++            else:
++                attrs["_FillValue"] = encoded_cf_fill_value
+ 
+         metadata = create_v3_array_metadata(
+             shape=shape,
+diff --git a/virtualizarr/parsers/hdf/hdf.py b/virtualizarr/parsers/hdf/hdf.py
+index 527869c..1163219 100644
+--- a/virtualizarr/parsers/hdf/hdf.py
++++ b/virtualizarr/parsers/hdf/hdf.py
+@@ -171,7 +171,10 @@ def _construct_manifest_array(
+ 
+     if "_FillValue" in attrs and dtype.kind not in ("S", "U", "O", "T"):
+         encoded_cf_fill_value = encode_cf_fill_value(attrs["_FillValue"], dtype)
+-        attrs["_FillValue"] = encoded_cf_fill_value
++        if encoded_cf_fill_value is None:
++            del attrs["_FillValue"]
++        else:
++            attrs["_FillValue"] = encoded_cf_fill_value
+ 
+     inlined_strings = vlen_string or (object_reference and links_and_references)
+     if inlined_strings:
+diff --git a/virtualizarr/parsers/hdf4.py b/virtualizarr/parsers/hdf4.py
+index 665fcb6..5851b97 100644
+--- a/virtualizarr/parsers/hdf4.py
++++ b/virtualizarr/parsers/hdf4.py
+@@ -16,6 +16,7 @@ from virtualizarr.parsers.kerchunk.translator import (
+     from_kerchunk_refs,
+     manifest_from_kerchunk_chunk_dict,
+ )
++from virtualizarr.parsers.utils import encode_cf_fill_value
+ from virtualizarr.utils import determine_chunk_grid_shape
+ 
+ # HDF4's magic number, at byte 0 of every HDF4 file.
+@@ -133,27 +134,36 @@ def _manifestarray(
+     # zero-length variables HDF4 uses to say "nothing was recorded here".
+     refs = variable.get("refs", [])
+ 
++    # HDF4 char arrays ("str" in kerchunk) hold one byte per element
++    dtype = "|S1" if variable["dtype"] == "str" else variable["dtype"]
+     zarray = {
+         "shape": shape,
+         # Kerchunk reports an unchunked variable's dimensions as its chunk shape,
+         # which for a zero-length variable means a chunk edge of 0. Zarr requires
+         # positive edges, and `from_kerchunk_refs` coerces 0 -> 1 for us.
+         "chunks": tuple(variable.get("chunks", shape)),
+-        "dtype": variable["dtype"],
++        "dtype": dtype,
+         # HDF4 records a fill value in its FV tag, which kerchunk does not decode.
+         "fill_value": 0,
+         "filters": None,
+-        "compressor": _ZLIB if refs else None,
++        # kerchunk tags compressed refs with their coder; contiguous data is "NONE"
++        "compressor": _ZLIB if any(len(r) > 3 and r[3] == "DEFLATE" for r in refs) else None,
+         "zarr_format": 2,
+         # HDF4 dimensions are anonymous, so kerchunk names them after the
+         # variable, and gives the zero-length variables a single shared name.
+-        "dimension_names": [f"{name}_x", f"{name}_y"][: len(shape)] if refs else ["0"],
++        "dimension_names": [f"{name}_{c}" for c in "xyzwvu"[: len(shape)]] if refs else ["0"],
+     }
+     attributes = {
+         key: value.tolist() if isinstance(value, np.generic) else value
+         for key, value in variable.items()
+         if key not in _DECODER_KEYS
+     }
++    if "_FillValue" in attributes:  # CF-encode, as the other parsers do
++        fill = encode_cf_fill_value(np.asarray(attributes["_FillValue"]), np.dtype(dtype))
++        if fill is None:
++            del attributes["_FillValue"]
++        else:
++            attributes["_FillValue"] = fill
+     metadata = from_kerchunk_refs(zarray, attributes)
+ 
+     chunk_grid_shape = determine_chunk_grid_shape(metadata.shape, metadata.chunks)
+diff --git a/virtualizarr/parsers/utils.py b/virtualizarr/parsers/utils.py
+index c7db025..05a7ff4 100644
+--- a/virtualizarr/parsers/utils.py
++++ b/virtualizarr/parsers/utils.py
+@@ -1,5 +1,7 @@
+ from __future__ import annotations
+ 
++import warnings
++
+ import asyncio
+ from collections.abc import Awaitable, Callable, Iterable
+ from typing import Any
+@@ -112,5 +114,13 @@ def encode_cf_fill_value(
+         fillvalue = fill_value.item()
+     else:
+         fillvalue = fill_value
++    if isinstance(fillvalue, (bytes, str)) and np.dtype(target_dtype).kind in "biuf":
++        # e.g. VIIRS VNP21 ("n/a") or HDF4-derived DMR++ ("NA"): parse numeric text, else drop
++        text = fillvalue.decode() if isinstance(fillvalue, bytes) else fillvalue
++        try:
++            fillvalue = np.dtype(target_dtype).type(text).item()
++        except (ValueError, OverflowError):
++            warnings.warn(f"Ignoring non-numeric _FillValue {text!r} for dtype {target_dtype}")
++            return None
+     encoded_fillvalue = FillValueCoder.encode(fillvalue, target_dtype)
+     return encoded_fillvalue
+diff --git a/virtualizarr/tests/test_parsers/test_nasa_regressions.py b/virtualizarr/tests/test_parsers/test_nasa_regressions.py
+new file mode 100644
+index 0000000..3530e2c
+--- /dev/null
++++ b/virtualizarr/tests/test_parsers/test_nasa_regressions.py
+@@ -0,0 +1,113 @@
++"""Regressions found on NASA MODIS (HDF4), MODIS DMR++ and VIIRS (HDF5) granules.
++
++Fixtures are generated on the fly (pyhdf / h5py), so no binary files are needed.
++"""
++
++import warnings
++from pathlib import Path
++
++import numpy as np
++import pytest
++import xarray as xr
++from obspec_utils.registry import ObjectStoreRegistry
++from obstore.store import LocalStore
++
++from virtualizarr.parsers import DMRPPParser, HDF4Parser, HDFParser
++from virtualizarr.tests import requires_kerchunk
++
++pyhdf_SD = pytest.importorskip("pyhdf.SD")
++
++
++def _open(parser, path: Path) -> xr.Dataset:
++    registry = ObjectStoreRegistry({"file://": LocalStore()})
++    store = parser(path.as_uri(), registry=registry)
++    return xr.open_zarr(store, consolidated=False, zarr_format=3, mask_and_scale=False,
++                        concat_characters=False)
++
++
++@pytest.fixture
++def modis_like_hdf4(tmp_path: Path) -> tuple[Path, dict]:
++    SD, SDC = pyhdf_SD.SD, pyhdf_SD.SDC
++    path = tmp_path / "modis_like.hdf"
++    sd = SD(str(path), SDC.WRITE | SDC.CREATE | SDC.TRUNC)
++    data = {
++        # stored contiguously and uncompressed (like MOD03 Latitude)
++        "contiguous_i2": np.arange(20, dtype=">i2").reshape(4, 5),
++        # big-endian float with a CF fill value (like MOD11_L2 Latitude)
++        "float_f4": np.linspace(-90, 90, 12, dtype=">f4").reshape(3, 4),
++        # three dimensions (like MOD03 T_inst2ECR)
++        "cube_f8": np.arange(18, dtype=">f8").reshape(2, 3, 3),
++        # character array (like MOD03 "Scan Type")
++        "chars": np.array([list(b"Day\0\0"), list(b"Night")], dtype="u1").view("S1"),
++    }
++    v = sd.create("contiguous_i2", SDC.INT16, (4, 5))
++    v[:] = data["contiguous_i2"]
++    v.endaccess()
++    v = sd.create("float_f4", SDC.FLOAT32, (3, 4))
++    v.setcompress(SDC.COMP_DEFLATE, 6)
++    v[:] = data["float_f4"]
++    v.setfillvalue(-999.0)
++    v.endaccess()
++    v = sd.create("cube_f8", SDC.FLOAT64, (2, 3, 3))
++    v.setcompress(SDC.COMP_DEFLATE, 6)
++    v[:] = data["cube_f8"]
++    v.endaccess()
++    v = sd.create("chars", SDC.CHAR8, (2, 5))
++    v[:] = data["chars"]
++    v.endaccess()
++    sd.end()
++    return path, data
++
++
++@requires_kerchunk
++def test_hdf4_contiguous_float_3d_and_char_arrays(modis_like_hdf4) -> None:
++    path, expected = modis_like_hdf4
++    ds = _open(HDF4Parser(), path)
++    for name, want in expected.items():
++        got = ds[name].values
++        assert got.shape == want.shape, name
++        np.testing.assert_array_equal(got, want, err_msg=name)
++    var = ds["float_f4"]
++    fill = var.encoding.get("_FillValue", var.attrs.get("_FillValue"))
++    assert float(fill) == pytest.approx(-999.0)  # big-endian attribute decoded correctly
++    assert ds["cube_f8"].dims == ("cube_f8_x", "cube_f8_y", "cube_f8_z")
++
++
++def test_hdf5_string_fill_value_on_integer_variable(tmp_path: Path) -> None:
++    h5py = pytest.importorskip("h5py")
++    path = tmp_path / "string_fill.h5"
++    with h5py.File(path, "w") as f:
++        d = f.create_dataset("qc", data=np.arange(6, dtype="u2").reshape(2, 3))
++        d.attrs["_FillValue"] = np.bytes_(b"n/a")  # as in VIIRS VNP21 v002
++        e = f.create_dataset("lst", data=np.arange(6, dtype="u2").reshape(2, 3))
++        e.attrs["_FillValue"] = np.bytes_(b"0")  # numeric text is parsed
++    with warnings.catch_warnings(record=True):
++        ds = _open(HDFParser(), path)
++    np.testing.assert_array_equal(ds["qc"].values, np.arange(6).reshape(2, 3))
++    assert "_FillValue" not in ds["qc"].attrs
++    assert ds["lst"].encoding.get("_FillValue", ds["lst"].attrs.get("_FillValue")) is not None
++
++
++DMRPP_BE = """<?xml version="1.0" encoding="ISO-8859-1"?>
++<Dataset xmlns="http://xml.opendap.org/ns/DAP/4.0#" xmlns:dmrpp="http://xml.opendap.org/dap/dmrpp/1.0.0#" dapVersion="4.0" dmrVersion="1.0" name="be.hdf" dmrpp:href="OPeNDAP_DMRpp_DATA_ACCESS_URL" dmrpp:version="3.21.1">
++    <Dimension name="y" size="2"/>
++    <Dimension name="x" size="3"/>
++    <UInt16 name="qc">
++        <Dim name="/y"/>
++        <Dim name="/x"/>
++        <Attribute name="_FillValue" type="String"><Value>NA</Value></Attribute>
++        <dmrpp:chunks fillValue="0" byteOrder="BE">
++            <dmrpp:chunk offset="0" nBytes="12"/>
++        </dmrpp:chunks>
++    </UInt16>
++</Dataset>
++"""
++
++
++def test_dmrpp_big_endian_and_string_fill(tmp_path: Path) -> None:
++    data = np.arange(6, dtype=">u2").reshape(2, 3)
++    (tmp_path / "be.hdf").write_bytes(data.tobytes())
++    (tmp_path / "be.hdf.dmrpp").write_text(DMRPP_BE)
++    with warnings.catch_warnings(record=True):
++        ds = _open(DMRPPParser(), tmp_path / "be.hdf.dmrpp")
++    np.testing.assert_array_equal(ds["qc"].values, data)

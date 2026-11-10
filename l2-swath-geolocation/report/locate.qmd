@@ -1,0 +1,110 @@
+---
+title: "A · Locating pixels — results"
+---
+
+::: {.callout-note appearance="simple"}
+**Bottom line.** Brute force is fine for a handful of points on MODIS but scales badly
+(1.8 s *per point* on a 30-million-pixel ECOSTRESS scene). Any spatial index answers point
+queries in micro- to milliseconds; the cost moves to **building** the index (0.4–25 s) and
+holding it in **memory** (0.15–4 GB). A KD-tree on unit vectors is the best general-purpose
+choice. The **analytic** (orbit + scan geometry) locator needs no index at all, is exact after a
+tiny window search, and — crucially for remote data — reads only a few kilobytes of navigation
+metadata plus a small window instead of the full lat/lon arrays.
+:::
+
+![](figures/locate_times.png)
+
+## Point queries
+
+Near-nadir scenes (MODIS Aqua: 5.5 M pixels from 2 granules; VIIRS NOAA-20: 20.6 M from 2
+granules; ECOSTRESS: 30.4 M). Load = reading lat/lon from local disk (same for all methods).
+
+| Method | Build (MODIS / VIIRS / ECOSTRESS) | Index RAM | 1 point | 100 points |
+|---|---|---|---|---|
+| Naive: full haversine | — | — | 0.26 / 1.2 / 1.8 s | 26 / 111 / 175 s |
+| Naive: lat/lon box | — | — | 0.13 / 0.54 / 0.87 s | 12 / 51 / 81 s |
+| KD-tree (scipy) | 1.3 / 5.7 / 8.5 s | 0.36 / 1.2 / 1.7 GB | 0.1 ms | ~1 ms |
+| KD-tree (pykdtree) | 1.0 / 4.2 / 6.5 s | 0.35 / 1.2 / 1.8 GB | < 0.1 ms | 0.1–0.2 ms |
+| xarray NDPointIndex (default) | 2.1 / 8.1 / 12.9 s | 0.3 / 0.8 / 1.3 GB | 0.6 ms | 0.7 ms — **wrong pixel for 4–10 %** |
+| xarray NDPointIndex + xoak BallTree | 4.3 / 16 / 25 s | 0.24 / 0.6 / 0.8 GB | 0.8 ms | 3–7 ms |
+| xarray NDPointIndex + xoak S2 | 1.9 / 7.3 / 11 s | 0.8 / 2.7 / 4.0 GB | 0.6 ms | 0.8 ms |
+| S2 point index (pys2index) | 1.8 / 6.9 / 11 s | 0.7 / 2.8 / 4.1 GB | < 0.1 ms | 0.2 ms |
+| S2 sorted cell ids | 2.4 / 11 / 18 s | 0.15 / 0.46 / 0.70 GB | 0.2 ms | ~10 ms |
+| H3 sorted cell ids | 2.4 / 10 / 17 s | 0.15 / 0.48 / 0.71 GB | 0.1 ms | 5–8 ms |
+| **Analytic** | **< 1 ms** | **< 1 MB** | 0.3 ms | 10–13 ms |
+
+All methods except xarray's default index return exactly the brute-force pixel for all 100
+points in all six scenes. The sorted-cell-id approaches (S2, H3) query slower than trees here only
+because the per-point loop is in Python; they are the most memory-efficient indexes and their
+keys could be stored next to the data. **Break-even**: with a KD-tree on ECOSTRESS, building pays
+for itself after ~5 brute-force point queries.
+
+**xarray's default `NDPointIndex` is wrong**: it uses Euclidean distance on (lat, lon) degrees,
+returning the wrong pixel for 4 % (MODIS, VIIRS nadir) to 10 % (ECOSTRESS; MODIS swath edge) of the
+points, up to 379 m away from the true nearest centre at the MODIS swath edge. Use a xoak adapter
+(BallTree haversine or S2) instead. Plain `ds.sel(lat=..., lon=..., method="nearest")` on 2-D
+coordinates fails outright.
+
+## Polygon queries
+
+![](figures/locate_polygon.png)
+
+Candidate pixels for Colusa County (~3,800 MODIS, ~10,000 VIIRS, ~650,000 ECOSTRESS pixels):
+all methods with a region query returned identical sets. Trees and cell-id indexes take
+10–20 ms on MODIS/VIIRS and 0.4–0.75 s on ECOSTRESS (where the exact point-in-polygon test
+dominates). `pykdtree` has no radius query: emulating one with k-nearest-neighbours becomes
+pathologically slow for the ~650k ECOSTRESS candidates (abandoned beyond k = 262,144). The analytic
+locator predicts the county outline in (line, sample) space and tests the pixels in that window
+(1.65 M for ECOSTRESS, because the county is not aligned with the swath) in 0.36 s.
+
+## The analytic locator across 53 scenes
+
+![](figures/analytic_window.png)
+
+Constants calibrated on **one** June-2024 California granule per platform were frozen and
+applied to 47 other scenes (2013 and 2024; Amazon, Sahara, Siberia, Argentina, the dateline,
+California; ascending and descending; ISS altitudes 411–424 km) plus the 6 main scenes. Each
+granule's own orbit data is used, so the 2021–2022 lowering and drift of the Terra and Aqua
+orbits (altitudes fell from ~706–719 km to ~695–712 km in these scenes) needs no special handling.
+
+* **With the target's terrain height**, a search window of **±1 pixel** (MODIS),
+  **±2** (VIIRS) and **±3** (ECOSTRESS) contained the true nearest pixel for **every** target in every
+  scene. Errors of the prediction itself: p99 ≈ 0.5 line, 0.5–2 samples.
+* **Without terrain height** (h = 0) the window must cover the terrain parallax h·tan(VZA):
+  ±3 (MODIS), ±9 (VIIRS) and ±16 (ECOSTRESS 70 m pixels, mountainous scenes). A coarse DEM or
+  even a single representative elevation removes most of this.
+* **Documented constants only** (no calibration) work for MODIS (±3) and, roughly, VIIRS (±6–14), but not
+  ECOSTRESS (±107): the effective scan-time offset and the instrument's mounting on the ISS are not in
+  the documentation. One calibration per platform is enough: calibrating every scene on itself
+  gives MODIS sample/detector angles identical to < 0.1 µrad between 2013 and 2024 and time offsets
+  equal to ±2 ms (table below). For VIIRS, the along-track time offset and pitch trade off against
+  each other (both shift pixels along-track), so individually they vary between scenes while their
+  combined effect stays sub-pixel.
+* The ISS attitude is **not** nadir-pointing: in these scenes it was pitched ~7° and yawed a few
+  degrees. Using the ATT quaternions is essential; an orbital-frame model is hundreds of lines off at the
+  swath edge.
+
+```{ojs}
+//| echo: false
+cons = FileAttachment("data/site/analytic_consistency.csv").csv({typed: true})
+viewof consModel = Inputs.radio(["reference", "spec", "self"], {value: "reference", label: "constants"})
+viewof consH = Inputs.radio(["dem", "h0"], {value: "dem", label: "target height"})
+Inputs.table(cons.filter(d => d.model === consModel && d.height === consH)
+  .map(d => ({platform: d.platform, location: d.location, epoch: d.epoch, "altitude km": d.altitude_km.toFixed(1),
+              "line err p99": d.line_err_p99.toFixed(2), "sample err p99": d.samp_err_p99.toFixed(2), "window needed (max)": d.win_max})),
+  {rows: 20})
+```
+
+```{ojs}
+//| echo: false
+selfcal = FileAttachment("data/site/analytic_selfcal_constants.csv").csv({typed: true})
+Inputs.table(selfcal.map(d => ({platform: d.platform, location: d.location, epoch: d.epoch,
+  "altitude km": d.altitude_km.toFixed(1), "j_c": d.j_c.toFixed(2), "α µrad": (d.alpha * 1e6).toFixed(2),
+  "δ µrad": (d.delta * 1e6).toFixed(2), "t_off s": d.t_off.toFixed(3), "pitch mrad": (d.pitch * 1e3).toFixed(2),
+  "yaw mrad": (d.yaw * 1e3).toFixed(2)})), {rows: 15})
+```
+
+## Data
+
+* [`results/locate_bench.csv`](https://github.com/ashiklom/simon-code-research/blob/main/l2-swath-geolocation/results/locate_bench.csv) — every timing, memory and correctness field.
+* [`results/analytic_consistency.csv`](https://github.com/ashiklom/simon-code-research/blob/main/l2-swath-geolocation/results/analytic_consistency.csv), [`analytic_selfcal_constants.csv`](https://github.com/ashiklom/simon-code-research/blob/main/l2-swath-geolocation/results/analytic_selfcal_constants.csv), [`analytic_models.json`](https://github.com/ashiklom/simon-code-research/blob/main/l2-swath-geolocation/results/analytic_models.json).

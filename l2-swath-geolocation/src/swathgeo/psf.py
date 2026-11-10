@@ -193,3 +193,54 @@ def _slice(pg: PixelGeom, sl):
 def area_weights(polys_local, poly_local):
     """|P_i ∩ A| for shapely polygons (local metres)."""
     return shapely.area(shapely.intersection(polys_local, poly_local))
+
+
+def psf_lsq_weights(pg: PixelGeom, poly_local, psf, k=None, cell=None, group=None, cell_factor=0.5,
+                    max_pixels=8000):
+    """PSF-optimal weights: non-negative least squares so that the weighted sum of the pixels'
+    PSFs best reproduces the polygon's indicator function,
+
+        min_w || sum_i w_i p_i(s) - 1_A(s) ||^2,  w >= 0   (on a raster around A)
+
+    so the estimate sum_i w_i x_i / sum_i w_i is the best linear (non-negative) approximation
+    of the polygon mean seen through the PSF. Pixels whose PSF mostly lies outside A get
+    little weight even if they touch A. Returns NaN weights if the subset is too large.
+    """
+    from scipy.optimize import nnls
+    from scipy.sparse import coo_matrix
+
+    n = len(pg.x)
+    if n > max_pixels:
+        return np.full(n, np.nan)
+    psfs = psf if (isinstance(psf, dict) and "s" not in psf) else {0: psf}
+    group = np.asarray(group) if group is not None else np.zeros(n, int)
+    cell = cell or cell_factor * float(np.nanmedian(np.minimum(pg.W_s, pg.W_t)))
+    b = shapely.bounds(poly_local)
+    pad = float(np.nanmax(np.maximum(pg.W_s, pg.W_t))) * 2
+    ras = Raster((b[0] - pad, b[1] - pad, b[2] + pad, b[3] + pad), cell)
+    cx, cy = ras.centres()
+    shapely.prepare(poly_local)
+    target = shapely.contains_xy(poly_local, cx, cy).astype(float)
+    rows, cols, vals = [], [], []
+    for g, p in psfs.items():
+        ids = np.flatnonzero(group == g)
+        if len(ids) == 0:
+            continue
+        kk = k or tuple(int(np.clip(np.ceil(1.5 * support(p[ax]) * np.nanmax(W[ids]) / cell) + 1, 5, 61))
+                        for ax, W in (("s", pg.W_s), ("t", pg.W_t)))
+        U, V, M = quadrature(p, kk)
+        xy = node_xy(_slice(pg, ids), U, V)
+        idx = ras.index(xy)
+        ok = idx >= 0
+        pix = np.broadcast_to(ids[:, None], idx.shape)
+        rows.append(idx[ok])
+        cols.append(pix[ok])
+        vals.append(np.broadcast_to(M, idx.shape)[ok])
+    A = coo_matrix((np.concatenate(vals), (np.concatenate(rows), np.concatenate(cols))),
+                   shape=(ras.nx * ras.ny, n)).tocsr()
+    # each column: fraction of pixel i's PSF mass in each cell; scale to "coverage" per cell
+    used = np.unique(A.nonzero()[0])
+    Ad = A[used].toarray() * (1.0 / (cell * cell))
+    tgt = target[used]
+    w, _ = nnls(Ad, tgt, maxiter=50 * n)
+    return w

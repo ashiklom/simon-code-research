@@ -32,9 +32,11 @@ LOC_LABEL = {"naive_full": "Naive: full haversine argmin", "naive_bbox": "Naive:
              "h3_sorted": "H3 sorted cell ids", "analytic": "Analytic (orbit + scan geometry)"}
 SCHEME_LABEL = {"naive_center": "Centre in polygon", "naive_square": "Nominal square",
                 "voronoi": "Voronoi cell", "footprint": "Trig footprint",
-                "footprint_pou": "Trig footprint (overlap-aware)", "psf": "PSF", "psf_pou": "PSF (overlap-aware)"}
+                "footprint_pou": "Trig footprint (overlap-aware)", "psf": "PSF", "psf_pou": "PSF (overlap-aware)",
+                "psf_lsq": "PSF-optimal (NNLS)"}
 SCHEME_COLOR = {"naive_center": ps.CAT[7], "naive_square": ps.CAT[3], "voronoi": ps.CAT[6],
-                "footprint": ps.CAT[4], "footprint_pou": ps.CAT[0], "psf": ps.CAT[5], "psf_pou": ps.CAT[1]}
+                "footprint": ps.CAT[4], "footprint_pou": ps.CAT[0], "psf": ps.CAT[5], "psf_pou": ps.CAT[1],
+                "psf_lsq": ps.CAT[2]}
 SENSORS = ["modis", "viirs", "ecostress"]
 
 
@@ -172,17 +174,22 @@ def footprint_figs():
         crs = f"+proj=laea +lat_0={cen.y} +lon_0={cen.x}"
         g, vor = g.to_crs(crs), vor.to_crs(crs)
         cg = gpd.GeoSeries([circle], crs=4326).to_crs(crs)
-        for i, (gg, lab) in enumerate([(g, "trig footprints"), (vor, "Voronoi cells")]):
+        # share of each pixel's own footprint (or Voronoi cell) credited to the polygon:
+        # 1 = fully inside and not shared; ~0.5 inside a bow-tie overlap
+        g["share"] = (g["w_footprint_pou"] / (g["W_s_m"] * g["W_t_m"])).clip(0, 1)
+        vor["share"] = (vor["w_voronoi"] / vor.area).clip(0, 1)
+        for i, (gg, lab) in enumerate([(g, "trig footprints (overlap-aware share)"), (vor, "Voronoi cells (share inside)")]):
             ax = axes[i, j]
-            w = gg["w_psf_pou"] / gg["w_psf_pou"].max()
-            gg.plot(ax=ax, column=w, cmap=ps.seq_cmap, vmin=0, vmax=1, edgecolor=ps.INK2, linewidth=0.25,
-                    alpha=0.85)
+            gg.plot(ax=ax, column="share", cmap=ps.seq_cmap, vmin=0, vmax=1, edgecolor=ps.INK2, linewidth=0.2,
+                    alpha=0.9)
             cg.boundary.plot(ax=ax, color=ps.CAT[7], linewidth=1.5)
             ax.set_xlim(-16000, 16000)
             ax.set_ylim(-16000, 16000)
             ax.set_aspect("equal")
             ax.set_xticks([])
             ax.set_yticks([])
+            ax.set_xlabel("")
+            ax.set_ylabel("")
             ax.grid(False)
             for sp in ax.spines.values():
                 sp.set_visible(False)
@@ -190,7 +197,9 @@ def footprint_figs():
                 ax.set_title(SCENE_LABEL[sc], fontsize=10)
             if j == 0:
                 ax.set_ylabel(lab)
-    fig.suptitle("Pixels around the 10 km circle (red); shading = PSF weight. Bow-tie overlap at the MODIS edge.",
+    sm = plt.cm.ScalarMappable(cmap=ps.seq_cmap, norm=plt.Normalize(0, 1))
+    fig.colorbar(sm, ax=axes, shrink=0.5, label="share of the pixel credited to the polygon")
+    fig.suptitle("Pixels around the 10 km circle (red). At the MODIS edge, overlapping scans share the ground (~0.5).",
                  x=0.01, ha="left", fontweight="bold", color=ps.INK)
     ps.save(fig, "footprint_maps")
     # small GeoJSON for the interactive map
@@ -210,14 +219,14 @@ def footprint_figs():
 
 def areal_figs():
     a = pd.read_csv(RES / "areal_means.csv")
-    schemes = ["naive_center", "naive_square", "voronoi", "footprint", "footprint_pou", "psf"]
+    schemes = ["naive_center", "naive_square", "voronoi", "footprint", "footprint_pou", "psf", "psf_lsq"]
     fig, axes = plt.subplots(1, 3, figsize=(13, 4.2), sharey=True)
     for ax, pname in zip(axes, ["box_3km", "circle_10km", "colusa_county"]):
         sub = a[a.polygon == pname].set_index("scene")
         scenes = [s for s in SCENE_LABEL if s in sub.index]
         for k, s in enumerate(schemes):
             dlt = sub.loc[scenes, f"mean_{s}"] - sub.loc[scenes, "mean_psf_pou"]
-            y = np.arange(len(scenes)) + (k - 2.5) * 0.12
+            y = np.arange(len(scenes)) + (k - 3) * 0.11
             ax.scatter(dlt, y, s=18, color=SCHEME_COLOR[s], label=SCHEME_LABEL[s], zorder=3,
                        edgecolor=ps.SURFACE, linewidth=0.5)
         ax.axvline(0, color=ps.AXIS, linewidth=1)
@@ -235,7 +244,7 @@ def areal_figs():
 
 def synthetic_figs():
     s = pd.read_csv(RES / "synthetic_errors.csv")
-    schemes = ["naive_center", "naive_square", "voronoi", "footprint", "footprint_pou", "psf_pou"]
+    schemes = ["naive_center", "naive_square", "voronoi", "footprint", "footprint_pou", "psf_pou", "psf_lsq"]
     scenes = [x for x in SCENE_LABEL if x in set(s.scene)]
     fig, axes = plt.subplots(1, len(scenes), figsize=(14, 3.9), sharey=True)
     for ax, sc in zip(np.atleast_1d(axes), scenes):

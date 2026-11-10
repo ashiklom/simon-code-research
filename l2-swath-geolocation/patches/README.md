@@ -39,14 +39,14 @@ array, an HDF5 string fill value, a big-endian DMR++). Upstream test-suite resul
 * **kerchunk** (`optionA-kerchunk.diff`, +11/−3): big-endian floats in `dtypes` (#2);
   record contiguous `SD` data as `("NONE", offset, length)` (#1); `translate` only applies zlib
   when refs are actually DEFLATE-compressed (#4, kerchunk side).
-* **VirtualiZarr** (`optionA-virtualizarr.diff`, +32/−5): `hdf4.py` — per-variable codec from the
+* **VirtualiZarr** (`optionA-virtualizarr.diff`, +33/−5 in 4 source files, plus a 113-line test file): `hdf4.py` — per-variable codec from the
   refs (#4), CF-encode `_FillValue` (#3), `str` → `|S1` (#5), n-D dimension names (#6);
   `dmrpp.py` — honour `byteOrder="BE"` (#7); `utils.encode_cf_fill_value` — parse numeric text,
   otherwise warn and return `None`, and the HDF5/DMR++/HDF4 call sites drop the attribute (#8).
 
 ### Option B — VirtualiZarr only (works with released kerchunk)
 
-`optionB-virtualizarr.diff` (+46/−5) = Option A's VirtualiZarr part plus two guarded
+`optionB-virtualizarr.diff` (+46/−5 in 4 source files, plus the same tests) = Option A's VirtualiZarr part plus two guarded
 work-arounds for the kerchunk bugs inside `parsers/hdf4.py`: fill in `data` for plain `SD`
 tags before calling kerchunk's `_descend_vg` (#1), and turn kerchunk's `f4`/`f8` into `>f4`/`>f8`
 while byte-swapping float attributes (#2). Both guards are no-ops once kerchunk is fixed (tested
@@ -78,4 +78,26 @@ guards** kept in VirtualiZarr until a fixed kerchunk is released and pinned. Rea
 
 ## Test results
 
-(filled in after running the upstream suites; see below)
+| | 5 real NASA files (`scripts/50_hdf4_virtual_check.py`) | new regression tests (3) | VirtualiZarr parsers + writers + manifests suites |
+|---|---|---|---|
+| stock 2.8.0 / 0.2.10 | 0 / 5 readable | 0 / 3 | 39 failing/erroring |
+| blunt | 5 / 5, bit-identical | — | — |
+| **Option A** | 5 / 5, bit-identical | 3 / 3 | 36 failing/erroring — **exactly** the stock set minus the 3 new tests |
+| **Option B** (stock kerchunk) | 5 / 5, bit-identical | 3 / 3 | identical to A |
+| Option B + Option A's kerchunk | 5 / 5 | 3 / 3 | — (guards are no-ops) |
+
+The 36 pre-existing failures/errors are environmental (DMR++ tests that fetch remote fixtures,
+writer tests needing optional services) and identical before and after, i.e. **no regressions**.
+kerchunk's own `tests/test_hdf4.py` errors identically on stock and patched kerchunk (a zarr-3
+incompatibility in that test). With Option A, `kerchunk.hdf4.HDF4ToZarr(...).translate()` itself now
+returns correct big-endian floats and correct uncompressed contiguous arrays (checked on a
+pyhdf-generated file).
+
+Reproduce (from `l2-swath-geolocation/`):
+
+```bash
+git submodule update --init --depth 1 vendor/VirtualiZarr vendor/kerchunk
+git -C vendor/VirtualiZarr apply ../../patches/optionA-virtualizarr.diff   # or blunt-/optionB-
+git -C vendor/kerchunk apply ../../patches/optionA-kerchunk.diff
+PYTHONPATH=vendor/VirtualiZarr:vendor/kerchunk pixi run python scripts/50_hdf4_virtual_check.py
+```

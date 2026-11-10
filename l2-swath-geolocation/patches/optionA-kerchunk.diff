@@ -1,0 +1,46 @@
+diff --git a/kerchunk/hdf4.py b/kerchunk/hdf4.py
+index 729b7e9..7d3b81c 100644
+--- a/kerchunk/hdf4.py
++++ b/kerchunk/hdf4.py
+@@ -145,7 +145,7 @@ class HDF4ToZarr:
+         refs = {}
+         for k, v in output.items():
+             if isinstance(v, dict):
+-                compressor = ZlibCodec() if "refs" in v else None
++                compressor = ZlibCodec() if _is_deflated(v.get("refs", [])) else None
+                 arr = g.require_array(
+                     name=k,
+                     shape=v["dims"],
+@@ -210,6 +210,9 @@ class HDF4ToZarr:
+             elif t == "NT":
+                 out["dtype"] = inf2["typ"]
+             elif t == "SD":
++                if "data" not in inf2:
++                    # not an extended tag: the data is stored contiguously, uncompressed
++                    inf2["data"] = ("NONE", inf2["offset"], inf2["length"])
+                 if isinstance(inf2["data"][-1], (tuple, list)):
+                     out["refs"] = inf2["data"][:-1]
+                     out["chunks"] = [_["chunk_length"] for _ in inf2["data"][-1]]
+@@ -341,6 +344,11 @@ class HDF4ToZarr:
+         return ctype, tag["offset"], tag["length"]
+ 
+ 
++def _is_deflated(refs):
++    """Whether a variable's chunk refs ([key, offset, length, (coder)]) are compressed."""
++    return any(len(r) > 3 and r[3] == "DEFLATE" for r in refs)
++
++
+ @reg("NDG")
+ def _dec_ndg(self, info):
+     if "tags" not in info:
+@@ -504,8 +512,8 @@ spec = {
+ 
+ # hdf4/hdf/src/hntdefs.h
+ dtypes = {
+-    5: "f4",
+-    6: "f8",
++    5: ">f4",  # HDF4 number types are big-endian unless flagged DFNT_LITEND
++    6: ">f8",
+     20: "i1",
+     21: "u1",
+     4: "str",  # special case, size given in header

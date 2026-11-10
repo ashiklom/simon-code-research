@@ -202,18 +202,25 @@ def _virtual_build_worker(profile, ports, key, parser_name, q):
             vds = open_virtual_dataset(url, registry=reg, parser=HDFParser(group=g, drop_variables=drop))
         else:
             url = (acc.url(key) if acc.kind != "local" else "file://" + acc.url(key)) + ".dmrpp"
-            vds = open_virtual_dataset(url, registry=reg, parser=DMRPPParser(group="/" + g.replace(" ", "_")))
+            # DMR++ keeps the HDF5/NetCDF group name ("Data Fields"); HDF4-derived DMR++ uses "_"
+            vds = open_virtual_dataset(url, registry=reg, parser=DMRPPParser(group="/" + g))
         dt = time.perf_counter() - t
         q.put({"seconds": dt, "n_vars": len(vds.data_vars), **{f"net_{k}": v for k, v in stats(port).items()}})
     except Exception as e:  # noqa: BLE001
         q.put({"error": f"{type(e).__name__}: {e}"[:300]})
 
 
-def bench_virtual_build(profiles, ports, reps=2):
+def bench_virtual_build(profiles, ports, reps=2, parsers=None):
+    path = config.RESULTS / "virtual_build.csv"
     rows = []
+    if parsers and path.exists():  # re-run only some parsers: keep the other rows
+        old = pd.read_csv(path)
+        rows = old[~old.parser.isin(parsers.split(","))].to_dict("records")
     ctx = mp.get_context("spawn")
     for key in list(VIRTUAL_GROUPS) + HDF4_KEYS:
         for parser_name in (("hdf4_scan_patched",) if key.endswith(".hdf") else ("hdf5_scan", "dmrpp")):
+            if parsers and parser_name not in parsers.split(","):
+                continue
             if parser_name == "dmrpp" and not (config.RAW / (key + ".dmrpp")).exists():
                 continue
             for profile in profiles:
@@ -373,6 +380,7 @@ def main():
     ap.add_argument("--sensors", default="modis,viirs,ecostress")
     ap.add_argument("--reps", type=int, default=None)
     ap.add_argument("--steps", default="windows,virtual,build,read")
+    ap.add_argument("--build-parsers", default=None, help="only these virtual-build parsers (e.g. dmrpp)")
     a = ap.parse_args()
     profiles = a.profiles.split(",")
     steps = a.steps.split(",")
@@ -387,7 +395,7 @@ def main():
         if "virtual" in steps:
             build_virtual_repos(profiles, ports)
         if "build" in steps:
-            bench_virtual_build([p for p in profiles if not p.startswith("zero")], ports)
+            bench_virtual_build([p for p in profiles if not p.startswith("zero")], ports, parsers=a.build_parsers)
         if "read" in steps:
             bench_reads(profiles, a.sensors.split(","), ports, a.reps)
     finally:
