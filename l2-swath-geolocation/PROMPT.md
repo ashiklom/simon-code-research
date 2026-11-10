@@ -63,3 +63,9 @@ For each part above, also include a dedicated "methods" page that describes the 
 ## Plan approved
 
 (Revised plan approved; see PLAN.md.)
+
+## Follow-up 2
+
+(Sent while Claude was reporting that MODIS HDF4 has no working virtual-Zarr path: "The HDF4 route is a dead end for now: the parser crashes on both products, and the one sidecar that parses hits the same string fill-value bug, so remote MODIS reads will fall back to download-then-read. I'm checking the locator benchmark next.")
+
+> When done everything else, try to resolve this. Vendor virtualizarr or whatever else you need as a shallow submodule clone; then, inspect the source and try to modify it to make it work. First, do the solution bluntly (breaking changes OK; ignore irrelevant code paths); then, once you've solved it, figure out the smallest possible patch that resolves the problems without breaking or degrading other Virtualizarr functionality. If multiple options are feasible, describe them all and present to me (with your recommendation fix and why).
