@@ -73,3 +73,7 @@ For each part above, also include a dedicated "methods" page that describes the 
 ## Follow-up 3
 
 > Kerchunk is in maintenance mode. Consider implementing HDF4 directly in Virtualizarr instead.
+
+## Follow-up 4
+
+> The "analytic method in detail" description on the website is a bit hard to follow. For example, ECEF, and many of the constants (e.g., t_off), are not defined. Expand this section to make it easier to read, and add some simple figures/diagrams that clarify what the mathematical terms are.
