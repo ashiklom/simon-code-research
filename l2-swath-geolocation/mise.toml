@@ -31,7 +31,7 @@ run = "pixi run python scripts/30_bench_read.py"
 
 [tasks.figures]
 description = "Make figures and site data from results/"
-run = "pixi run python scripts/40_figures.py"
+run = ["pixi run python scripts/40_figures.py", "pixi run python scripts/41_diagrams.py"]
 
 [tasks.test]
 run = "pixi run pytest -q tests"
