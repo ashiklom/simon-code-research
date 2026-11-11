@@ -1430,3 +1430,259 @@ No file over 2 MB; committed results total ~9 MB. Committing:
 Now the transcript:
 
 - **Bash**: `uv run _helpers/transcript.py -o l2-swath-geolocation/TRANSCRIPT.md 2>&1 | tail -3; wc -c l2-swath-geolocation/TRANSCRIPT.md; grep -n -i -E "password|token|sec…`
+
+Transcript is clean (no credentials or personal data). Committing it, then finishing the CLAUDE.md git workflow: rebase onto `origin/main`, fast‑forward and push `main`, delete the branch.
+
+- **Bash**: `git add l2-swath-geolocation/TRANSCRIPT.md && git commit -q -m "l2-swath-geolocation: add TRANSCRIPT.md Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>…`
+- **Bash**: `git checkout -q main && git merge --ff-only exp/l2-swath-geolocation 2>&1 | tail -1 && git push origin main 2>&1 | tail -2`
+
+`main` is pushed. Deleting the experiment branch locally and on origin:
+
+- **Bash**: `git branch -d exp/l2-swath-geolocation && git push origin --delete exp/l2-swath-geolocation 2>&1 | tail -1; git status --short | head -3; git log --oneline -1`
+- **Bash**: `git ls-remote --heads origin | cut -c42-`
+- **Bash**: `git push origin :refs/heads/exp/l2-swath-geolocation 2>&1 | tail -2; git ls-remote --heads origin | cut -c42-`
+
+The remote branch deletion was rejected by the session's git proxy. Checking the proxy notes:
+
+- **Bash**: `grep -n -i -E "delet|ref|branch|hung up" ~/.ccr/README.md | head -20`
+- **Bash**: `sed -n 55,90p ~/.ccr/README.md`
+- **ToolSearch**: `select:mcp__github__actions_list,mcp__github__get_job_logs`
+- **mcp__github__actions_list**: `{"method": "list_workflow_runs", "owner": "ashiklom", "repo": "simon-code-research", "perPage": 3}`
+
+The deploy workflow is running. Updating the task list while it runs:
+
+- **TaskUpdate**: `{"taskId": "4", "status": "completed"}`
+- **TaskUpdate**: `{"taskId": "5", "status": "completed"}`
+- **TaskUpdate**: `{"taskId": "7", "status": "completed"}`
+- **mcp__github__actions_list**: `{"method": "list_workflow_jobs", "owner": "ashiklom", "repo": "simon-code-research", "resource_id": "42941852140"}`
+
+The build job succeeded but took only 15 s, fast for installing Quarto and rendering. Checking the log to confirm the Quarto site really built:
+
+- **mcp__github__get_job_logs**: `{"owner": "ashiklom", "repo": "simon-code-research", "job_id": 130265284481, "return_content": true, "tail_lines": 40}`
+
+The uploaded site artifact is 5.3 MB, consistent with the full experiment site. Confirming the Quarto render lines in the build step:
+
+- **mcp__github__get_job_logs**: `{"owner": "ashiklom", "repo": "simon-code-research", "job_id": 130265284481, "return_content": true, "tail_lines": 110}`
+
+The CI artifact contains the full Quarto site (all pages, data, targets, vectors). Final check on the deploy job:
+
+- **mcp__github__actions_list**: `{"method": "list_workflow_runs", "owner": "ashiklom", "repo": "simon-code-research", "perPage": 1}`
+- **TaskUpdate**: `{"taskId": "6", "status": "completed"}`
+
+The experiment is finished and merged to `main`, and the Pages deploy succeeded: https://ashiklom.github.io/simon-code-research/l2-swath-geolocation/
+
+**One thing for you to do:** the session's git proxy refused to delete the remote branch `exp/l2-swath-geolocation`, so it's still on GitHub. Its contents are all in `main`.
+
+#### HDF4 → virtual Zarr
+
+MODIS HDF4 now works as virtual Zarr with patched VirtualiZarr and kerchunk. All five test files read back bit‑identical to pyhdf/h5py: MYD03 (45 variables), MYD11_L2, MOD11_L2, the MOD11_L2 DMR++ sidecar, and VNP21 with its `"n/a"` fill values. MODIS also ran through icechunk in the read benchmark.
+
+There were eight separate bugs:
+- **kerchunk:**
+  - Uncompressed contiguous arrays are not recorded, which causes the `KeyError: 'data'` crash.
+  - HDF4 floats are decoded as little‑endian when they are big‑endian. Float values and float attributes come out silently corrupted.
+- **VirtualiZarr:**
+  - `_FillValue` is not encoded for the HDF4 parser.
+  - zlib is applied to every array, including uncompressed ones.
+  - Char arrays are not supported.
+  - Arrays with more than two dimensions are not supported.
+  - The DMR++ parser ignores the big‑endian byte‑order flag.
+  - A text fill value on a numeric variable makes the whole file unreadable.
+
+**Options** (full write‑up in `patches/README.md`):
+- **A — fix each bug where it lives.** kerchunk +11/−3 lines; VirtualiZarr +33/−5 lines in 4 files.
+- **B — change VirtualiZarr only.** Works with the current kerchunk release through two guarded work‑arounds (+46/−5). The guards do nothing once kerchunk is fixed.
+- **C — monkeypatch from your own code.** Possible but brittle; I didn't build it.
+
+A and B both pass three new regression tests that fail on stock. Their upstream test‑suite failures are exactly the stock failures, minus those three tests, so nothing regressed.
+
+**Recommendation:** Option A, as two small upstream PRs. The kerchunk float bug corrupts data for anyone using kerchunk directly, so it should be fixed at the source. Keep B's guards in VirtualiZarr until a fixed kerchunk is released.
+
+#### Results
+
+**Part A — finding pixels**
+- Brute force costs 0.3–1.8 s per point. A KD‑tree takes 1–9 s and 0.4–1.7 GB to build, then answers in about 0.1 ms.
+- xarray's default `NDPointIndex` picks the wrong pixel for 4–10 % of points. The xoak BallTree/S2 adapters fix this.
+- The analytic method (orbit + scan geometry) needs no index. Calibrated once per platform, it found the right pixel within ±1/±2/±3 pixels (MODIS/VIIRS/ECOSTRESS) in all 53 test scenes from 2013 and 2024, when the target's elevation is known. Without elevation it needs ±3/±9/±16.
+- ECOSTRESS only works with the ISS attitude data; the station flew pitched about 7°.
+
+**Part B — pixel size and areal means**
+- Simple trigonometry matches the real pixel sizes in the files (MODIS grows from 1 km to 4.8 × 2 km at the swath edge).
+- In the synthetic test, counting overlapping scans correctly cut swath‑edge errors by 30–40 %. Plain Voronoi cells did as well as the full footprint model.
+- Adding the PSF didn't improve areal means on average.
+- On real LST, the choice of pixel model moved means by up to 0.9 K for a 3 km box, and by less than 0.1 K for polygons of 10 km and up.
+
+**Part C — reading**
+- **Small subsets:** icechunk virtual references are fastest on every simulated network (0.4–4 s, under 1 MB moved). Library defaults move 0.5–2 GB for the same 33 × 33 window.
+- **Whole granules:** downloading the file is fastest.
+- **Robustness gaps:** icechunk 2.3 doesn't retry transient server errors, and the ROS3 driver can't follow Earthdata's redirects.
+- **DMR++ sidecars:** they build references in under 2 s, versus up to 2 minutes and 264 MB to scan the ECOSTRESS file directly.
+
+#### Compromises
+
+- **Read‑benchmark time limits:** each reader/network combination stopped repeating after 90 s. Full ECOSTRESS reads used only six readers. Default GDAL wasn't rerun for the ECOSTRESS county window on slow networks, because it had already timed out on the smaller window.
+- **NNLS cap:** the least‑squares PSF weights are limited to subsets of up to 2,500 pixels, so the county rows show "–".
+- **Big exports kept out of git:** county‑sized vector exports are in `data/vectors/`; no release was created.
+- **Patched code not committed:** the vendored submodules are committed at their upstream tags; the patched versions live only in `patches/`.
+
+The only uncommitted changes are the blunt edits inside the vendored submodule working trees. They're already saved as `patches/blunt-*.diff`, and the submodules are meant to stay at their upstream tags. I'll confirm the saved patches match exactly, then reset the submodule trees.
+
+- **Bash**: `cd /home/user/simon-code-research/l2-swath-geolocation && for m in VirtualiZarr kerchunk; do f=patches/blunt-$(echo $m | tr A-Z a-z).diff; git -C vendor/$m dif…`
+- **Bash**: `git -C vendor/VirtualiZarr checkout -- . && git -C vendor/kerchunk checkout -- . && cd .. && git status --short; git log --oneline -1; git status -sb | head -1`
+
+The repository is now clean and `main` matches `origin/main`, so there was nothing left to commit or push. The only uncommitted changes were the blunt fixes inside the two vendored submodules (VirtualiZarr and kerchunk). I checked they match `patches/blunt-*.diff` byte for byte, then reset the submodules to their upstream release tags.
+
+To get the patched versions back:
+
+```bash
+git -C l2-swath-geolocation/vendor/VirtualiZarr apply ../../patches/blunt-virtualizarr.diff
+```
+
+```bash
+git -C l2-swath-geolocation/vendor/kerchunk apply ../../patches/blunt-kerchunk.diff
+```
+
+The remote branch `exp/l2-swath-geolocation` is still on GitHub because the session's git proxy refused the delete; everything in it is already in `main`.
+
+## User
+
+Kerchunk is in maintenance mode. Consider implementing HDF4 directly in Virtualizarr instead.
+
+## Claude
+
+Good point — with kerchunk in maintenance mode, the cleaner fix is a native HDF4 reader inside VirtualiZarr: parse the HDF4 tag/descriptor structure directly and build `ManifestArray`s, reading through VirtualiZarr's own obstore registry instead of kerchunk + fsspec. I'll build that as a new option, test it against everything so far plus new fixtures (including chunked and compressed layouts), and update the recommendation. First, branch setup and recording your message.
+
+- **Bash**: `git fetch -q origin && git checkout -q -B exp/l2-swath-geolocation origin/main && git status -sb | head -1 && cat >> l2-swath-geolocation/PROMPT.md <<'EOF' ## …`
+
+Now studying how VirtualiZarr's HDF5 parser reads bytes through the registry (to reuse the same reader machinery) and what the existing HDF4 tests expect:
+
+- **Bash**: `S=/tmp/claude-0/-home-user-simon-code-research/cb779936-c969-5010-9e11-3af4c0652b45/scratchpad; cd $S/vz-stock/virtualizarr && sed -n 440,500p parsers/hdf/hdf.…`
+- **Bash**: `S=/tmp/claude-0/-home-user-simon-code-research/cb779936-c969-5010-9e11-3af4c0652b45/scratchpad; cd $S/vz-stock/virtualizarr && sed -n 200,400p tests/test_parse…`
+- **Bash**: `S=/tmp/claude-0/-home-user-simon-code-research/cb779936-c969-5010-9e11-3af4c0652b45/scratchpad; cd $S/vz-stock && sed -n 70,90p pyproject.toml; grep -n "Reader…`
+
+Using kerchunk's decoder as a format reference (MIT‑licensed; I'll write a fresh, smaller implementation with credit). Reading its tag decoders:
+
+- **Bash**: `S=/tmp/claude-0/-home-user-simon-code-research/cb779936-c969-5010-9e11-3af4c0652b45/scratchpad; sed -n 1,60p $S/kc-stock/kerchunk/hdf4.py; sed -n 330,500p $S/k…`
+- **Bash**: `S=/tmp/claude-0/-home-user-simon-code-research/cb779936-c969-5010-9e11-3af4c0652b45/scratchpad; sed -n 60,118p $S/kc-stock/kerchunk/hdf4.py`
+- **Bash**: `S=/tmp/claude-0/-home-user-simon-code-research/cb779936-c969-5010-9e11-3af4c0652b45/scratchpad; grep -n "^import\|^from" $S/vz-stock/virtualizarr/parsers/kerch…`
+- **Bash**: `S=/tmp/claude-0/-home-user-simon-code-research/cb779936-c969-5010-9e11-3af4c0652b45/scratchpad; cd /home/user/simon-code-research/l2-swath-geolocation && git -…`
+
+Now writing the native HDF4 parser:
+
+- **Write**: `/tmp/claude-0/-home-user-simon-code-research/cb779936-c969-5010-9e11-3af4c0652b45/scratchpad/vz-native/virtualizarr/parsers/hdf4.py`
+
+Checking the translator helper's signature before testing:
+
+- **Bash**: `S=/tmp/claude-0/-home-user-simon-code-research/cb779936-c969-5010-9e11-3af4c0652b45/scratchpad; grep -n "def manifest_from_kerchunk_chunk_dict" -A30 $S/vz-nati…`
+- **TaskCreate**: `{"subject": "Native HDF4 parser in VirtualiZarr (no kerchunk) — Option D", "description": "Implement, test on real files + VZ suite + new fixtures (chunked/com…`
+- **Bash**: `S=/tmp/claude-0/-home-user-simon-code-research/cb779936-c969-5010-9e11-3af4c0652b45/scratchpad; cd /home/user/simon-code-research/l2-swath-geolocation && PYTHO…`
+
+Off‑by‑a‑factor bug in the NDG (tag list) decoding. Fixing and tidying that loop:
+
+- **Edit**: `/tmp/claude-0/-home-user-simon-code-research/cb779936-c969-5010-9e11-3af4c0652b45/scratchpad/vz-native/virtualizarr/parsers/hdf4.py`
+- **Bash**: `S=/tmp/claude-0/-home-user-simon-code-research/cb779936-c969-5010-9e11-3af4c0652b45/scratchpad; cd /home/user/simon-code-research/l2-swath-geolocation && PYTHO…`
+- **Edit**: `/tmp/claude-0/-home-user-simon-code-research/cb779936-c969-5010-9e11-3af4c0652b45/scratchpad/vz-native/virtualizarr/parsers/hdf4.py`
+- **Bash**: `S=/tmp/claude-0/-home-user-simon-code-research/cb779936-c969-5010-9e11-3af4c0652b45/scratchpad; sed -i 's/^_NULL, _COMPRESSED, _CHUNK = 1, 40, 61$/_NULL, _LINK…`
+- **Bash**: `S=/tmp/claude-0/-home-user-simon-code-research/cb779936-c969-5010-9e11-3af4c0652b45/scratchpad; mkdir -p $S/natcheck && cat > $S/natcheck/allvars.py <<'EOF' im…`
+- **Bash**: `S=/tmp/claude-0/-home-user-simon-code-research/cb779936-c969-5010-9e11-3af4c0652b45/scratchpad; cd /home/user/simon-code-research/l2-swath-geolocation && PYTHO…`
+- **Bash**: `S=/tmp/claude-0/-home-user-simon-code-research/cb779936-c969-5010-9e11-3af4c0652b45/scratchpad; sed -i 's/ arr = zarr.open_array(store, path=name, mode=.r.)/ i…`
+- **Bash**: `S=/tmp/claude-0/-home-user-simon-code-research/cb779936-c969-5010-9e11-3af4c0652b45/scratchpad; cd /home/user/simon-code-research/l2-swath-geolocation && PYTHO…`
+- **Bash**: `S=/tmp/claude-0/-home-user-simon-code-research/cb779936-c969-5010-9e11-3af4c0652b45/scratchpad; python3 - <<EOF p='$S/vz-native/virtualizarr/parsers/hdf4.py'; …`
+
+All 220 datasets match (data and real dimension names), plus all variable attributes. The only mismatches are two long global string attributes. Checking how they differ:
+
+- **Bash**: `S=/tmp/claude-0/-home-user-simon-code-research/cb779936-c969-5010-9e11-3af4c0652b45/scratchpad; cd /home/user/simon-code-research/l2-swath-geolocation && PYTHO…`
+
+The attribute holds several NUL‑separated strings; my decoder stopped at the first NUL. Changing it to keep the full declared length and strip only trailing NULs:
+
+- **Bash**: `S=/tmp/claude-0/-home-user-simon-code-research/cb779936-c969-5010-9e11-3af4c0652b45/scratchpad; python3 - <<EOF p='$S/vz-native/virtualizarr/parsers/hdf4.py'; …`
+- **Bash**: `S=/tmp/claude-0/-home-user-simon-code-research/cb779936-c969-5010-9e11-3af4c0652b45/scratchpad; grep -n 'split(b' $S/vz-native/virtualizarr/parsers/hdf4.py`
+- **Edit**: `/tmp/claude-0/-home-user-simon-code-research/cb779936-c969-5010-9e11-3af4c0652b45/scratchpad/vz-native/virtualizarr/parsers/hdf4.py`
+- **Bash**: `S=/tmp/claude-0/-home-user-simon-code-research/cb779936-c969-5010-9e11-3af4c0652b45/scratchpad; cd /home/user/simon-code-research/l2-swath-geolocation && PYTHO…`
+
+The remaining difference is only that pyhdf keeps a trailing NUL byte. Comparing with trailing NULs ignored:
+
+- **Bash**: `S=/tmp/claude-0/-home-user-simon-code-research/cb779936-c969-5010-9e11-3af4c0652b45/scratchpad; sed -i "s/ ok = (v == g) if isinstance(v, str)/ ok = (v.rstrip(…`
+- **Bash**: `S=/tmp/claude-0/-home-user-simon-code-research/cb779936-c969-5010-9e11-3af4c0652b45/scratchpad; cd /home/user/simon-code-research/l2-swath-geolocation && time …`
+- **Bash**: `S=/tmp/claude-0/-home-user-simon-code-research/cb779936-c969-5010-9e11-3af4c0652b45/scratchpad; cd /home/user/simon-code-research/l2-swath-geolocation && PYTHO…`
+
+One remaining mismatch: a 2024 MYD03 attribute ends in stray `0xFF` bytes (not valid UTF‑8). I'll decode strictly as UTF‑8 and fall back to Latin‑1, which is lossless and matches pyhdf:
+
+- **Bash**: `S=/tmp/claude-0/-home-user-simon-code-research/cb779936-c969-5010-9e11-3af4c0652b45/scratchpad; python3 - <<EOF p='$S/vz-native/virtualizarr/parsers/hdf4.py'; …`
+- **Edit**: `/tmp/claude-0/-home-user-simon-code-research/cb779936-c969-5010-9e11-3af4c0652b45/scratchpad/vz-native/virtualizarr/parsers/hdf4.py`
+- **Bash**: `S=/tmp/claude-0/-home-user-simon-code-research/cb779936-c969-5010-9e11-3af4c0652b45/scratchpad; sed -i 's/ return b\[pos + 2 : pos + 2 + n\].split(b"\\x00", 1)…`
+
+The worker restarted during the 32‑file comparison. Checking what survived:
+
+- **Bash**: `S=/tmp/claude-0/-home-user-simon-code-research/cb779936-c969-5010-9e11-3af4c0652b45/scratchpad; ls $S | head -30; cd /home/user/simon-code-research && git stat…`
+
+The parser edits survived and the repository is clean. Re‑running the full comparison as a detached background job so it survives restarts:
+
+- **Bash**: `S=/tmp/claude-0/-home-user-simon-code-research/cb779936-c969-5010-9e11-3af4c0652b45/scratchpad; cd /home/user/simon-code-research/l2-swath-geolocation && nohup…`
+- **Bash**: `S=/tmp/claude-0/-home-user-simon-code-research/cb779936-c969-5010-9e11-3af4c0652b45/scratchpad; cd $S/vz-native && grep -n "requires_kerchunk" virtualizarr/tes…`
+- **Bash**: `S=/tmp/claude-0/-home-user-simon-code-research/cb779936-c969-5010-9e11-3af4c0652b45/scratchpad; cd $S/vz-native && python3 - <<'EOF' p='virtualizarr/tests/test…`
+
+Updating the FAQ line, then writing the new native‑parser tests (fixtures generated with pyhdf):
+
+- **Bash**: ``S=/tmp/claude-0/-home-user-simon-code-research/cb779936-c969-5010-9e11-3af4c0652b45/scratchpad; cd $S/vz-native && sed -i 's/| `open_virtual_dataset(..., parse…``
+- **Write**: `/tmp/claude-0/-home-user-simon-code-research/cb779936-c969-5010-9e11-3af4c0652b45/scratchpad/vz-native/virtualizarr/tests/test_parsers/test_hdf4_native.py`
+- **Bash**: `S=/tmp/claude-0/-home-user-simon-code-research/cb779936-c969-5010-9e11-3af4c0652b45/scratchpad; cd $S/vz-native && PYTHONPATH=$S/vz-native timeout 600 nice /ho…`
+
+The fixture writer fails; checking which pyhdf call it doesn't like:
+
+- **Bash**: `S=/tmp/claude-0/-home-user-simon-code-research/cb779936-c969-5010-9e11-3af4c0652b45/scratchpad; cd $S/vz-native && PYTHONPATH=$S/vz-native timeout 300 /home/us…`
+- **Bash**: `S=/tmp/claude-0/-home-user-simon-code-research/cb779936-c969-5010-9e11-3af4c0652b45/scratchpad; cd $S && /home/user/simon-code-research/l2-swath-geolocation/.p…`
+- **Bash**: `/home/user/simon-code-research/l2-swath-geolocation/.pixi/envs/default/bin/python -c " import inspect; from pyhdf.SD import SDS; print(inspect.signature(SDS.se…`
+- **Bash**: `/home/user/simon-code-research/l2-swath-geolocation/.pixi/envs/default/bin/python -c " from pyhdf.SD import SDS; print([n for n in dir(SDS) if 'chunk' in n.low…`
+
+pyhdf doesn't wrap HDF4's chunking API, so I'll generate a small committed fixture through the HDF4 C library via `ctypes`, the way VirtualiZarr already ships `MOD14.hdf4`. Locating the library:
+
+- **Bash**: `ls /home/user/simon-code-research/l2-swath-geolocation/.pixi/envs/default/lib/ | grep -E "mfhdf|libdf" ; cat /tmp/claude-0/-home-user-simon-code-research/cb779…`
+- **Bash**: `ps aux | grep allvars | grep -v grep | wc -l; wc -c /tmp/claude-0/-home-user-simon-code-research/cb779936-c969-5010-9e11-3af4c0652b45/scratchpad/natcheck/all32…`
+
+Still running (output is printed at the end). Writing the chunked‑fixture generator against the HDF4 C API:
+
+- **Write**: `/tmp/claude-0/-home-user-simon-code-research/cb779936-c969-5010-9e11-3af4c0652b45/scratchpad/vz-native/virtualizarr/tests/data/make_hdf4_chunked.py`
+- **Bash**: `S=/tmp/claude-0/-home-user-simon-code-research/cb779936-c969-5010-9e11-3af4c0652b45/scratchpad; E=/home/user/simon-code-research/l2-swath-geolocation/.pixi/env…`
+
+The library needs `libdf` loaded globally first:
+
+- **Bash**: `S=/tmp/claude-0/-home-user-simon-code-research/cb779936-c969-5010-9e11-3af4c0652b45/scratchpad; E=/home/user/simon-code-research/l2-swath-geolocation/.pixi/env…`
+
+Wrong flag constants: in the HDF4 headers `HDF_CHUNK = 0x1` and `HDF_COMP = 0x3`:
+
+- **Bash**: `S=/tmp/claude-0/-home-user-simon-code-research/cb779936-c969-5010-9e11-3af4c0652b45/scratchpad; E=/home/user/simon-code-research/l2-swath-geolocation/.pixi/env…`
+
+The sparse‑chunk fixture's expectation is off; checking what pyhdf actually returns:
+
+- **Bash**: `S=/tmp/claude-0/-home-user-simon-code-research/cb779936-c969-5010-9e11-3af4c0652b45/scratchpad; E=/home/user/simon-code-research/l2-swath-geolocation/.pixi/env…`
+- **Bash**: `S=/tmp/claude-0/-home-user-simon-code-research/cb779936-c969-5010-9e11-3af4c0652b45/scratchpad; E=/home/user/simon-code-research/l2-swath-geolocation/.pixi/env…`
+
+Fixture verified against the C library. Updating the tests: pyhdf‑generated fixtures for the non‑chunked layouts, the committed fixture for the chunked ones:
+
+- **Bash**: `S=/tmp/claude-0/-home-user-simon-code-research/cb779936-c969-5010-9e11-3af4c0652b45/scratchpad; cd $S/vz-native/virtualizarr/tests/test_parsers && python3 - <<…`
+- **Bash**: `S=/tmp/claude-0/-home-user-simon-code-research/cb779936-c969-5010-9e11-3af4c0652b45/scratchpad; cat $S/natcheck/all32.log | grep -v -i warn | tail -2; ps aux |…`
+- **Bash**: `S=/tmp/claude-0/-home-user-simon-code-research/cb779936-c969-5010-9e11-3af4c0652b45/scratchpad; PY=/home/user/simon-code-research/l2-swath-geolocation/.pixi/en…`
+- **Bash**: `S=/tmp/claude-0/-home-user-simon-code-research/cb779936-c969-5010-9e11-3af4c0652b45/scratchpad; P=/home/user/simon-code-research/l2-swath-geolocation/patches; …`
+- **Bash**: `cd /home/user/simon-code-research/l2-swath-geolocation && python3 - <<'EOF' p='scripts/30_bench_read.py'; s=open(p).read() old='''def _virtual_build_worker(pro…`
+- **Bash**: `git -C vendor/VirtualiZarr status --short | head -5; ps aux | grep "30_bench_read" | grep -v grep | wc -l; tail -3 data/bench_read_native.log`
+- **Bash**: `until ! pgrep -f "build-parsers hdf4_native" >/dev/null; do sleep 10; done; cd /home/user/simon-code-research/l2-swath-geolocation && grep -v -i warn data/benc…`
+- **Bash**: `git -C vendor/VirtualiZarr checkout -q -- . && git -C vendor/VirtualiZarr clean -q -fd && git -C vendor/VirtualiZarr status --short | wc -l && sed -n 40,75p pa…`
+- **Bash**: `python3 - <<'EOF' p='patches/README.md'; s=open(p).read() i=s.index('### Option C'); j=s.index('## Test results') new='''### Option C — no fork: monkeypatch at…`
+
+Verifying the two counts I quoted (parser length, number of new tests):
+
+- **Bash**: `S=/tmp/claude-0/-home-user-simon-code-research/cb779936-c969-5010-9e11-3af4c0652b45/scratchpad; wc -l $S/vz-native/virtualizarr/parsers/hdf4.py; cd $S/vz-nativ…`
+- **Bash**: `cd /home/user/simon-code-research/l2-swath-geolocation && sed -i 's/(~480 lines; the/(494 lines incl. docstrings; the/; s/a new ~480-line module/a new 494-line…`
+
+Updating the README, results page and site data to mention the native parser:
+
+- **Bash**: `python3 - <<'EOF' import re p='README.md'; s=open(p).read() old=s[s.index('* **MODIS HDF4 as virtual Zarr**'):s.index('Full write-up with methods pages')] s=s.…`
+
+Committing (patch and write‑up separately from the prompt record, which is already committed):
+
+- **Bash**: `cd /home/user/simon-code-research && ls -la l2-swath-geolocation/report/_site/read.html | awk '{print $6,$7,$8}'; T=" Co-Authored-By: Claude Opus 5.5 <noreply@…`
+
+Regenerating the transcript to include this follow‑up, then merging to `main`:
+
+- **Bash**: `uv run _helpers/transcript.py -o l2-swath-geolocation/TRANSCRIPT.md 2>&1 | tail -1; U=$(printenv EARTHDATA_LOGIN_USER); grep -c -- "$U" l2-swath-geolocation/TR…`
