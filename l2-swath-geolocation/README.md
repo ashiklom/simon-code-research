@@ -21,7 +21,30 @@ epochs (2013, 2024), this experiment compared:
 
 ## Key results
 
-<!-- KEY-RESULTS -->
+* **Locating pixels.** Brute force costs 0.3–1.8 s *per point* (5–30 M pixels). A KD-tree on unit
+  vectors builds in 1–9 s (0.4–1.7 GB) and answers in ~0.1 ms; S2/H3 sorted cell ids use the least memory.
+  xarray's default `NDPointIndex` (Euclidean on degrees) returns the wrong pixel for 4–10 % of points —
+  use a xoak BallTree/S2 adapter. An **analytic inverse geolocation** from each granule's orbit/attitude
+  data needs no index: with constants calibrated once per platform it found the right pixel within a
+  ±1 (MODIS), ±2 (VIIRS), ±3 (ECOSTRESS) pixel search window in all 53 test scenes (6 regions,
+  2013 and 2024, before/after the Terra/Aqua orbit drift) when the target's height is known
+  (±3/±9/±16 without terrain height). ECOSTRESS requires the ISS attitude quaternions (~7° pitch).
+* **Pixel size and PSF.** Spherical-Earth trigonometry matches the files (MODIS 1 → 4.8 × 2.0 km, VIIRS
+  0.78 → 1.6 km with its aggregation saw-tooth). In a synthetic-truth test (70 m ECOSTRESS LST seen
+  through real MODIS/VIIRS geometry; 200 polygons × 5 scenes), schemes that share overlapping scans' ground —
+  including plain Voronoi cells — cut swath-edge errors of polygon-mean LST by 30–40 %; centre-in-polygon is
+  worst for small polygons; adding the PSF does not help on average. With real LST the schemes differ by up
+  to 0.9 K for a 3 km square and < 0.1 K for 10 km+ polygons.
+* **Reading.** For subsets, VirtualiZarr → icechunk virtual references are fastest on every simulated
+  network (33 × 33 window: 0.4–0.6 s in-region, 1–4 s on HTTPS/NCCS-like links, < 1 MB moved). Library defaults
+  are the main hazard (h5py on s3fs: ~0.5–0.9 GB moved for that window; xarray + h5netcdf: 1.3–2.1 GB; GDAL:
+  ~900–2,200 requests); fsspec `blockcache` 8 MiB or tuned GDAL fix most of it. For whole granules,
+  download-then-read wins. icechunk 2.3 does not retry transient 5xx/SlowDown on virtual chunks, and HDF5
+  ROS3 cannot follow Earthdata's 303 redirects. DMR++ sidecars build references in < 2 s vs. 16–120 s
+  (264 MB) for scanning the ECOSTRESS file.
+* **MODIS HDF4 as virtual Zarr** failed with stock VirtualiZarr 2.8 / kerchunk 0.2.10 (8 distinct bugs,
+  incl. byte-swapped HDF4 floats in kerchunk). Patched, all files read bit-identically; minimal patch
+  options and a recommendation are in [`patches/README.md`](patches/README.md).
 
 Full write-up with methods pages and interactive explainers:
 **https://ashiklom.github.io/simon-code-research/l2-swath-geolocation/**

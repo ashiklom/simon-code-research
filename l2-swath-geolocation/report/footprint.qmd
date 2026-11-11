@@ -3,7 +3,16 @@ title: "B · Footprints & PSF — results"
 ---
 
 ::: {.callout-note appearance="simple"}
-**Bottom line.** <!-- B-BOTTOM -->
+**Bottom line.** Simple spherical-Earth trigonometry reproduces real pixel sizes for all three
+sensors (MODIS 1 → 4.8 × 2.0 km, VIIRS 0.78 → 1.6 km with its aggregation saw-tooth, ECOSTRESS
+70 → 90 m). For areal means the pixel model matters in two situations: **small polygons** (a few
+pixels; the centre-in-polygon rule is worst, and may find no pixel at all at a MODIS swath edge) and
+**overlapping scans** (MODIS/VIIRS swath edges, ECOSTRESS scan overlap), where any scheme that lets
+overlapping pixels *share* the ground — overlap-aware footprints, or simply **Voronoi cells, which need
+no sensor model** — cuts the error by 30–40 %. Adding the instrument PSF does not improve polygon means on
+average: it can only re-weight blurred observations, and a PSF-optimal (least-squares) weighting helps
+only for the smallest MODIS polygons. For polygons ≥ 10 km at nadir, all reasonable choices agree to
+within a few hundredths of a kelvin.
 :::
 
 ## Pixel size vs. view angle
@@ -41,13 +50,18 @@ fpData = {
   catch (e) { return {type: "FeatureCollection", features: []}; }
 }
 polysAll = FileAttachment("data/targets/polygons.geojson").json()
-fpTarget = ({type: "FeatureCollection", features: polysAll.features.filter(f => f.properties.name === fpPoly)})
+// d3-geo expects clockwise exterior rings (shapely/GeoJSON writes counter-clockwise): reverse them
+rewind = f => ({...f, geometry: {...f.geometry, coordinates: f.geometry.type === "Polygon"
+  ? f.geometry.coordinates.map(r => [...r].reverse())
+  : f.geometry.coordinates.map(p => p.map(r => [...r].reverse()))}})
+fpTarget = ({type: "FeatureCollection", features: polysAll.features.filter(f => f.properties.name === fpPoly).map(rewind)})
 ```
 
 ::: {.widget}
 ```{ojs}
 //| echo: false
-Plot.plot({width: 640, height: 520, projection: {type: "azimuthal-equal-area", domain: fpData.features.length ? fpData : fpTarget, inset: 10},
+Plot.plot({width: 640, height: 520, projection: {type: "azimuthal-equal-area", rotate: d3.geoCentroid(fpTarget).map(v => -v),
+                                                domain: fpData.features.length ? fpData : fpTarget, inset: 10},
   color: {type: "linear", scheme: "blues", legend: true, label: fpColor},
   marks: [Plot.geo(fpData, {fill: d => d.properties[fpColor], stroke: "#52514e", strokeWidth: 0.3, fillOpacity: 0.85,
                             title: d => `row ${d.properties.row}, col ${d.properties.col}\nVZA ${d.properties.vza}°\n${d.properties.W_s_m} × ${d.properties.W_t_m} m\nLST ${d.properties.lst_K} K`}),
@@ -71,13 +85,35 @@ Inputs.table(areal.map(d => Object.fromEntries([["scene", d.scene], ["polygon", 
   ...schemes.map(s => [s, d[`mean_${s}`] == null || isNaN(d[`mean_${s}`]) ? "–" : d[`mean_${s}`].toFixed(2)])])), {rows: 18})
 ```
 
-<!-- B-REAL -->
+With real LST, the choice changes polygon means by **up to 0.9 K for the 3 km square**
+(centre-in-polygon on VIIRS and MODIS at nadir, where only ~8–16 centres fall inside), by **0.1–0.3 K**
+for the square at swath edges or mid-swath, and by **< 0.1 K** for the 10 km circle and the county —
+except that schemes which ignore scan overlap (centre, nominal square, plain footprint, plain PSF)
+differ by 0.07–0.10 K for the county at the VIIRS swath edge and by 0.08–0.14 K for ECOSTRESS, whose
+overlapping scans count part of the ground twice. At the MODIS swath edge, no pixel centre falls inside the
+3 km square at all, so centre-in-polygon has no answer.
 
 ## Synthetic truth: which pixel model gets the polygon mean right?
 
 ![](figures/areal_synthetic.png)
 
-<!-- B-SYNTH -->
+Real LST has no ground truth, so the 70 m ECOSTRESS LST from the same afternoon served as a "true"
+field: each MODIS/VIIRS pixel observed it through its real footprint and PSF, and each weighting
+scheme estimated the mean of 200 random squares and circles (2, 5, 10, 20 km; 50 per size) in each scene.
+
+* Errors fall with polygon size (2 km: 0.3–1.8 K; 20 km: 0.17–0.30 K) and are not bias (|mean error| ≤ 0.05 K):
+  they are boundary effects — every edge pixel's value mixes inside and outside the polygon, which no
+  weighting of blurred pixels can undo.
+* **Near nadir** all schemes except centre-in-polygon are equivalent; centre-in-polygon is 30–40 % worse for 2 km polygons.
+* **At swath edges**, overlap-aware schemes win clearly: VIIRS edge RMSE 0.28 vs 0.39 K (10 km) and
+  0.17 vs 0.27 K (20 km); MODIS edge 0.20 vs 0.30 K (20 km). **Voronoi ≈ overlap-aware footprints.**
+* PSF weights (overlap-aware) are no better than footprint weights on average; the NNLS "PSF-optimal"
+  weights help for small MODIS polygons (2 km at nadir: 0.38 vs 0.49 K; 5 km at the edge: 0.70 vs 0.84 K)
+  but not consistently elsewhere.
+
+Caveats: the "truth" is itself a 70 m blurred measurement (finer structure is missing, so MODIS/VIIRS
+errors are if anything underestimated); retrieval, time-of-day and geolocation errors are excluded on
+purpose.
 
 ```{ojs}
 //| echo: false

@@ -53,10 +53,13 @@ pickS2 = s2Edge.findLastIndex(e => e >= pix)
 ```
 
 ::: {.widget}
-**Index resolution for a pixel size.** For a sensor whose largest pixel is
+```{ojs}
+//| echo: false
+md`**Index resolution for a pixel size.** For a sensor whose largest pixel is
 **${pix} m**, choose H3 resolution **${pickH3}** (average edge ≈ ${Math.round(h3Edge[pickH3])} m) or S2 level
 **${pickS2}** (average cell ≈ ${Math.round(s2Edge[pickS2])} m). Finer cells mean fewer candidate
-pixels per lookup but more cells to visit for polygons; coarser cells mean more `argmin` work per point.
+pixels per lookup but more cells to visit for polygons; coarser cells mean more \`argmin\` work per point.`
+```
 :::
 
 ## The analytic method in detail
@@ -114,11 +117,14 @@ geomA = {
 ```
 
 ::: {.widget}
-At a scan angle of **${Math.min(thetaA, cfgA.max)}°** the view zenith angle is **${geomA.vza.toFixed(1)}°** and the
+```{ojs}
+//| echo: false
+md`At a scan angle of **${Math.min(thetaA, cfgA.max)}°** the view zenith angle is **${geomA.vza.toFixed(1)}°** and the
 along-scan pixel is **${(geomA.Ws).toFixed(0)} m** wide. Predicting the pixel for a target at sea level when it
 actually sits **${terrain} m** up shifts the line of sight by h·tan(VZA) = **${geomA.shift.toFixed(0)} m**, i.e.
 **${geomA.px.toFixed(1)} pixels** along-scan. That parallax, not the orbit model, sets the search window when
-no DEM is used — which is why ECOSTRESS (70 m pixels) needs a much larger window than MODIS without terrain heights.
+no DEM is used — which is why ECOSTRESS (70 m pixels) needs a much larger window than MODIS without terrain heights.`
+```
 :::
 
 ## Benchmark protocol

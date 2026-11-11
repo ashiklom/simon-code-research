@@ -44,6 +44,7 @@ run = ["mise run locate", "mise run footprint", "mise run readbench", "mise run 
 [tasks.site]
 description = "Render the Quarto site from committed results/figures (no analysis)"
 run = [
+  "mise install",
   "rm -rf report/data report/figures",
   "cp -r results report/data",
   "cp -r config/targets report/data/targets",

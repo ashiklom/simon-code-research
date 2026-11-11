@@ -65,7 +65,7 @@ Plot.plot({height: 260, marginLeft: 50, x: {label: "scan angle (°)"}, y: {label
 ```
 ```{ojs}
 //| echo: false
-Plot.plot({height: 200, width: 360, aspectRatio: 1, x: {label: "along-scan (km)", domain: [-3, 3]}, y: {label: "along-track (km)", domain: [-3, 3]},
+Plot.plot({width: 300, height: 300, x: {label: "along-scan (km)", domain: [-3, 3]}, y: {label: "along-track (km)", domain: [-3, 3]},
   marks: [Plot.rect([{x1: -0.5, x2: 0.5, y1: -0.5, y2: 0.5}], {x1: "x1", x2: "x2", y1: "y1", y2: "y2", stroke: "#898781", fill: "none"}),
           Plot.rect([{x1: -fpAt[0].km / 2, x2: fpAt[0].km / 2, y1: -fpAt[1].km / 2, y2: fpAt[1].km / 2}],
                     {x1: "x1", x2: "x2", y1: "y1", y2: "y2", fill: "#2a78d6", fillOpacity: 0.25, stroke: "#2a78d6"}),
@@ -98,8 +98,11 @@ btRects = d3.range(4).map(k => ({k, y1: k * 10 - btOverlap.strip / 2 + 5, y2: k 
 ```
 
 ::: {.widget}
-At ${btTheta}° each scan's strip is **${btOverlap.strip.toFixed(1)} km** long along-track but the spacecraft advances
-only 10 km per scan: **${(100 * btOverlap.overlap).toFixed(0)} %** overlap.
+```{ojs}
+//| echo: false
+md`At ${btTheta}° each scan's strip is **${btOverlap.strip.toFixed(1)} km** long along-track but the spacecraft advances
+only 10 km per scan: **${(100 * btOverlap.overlap).toFixed(0)} %** overlap.`
+```
 ```{ojs}
 //| echo: false
 Plot.plot({height: 180, x: {label: "along-scan (arbitrary)", domain: [0, 1], axis: null}, y: {label: "along-track (km)", domain: [-15, 50]},
@@ -172,9 +175,12 @@ Plot.plot({height: 240, x: {label: "distance from pixel centre (samples)", domai
           Plot.line(lsfS, {x: "u", y: "f", stroke: () => "along-scan"}),
           Plot.line(lsfT, {x: "u", y: "f", stroke: () => "along-track"})]})
 ```
-Energy from inside the nominal pixel: along-scan **${(100 * inPix(lsfS)).toFixed(0)} %**, along-track
+```{ojs}
+//| echo: false
+md`Energy from inside the nominal pixel: along-scan **${(100 * inPix(lsfS)).toFixed(0)} %**, along-track
 **${(100 * inPix(lsfT)).toFixed(0)} %**, so the nominal footprint holds only **${(100 * inPix(lsfS) * inPix(lsfT)).toFixed(0)} %** of the signal
-(grey band = nominal pixel).
+(grey band = nominal pixel).`
+```
 :::
 
 ## Areal averages: weighting schemes
@@ -199,7 +205,7 @@ They still give an edge pixel weight for the part of its PSF inside A even thoug
 carries the part outside A. The **PSF-optimal** weights instead solve a non-negative least-squares
 problem on the raster: find the combination of the pixels' PSFs that best reproduces the polygon's
 indicator function. That is the best a linear estimator can do with blurred observations (it
-down-weights pixels that straddle the boundary); computed for subsets up to 8,000 pixels. They are
+down-weights pixels that straddle the boundary); computed for subsets up to 2,500 pixels (all synthetic polygons; not county scale). They are
 integrated by quadrature in each pixel's own frame, with the denominator accumulated on a fine
 raster in a local equal-area plane (node spacing adapted to the largest pixel so the raster has no holes).
 
@@ -248,8 +254,11 @@ Plot.plot({height: 200, x: {label: "x (km)", domain: [0, 20]}, y: {label: "LST (
 //| echo: false
 Inputs.table(schemes1d.map(d => ({Scheme: d.scheme, "Estimate (K)": d.est.toFixed(2), "Error vs truth (K)": d.err.toFixed(2)})), {sort: null})
 ```
-True mean over the polygon: **${truth1d.toFixed(2)} K**. (Even the best scheme cannot fully undo the PSF:
-it recovers the mean of the *blurred* scene.)
+```{ojs}
+//| echo: false
+md`True mean over the polygon: **${truth1d.toFixed(2)} K**. (Even the best scheme cannot fully undo the PSF:
+it recovers the mean of the *blurred* scene.)`
+```
 :::
 
 ## Synthetic-truth test

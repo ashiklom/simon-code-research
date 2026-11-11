@@ -1,0 +1,7 @@
+# Site build + release-asset manifest (see /CLAUDE.md "Publishing").
+build = "mise run site"
+output = "report/_site"
+
+models = ["claude-opus-5-5"]
+tools = ["python", "pixi", "mise", "quarto", "gdal", "h5py", "pyhdf", "virtualizarr", "icechunk", "kerchunk",
+         "xarray", "xoak", "scipy", "pykdtree", "h3", "s2", "shapely", "aiohttp", "observable-js"]

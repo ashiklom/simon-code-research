@@ -1,0 +1,64 @@
+---
+title: "Working with L2 swath data: finding pixels, sizing them, reading them"
+subtitle: "MODIS, VIIRS and ECOSTRESS land-surface temperature over the Sacramento Valley"
+---
+
+Level-2 swath products — MODIS MOD11_L2, VIIRS VNP21, ECOSTRESS ECO_L2_LSTE and many others —
+store values on the instrument's own scan geometry: no grid, just 2-D arrays of pixel-centre
+latitude and longitude in a separate geolocation file. Pixels grow towards the swath edge,
+overlap between scans, and "see" a blurred neighbourhood rather than a crisp square. This
+experiment asks three practical questions, using same-day granules of all three sensors
+(2023-06-02/03) over California's Sacramento Valley, plus 47 geolocation-only granules from six
+regions and two epochs to test generality.
+
+```{=html}
+<div class="grid" style="margin-top:1em">
+```
+
+::: {.g-col-12 .g-col-md-4}
+### [A · Which pixel?](locate.qmd)
+A KD-tree on unit vectors answers point queries in ~0.1 ms after a 1–9 s build (brute force:
+0.3–1.8 s *per point*). An **analytic locator** from the orbit and scan geometry needs no index and,
+calibrated once per platform, stays within ±1–3 pixels across 53 scenes from 2013–2024 (with
+terrain height). xarray's default `NDPointIndex` picks the wrong pixel for 4–10 % of points.
+:::
+
+::: {.g-col-12 .g-col-md-4}
+### [B · How big is it?](footprint.qmd)
+Trigonometry reproduces pixel growth (MODIS 1 → 4.8 × 2 km). For areal means, overlapping scans
+matter more than the PSF: overlap-aware weights (or plain **Voronoi cells**) cut swath-edge errors by
+30–40 %; for ≥ 10 km polygons at nadir every sensible scheme agrees to ~0.01 K.
+:::
+
+::: {.g-col-12 .g-col-md-4}
+### [C · How to read it?](read.qmd)
+For subsets, **virtual Zarr references** (VirtualiZarr → icechunk) read a 33 × 33 window in
+0.4–4 s on every simulated network, moving < 1 MB; library defaults move 0.5–2 GB. For whole
+granules, just download. icechunk doesn't retry transient 5xx; ROS3 can't follow Earthdata redirects;
+MODIS HDF4 needs [patches](https://github.com/ashiklom/simon-code-research/blob/main/l2-swath-geolocation/patches/README.md).
+:::
+
+```{=html}
+</div>
+```
+
+## Data
+
+| Scene | Sensor / platform | Granules | View zenith at the site |
+|---|---|---|---|
+| `modis_aqua_nadir` | MODIS Aqua, 2023-06-03 21:20–21:30 UTC | MYD03 + MYD11_L2 (2 stacked) | ~10° |
+| `modis_terra_mid` | MODIS Terra, 2023-06-03 18:25 | MOD03 + MOD11_L2 | ~24° |
+| `modis_aqua_edge` | MODIS Aqua, 2023-06-02 20:40 | MYD03 + MYD11_L2 | ~60° |
+| `viirs_n20_nadir` | VIIRS NOAA-20, 2023-06-03 21:00–21:12 | VJ103MOD + VJ121 (2 stacked) | ~0.5° |
+| `viirs_snpp_edge` | VIIRS SNPP, 2023-06-03 20:12 | VNP03MOD + VNP21 | ~58° |
+| `ecostress` | ECOSTRESS (ISS), 2023-06-03 20:25 | ECO_L1B_GEO + ECO_L2_LSTE + ECO_L1B_ATT | ~12° |
+
+Targets: a point in the Sacramento National Wildlife Refuge; 100 random points in the area seen
+by all six scenes; a 3 km square, a 10 km circle and Colusa County (~3000 km²).
+
+Each part has a results page and a **methods & explainers** page with interactive widgets
+(view-angle footprint calculator, PSF explorer, bow-tie overlap, a 1-D weighting toy, a network
+what-if simulator). See [Reproduce](reproduce.qmd) to rerun everything; code and data tables are in
+the [GitHub folder](https://github.com/ashiklom/simon-code-research/tree/main/l2-swath-geolocation).
+A side quest fixed VirtualiZarr/kerchunk so MODIS HDF4 can be virtualised at all
+([patches](https://github.com/ashiklom/simon-code-research/blob/main/l2-swath-geolocation/patches/README.md)).

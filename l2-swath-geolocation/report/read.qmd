@@ -3,14 +3,42 @@ title: "C · Read performance — results"
 ---
 
 ::: {.callout-note appearance="simple"}
-**Bottom line.** <!-- C-BOTTOM -->
+**Bottom line.** For **subsets** (a site, a county), **virtual Zarr references** (VirtualiZarr →
+icechunk) win everywhere: they fetch only the needed chunks, concurrently — 0.4–0.6 s in-region and
+1–4 s through slow HTTPS/NCCS-like links for a 33 × 33 window, moving < 1 MB, where file-oriented readers
+move 30–2,000 MB. For **whole granules**, a single streamed download beats everything. Library
+**defaults are the main hazard**: h5py on `s3fs` (50 MiB blocks) pulls ~0.5–0.9 GB for a 33 × 33 window,
+xarray + h5netcdf on `s3fs` 1.3–2.1 GB, GDAL's 16 KB requests ~900–2,200 requests; one fsspec setting
+(`blockcache`, 8 MiB, as `earthaccess` uses) or a few GDAL options fix most of it. Two robustness
+gaps decide what works on noisy links: **icechunk 2.3 does not retry transient 5xx/SlowDown on virtual
+chunks** (full-granule reads with thousands of requests fail), and **HDF5's ROS3 driver cannot follow
+Earthdata's per-request 303 redirect**. MODIS HDF4 can only be downloaded — unless VirtualiZarr/kerchunk
+are patched ([details](https://github.com/ashiklom/simon-code-research/blob/main/l2-swath-geolocation/patches/README.md)), after which it virtualises like HDF5.
 :::
 
 ## Small window (one site)
 
 ![](figures/read_window_site.png)
 
-<!-- C-SITE -->
+Median seconds for a 33 × 33 window of latitude, longitude and LST (geolocation + L2 file):
+
+| Reader | VIIRS in-region | VIIRS Earthdata HTTPS | ECOSTRESS in-region | ECOSTRESS NCCS | MB moved (ECOSTRESS) |
+|---|---|---|---|---|---|
+| icechunk virtual refs | **0.54** | **2.8** | **0.36** | **2.9** | **0.8** |
+| h5py ROS3 | 1.8 | fails (redirect) | 2.1 | 9.0 | 34 |
+| h5py + fsspec blockcache 8 MiB | 2.3 | 8.7 | 3.0 | 14 | 115 |
+| h5py + fsspec defaults | 9.7 | 15 | 18 | 18 | 916 |
+| GDAL tuned / defaults | 6.3 / 41 | 13 / 113 | 22 / 118 | 66 / timeout | 423 / 791 |
+| xarray + h5netcdf (fsspec) | 26 | 49 | 42 | 40 | 2,093 |
+| download whole file | 2.1 | 5.5 | 16 | 110 | 983 |
+
+The ranking is almost entirely *requests × latency + bytes ÷ bandwidth*: the virtual references know
+the exact byte range of every chunk (no metadata crawling) and fetch the 25–45 chunks in parallel.
+File-oriented readers first walk the HDF5 metadata with many small reads and then over-fetch through
+their caches. ROS3 is efficient (it caches the first 16 MiB, which holds the metadata of these files)
+but HDF5 1.14 fails on the HTTPS redirect ("could not find Content-Length"). On the NCCS-like profile
+(heavy-tailed latency, stalls, 0.5 % 5xx), sequential readers suffer most; retries matter more than
+speed (xarray via fsspec failed 2 of 3 repetitions with a 503).
 
 ## County-sized window
 
@@ -20,7 +48,11 @@ title: "C · Read performance — results"
 
 ![](figures/read_full.png)
 
-<!-- C-FULL -->
+For whole granules the picture flips: **download-then-read** (one GET) costs 3 s (VIIRS) and
+21 s (ECOSTRESS, 983 MB) in-region and stays within 2–3× of that on every profile, while chunk-wise
+readers pay per request — icechunk needs ~3,000 requests for VIIRS lat/lon/LST (9 s in-region) and fails
+over HTTPS/NCCS because a single unretried 5xx aborts the read; ROS3 takes 185 s for ECOSTRESS in-region
+(4,000 requests). Tuned GDAL is a robust all-rounder (22–84 s for ECOSTRESS).
 
 ## Requests and bytes
 
@@ -71,4 +103,16 @@ vbRows = {
 Inputs.table(vbRows, {rows: 25})
 ```
 
-<!-- C-BUILD -->
+Virtual references are an index: built once, reused for every read. Scanning the HDF5 file remotely
+(VirtualiZarr `HDFParser` with its default 1 MiB block reader) touches **264 MB** of the 780 MB ECOSTRESS
+GEO file (16 s in-region, 2 min over HTTPS) because these files are not "cloud-optimised" (chunk
+indexes are scattered through the file). The **DMR++ sidecar** that NASA publishes for LP DAAC products
+gives the same chunk map in **0.6 s / 1.6 MB**. For VNP21 the DMR++ path fails (string `_FillValue`,
+same bug as the HDF5 path; fixed by the patch). LAADS publishes no DMR++ for MOD03/MYD03/VNP03MOD.
+The patched HDF4 scan of MYD03 (37 MB) moves the whole file over S3 (2 requests) but 205 MB over HTTPS,
+because fsspec's 5 MiB block cache thrashes as kerchunk seeks through HDF4 tags.
+
+*Time budget.* To keep the run under ~6 h, each (reader, profile, task) stops repeating after 90 s,
+whole-granule ECOSTRESS reads used only the six most informative readers, and default GDAL (which
+already timed out at 300 s for the ECOSTRESS site window on the slow profiles) was not re-run for the
+ECOSTRESS county window on those profiles.
