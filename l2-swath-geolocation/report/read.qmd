@@ -109,8 +109,12 @@ GEO file (16 s in-region, 2 min over HTTPS) because these files are not "cloud-o
 indexes are scattered through the file). The **DMR++ sidecar** that NASA publishes for LP DAAC products
 gives the same chunk map in **0.6 s / 1.6 MB**. For VNP21 the DMR++ path fails (string `_FillValue`,
 same bug as the HDF5 path; fixed by the patch). LAADS publishes no DMR++ for MOD03/MYD03/VNP03MOD.
-The patched HDF4 scan of MYD03 (37 MB) moves the whole file over S3 (2 requests) but 205 MB over HTTPS,
-because fsspec's 5 MiB block cache thrashes as kerchunk seeks through HDF4 tags.
+The patched kerchunk-based HDF4 scan of MYD03 (37 MB) moves the whole file over S3 (2 requests) but
+205 MB over HTTPS, because fsspec's 5 MiB block cache thrashes as kerchunk seeks through HDF4 tags.
+The native HDF4 reader written for VirtualiZarr instead (`hdf4_native`, no kerchunk; see the
+[patch notes](https://github.com/ashiklom/simon-code-research/blob/main/l2-swath-geolocation/patches/README.md))
+reads through VirtualiZarr's own block reader: 35 MB in 35 requests (16 s over HTTPS, 2.7 s in-region),
+because HDF4 scatters its metadata through the file.
 
 *Time budget.* To keep the run under ~6 h, each (reader, profile, task) stops repeating after 90 s,
 whole-granule ECOSTRESS reads used only the six most informative readers, and default GDAL (which

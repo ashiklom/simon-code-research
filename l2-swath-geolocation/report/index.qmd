@@ -60,5 +60,6 @@ Each part has a results page and a **methods & explainers** page with interactiv
 (view-angle footprint calculator, PSF explorer, bow-tie overlap, a 1-D weighting toy, a network
 what-if simulator). See [Reproduce](reproduce.qmd) to rerun everything; code and data tables are in
 the [GitHub folder](https://github.com/ashiklom/simon-code-research/tree/main/l2-swath-geolocation).
-A side quest fixed VirtualiZarr/kerchunk so MODIS HDF4 can be virtualised at all
+A side quest made MODIS HDF4 virtualisable at all — finally with a native HDF4 reader for
+VirtualiZarr that no longer needs kerchunk
 ([patches](https://github.com/ashiklom/simon-code-research/blob/main/l2-swath-geolocation/patches/README.md)).

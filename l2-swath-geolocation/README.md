@@ -43,8 +43,11 @@ epochs (2013, 2024), this experiment compared:
   ROS3 cannot follow Earthdata's 303 redirects. DMR++ sidecars build references in < 2 s vs. 16–120 s
   (264 MB) for scanning the ECOSTRESS file.
 * **MODIS HDF4 as virtual Zarr** failed with stock VirtualiZarr 2.8 / kerchunk 0.2.10 (8 distinct bugs,
-  incl. byte-swapped HDF4 floats in kerchunk). Patched, all files read bit-identically; minimal patch
-  options and a recommendation are in [`patches/README.md`](patches/README.md).
+  incl. byte-swapped HDF4 floats in kerchunk). Since kerchunk is in maintenance mode, the recommended fix is
+  a **native HDF4 reader inside VirtualiZarr** (no kerchunk/fsspec): identical to the HDF4 C library on
+  32 MODIS granules (1,324 datasets, 4,652 attributes), no regressions in VirtualiZarr's test suite, and
+  6× less data transferred than the kerchunk path when building references over HTTPS. All options and
+  the recommendation: [`patches/README.md`](patches/README.md).
 
 Full write-up with methods pages and interactive explainers:
 **https://ashiklom.github.io/simon-code-research/l2-swath-geolocation/**
@@ -62,7 +65,8 @@ mise run site                                        # render the Quarto site fr
 
 The MODIS virtual-Zarr results need the patched vendored libraries:
 `git submodule update --init --depth 1 vendor/VirtualiZarr vendor/kerchunk`, then apply
-`patches/blunt-*.diff` (see [`patches/README.md`](patches/README.md)).
+`patches/blunt-*.diff` (the read benchmark used these) or `patches/optionD-virtualizarr-native-hdf4.diff`
+(native HDF4 reader; recommended) — see [`patches/README.md`](patches/README.md).
 
 ### Requirements
 
