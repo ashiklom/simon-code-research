@@ -1,0 +1,1233 @@
+diff --git a/docs/explanation/faq.md b/docs/explanation/faq.md
+index 44ad322..b8038ba 100644
+--- a/docs/explanation/faq.md
++++ b/docs/explanation/faq.md
+@@ -258,7 +258,7 @@ Users of Kerchunk may find the following comparison table useful, which shows wh
+ | From an existing [Icechunk](https://icechunk.io/) repo                   | ❌                                                                                                        | `open_virtual_dataset(..., parser=IcechunkParser())`, or `IcechunkParser().parse_session(session, registry, native_chunks_prefix=...)` if you already have an open icechunk session |
+ | From a GRIB1/GRIB2 file                                                  | `kerchunk.grib2.scan_grib`                                                                                                          | `open_virtual_dataset(..., parser=GribberishParser())` (or `open_virtual_datatree(...)`), via [gribberish](https://github.com/mpiannucci/gribberish)                                                                                |
+ | From a FITS file                                                         | `kerchunk.fits.process_file`                                                                                                        | `open_virtual_dataset(..., parser=FITSParser())`, via [astropy](https://www.astropy.org/)                                                                                      |
+-| From a HDF4 file                                                         | `kerchunk.hdf4.HDF4ToZarr`                                                                                                        | `open_virtual_dataset(..., parser=HDF4Parser())`, via `kerchunk.hdf4.HDF4ToZarr`                                                        |
++| From a HDF4 file                                                         | `kerchunk.hdf4.HDF4ToZarr`                                                                                                        | `open_virtual_dataset(..., parser=HDF4Parser())` (native HDF4 reader; no kerchunk needed)                                                |
+ | From a [DMR++](https://opendap.github.io/DMRpp-wiki/DMRpp.html) metadata file                                                    | ❌                                                                                                        | `open_virtual_dataset(..., parser=DMRPPParser())`                                                                                     |
+ | From existing kerchunk JSON references                                                 | `kerchunk.combine.MultiZarrToZarr(append=True)`                                                                                                       | `open_virtual_dataset(..., parser=KerchunkJSONParser())`                                                                                      |
+ | From existing kerchunk parquet references                                                 | `kerchunk.combine.MultiZarrToZarr(append=True)`                                                                                                       | `open_virtual_dataset(..., parser=KerchunkParquetParser())`                                                                                      |
+diff --git a/pyproject.toml b/pyproject.toml
+index caee4e1..d1ffb6c 100644
+--- a/pyproject.toml
++++ b/pyproject.toml
+@@ -76,7 +76,6 @@ kerchunk_parquet = [
+ ]
+ hdf4 = [
+     "virtualizarr[remote]",
+-    "kerchunk>=0.2.8",
+ ]
+ 
+ all_parsers = [
+diff --git a/virtualizarr/parsers/dmrpp.py b/virtualizarr/parsers/dmrpp.py
+index c6b7b3a..ff12e5e 100644
+--- a/virtualizarr/parsers/dmrpp.py
++++ b/virtualizarr/parsers/dmrpp.py
+@@ -463,6 +463,8 @@ class DMRParser:
+         shape: tuple[int, ...] = tuple(dims.values())
+         chunks_shape = shape
+         chunks_tag = var_tag.find("dmrpp:chunks", self._NS)
++        if chunks_tag is not None and self._get_attrib(chunks_tag, "byteOrder") == "BE":
++            dtype = dtype.newbyteorder(">")  # e.g. DMR++ of HDF4 files
+         array_fill_value = np.array(0).astype(dtype)[()]
+         if chunks_tag is not None:
+             # Chunks
+@@ -490,7 +492,10 @@ class DMRParser:
+             attrs.update(self._parse_attribute(attr_tag))
+         if "_FillValue" in attrs:
+             encoded_cf_fill_value = encode_cf_fill_value(attrs["_FillValue"], dtype)
+-            attrs["_FillValue"] = encoded_cf_fill_value
++            if encoded_cf_fill_value is None:
++                del attrs["_FillValue"]
++            else:
++                attrs["_FillValue"] = encoded_cf_fill_value
+ 
+         metadata = create_v3_array_metadata(
+             shape=shape,
+diff --git a/virtualizarr/parsers/hdf/hdf.py b/virtualizarr/parsers/hdf/hdf.py
+index 527869c..1163219 100644
+--- a/virtualizarr/parsers/hdf/hdf.py
++++ b/virtualizarr/parsers/hdf/hdf.py
+@@ -171,7 +171,10 @@ def _construct_manifest_array(
+ 
+     if "_FillValue" in attrs and dtype.kind not in ("S", "U", "O", "T"):
+         encoded_cf_fill_value = encode_cf_fill_value(attrs["_FillValue"], dtype)
+-        attrs["_FillValue"] = encoded_cf_fill_value
++        if encoded_cf_fill_value is None:
++            del attrs["_FillValue"]
++        else:
++            attrs["_FillValue"] = encoded_cf_fill_value
+ 
+     inlined_strings = vlen_string or (object_reference and links_and_references)
+     if inlined_strings:
+diff --git a/virtualizarr/parsers/hdf4.py b/virtualizarr/parsers/hdf4.py
+index 665fcb6..551dfde 100644
+--- a/virtualizarr/parsers/hdf4.py
++++ b/virtualizarr/parsers/hdf4.py
+@@ -1,8 +1,38 @@
++"""Native parser for HDF4 Scientific Data Sets (the SD interface used by MODIS and most NASA
++HDF4 products), producing virtual references without decoding any data.
++
++HDF4 (unlike HDF5) is a flat list of *data descriptors* (tag, ref, offset, length). The SD
++interface groups the pieces of each dataset in a Vgroup of class ``Var0.0``:
++
++* ``SD``  (tag 702) - the data element: plain (contiguous, uncompressed bytes) or "special"
++  (tag | 0x4000): compressed (``SPECIAL_COMP``) or chunked (``SPECIAL_CHUNKED``, with a chunk
++  table stored as a Vdata and one ``CHUNK`` element per chunk, each optionally compressed);
++* ``NT``  (106) - number type (dtype and byte order); ``SDD`` (701) - rank and shape;
++* ``VH``/``VS`` (1962/1963) Vdatas of class ``Attr0.0`` - attributes;
++* Vgroups of class ``Dim0.0`` - the dimensions (their names are the HDF4 dimension names).
++
++File attributes are ``Attr0.0`` Vdatas attached to the ``CDF0.0`` root Vgroup. NASA products
++put their ODL metadata (``CoreMetadata.0`` etc.) there; it is flattened into attributes.
++
++Only DEFLATE-compressed or uncompressed storage can be referenced; other HDF4 codings (RLE,
++N-bit, Skipping Huffman, SZIP, JPEG), linked-block and external storage raise
++``NotImplementedError`` for that variable (use ``skip_variables``).
++
++Reference: *HDF Specification and Developer's Guide* (The HDF Group), chapters on data
++descriptors, Vgroups/Vdatas, special elements and the SD model. The tag-walking logic
++follows the (MIT-licensed) experimental reader in kerchunk (``kerchunk.hdf4``), re-implemented
++here without kerchunk or fsspec, reading through the ObjectStoreRegistry.
++"""
++
++from __future__ import annotations
++
++import struct
+ from collections.abc import Iterable
+-from pathlib import Path
+-from typing import Any
++from dataclasses import dataclass, field
++from typing import Any, Literal
+ 
+ import numpy as np
++from obspec_utils.readers import BlockStoreReader
+ from obspec_utils.registry import ObjectStoreRegistry
+ 
+ from virtualizarr.manifests import (
+@@ -16,186 +46,399 @@ from virtualizarr.parsers.kerchunk.translator import (
+     from_kerchunk_refs,
+     manifest_from_kerchunk_chunk_dict,
+ )
++from virtualizarr.parsers.typing import ReaderFactory
++from virtualizarr.parsers.utils import encode_cf_fill_value
+ from virtualizarr.utils import determine_chunk_grid_shape
+ 
+ # HDF4's magic number, at byte 0 of every HDF4 file.
+ _MAGIC = b"\x0e\x03\x13\x01"
+ 
++# Tags (hdf/src/htags.h)
++_NULL, _LINKED, _COMPRESSED, _CHUNK = 1, 20, 40, 61
++_NT, _SDD, _SD, _NDG = 106, 701, 702, 720
++_VH, _VS, _VG = 1962, 1963, 1965
++_SPECIAL = 0x4000  # set on the tag of a "special" (extended) element
++
++# Special element codes (hdf/src/hlimits.h)
++_SPECIAL_LINKED, _SPECIAL_EXT, _SPECIAL_COMP, _SPECIAL_VLINKED, _SPECIAL_CHUNKED = 1, 2, 3, 4, 5
++
++# Compression codes (hdf/src/hcomp.h)
++_COMP_NAMES = {0: "NONE", 1: "RLE", 2: "NBIT", 3: "SKPHUFF", 4: "DEFLATE", 5: "SZIP", 7: "JPEG"}
++_COMP_NONE, _COMP_DEFLATE = 0, 4
++
++# Number types (hdf/src/hntdefs.h). HDF4 data are big-endian unless flagged little-endian.
++_NUMBER_TYPES = {
++    3: "u1",  # DFNT_UCHAR8
++    4: "S1",  # DFNT_CHAR8
++    5: "f4",
++    6: "f8",
++    20: "i1",
++    21: "u1",
++    22: "i2",
++    23: "u2",
++    24: "i4",
++    25: "u4",
++    26: "i8",
++    27: "u8",
++}
++_DFNT_LITEND = 0x4000
++_DFNT_NATIVE = 0x1000
++_NT_CLASS_LITTLE_ENDIAN = 4  # DFNTF_PC / DFNTI_IBO
++
+ # NASA products store their global metadata as ODL text blobs under these names.
+ _ODL_METADATA_PREFIXES = ("CoreMetadata.", "ArchiveMetadata.", "StructMetadata.")
+ 
+-# Keys that kerchunk's decoder mixes into each variable's dict alongside that
+-# variable's real HDF4 attributes, and which therefore must not become attributes.
+-_DECODER_KEYS = frozenset({"chunks", "dims", "dtype", "refs"})
+-
+-# The only compression HDF4 uses in practice, and all that kerchunk decodes; see
+-# the `comp` table in `kerchunk.hdf4`.
++# The only compression HDF4 uses in practice for NASA products, and all that can be
++# referenced with a standard codec.
+ _ZLIB = {"id": "zlib"}
+ 
+ 
+-def _decode(url: str, reader_options: dict) -> tuple[dict[str, Any], dict[str, Any]]:
+-    """
+-    Decode an HDF4 file's tags, returning its variables and global attributes.
+-
+-    This drives `kerchunk.hdf4.HDF4ToZarr` up to the point where it has finished
+-    reading the file, and stops there. Everything past that point in kerchunk's
+-    `translate` serializes the result through a Zarr v2 group in order to emit
+-    Kerchunk references, which we skip in favour of building ManifestArrays
+-    directly — that round-trip is pure overhead here, and it is what makes zarr
+-    reject the zero-length variables HDF4 granules routinely contain (zarr
+-    requires chunk edges to be positive, and kerchunk uses a variable's
+-    dimensions as its chunk shape). All of the binary tag decoding still lives in
+-    kerchunk; we only call it.
+-
+-    Returns
+-    -------
+-    tuple
+-        The per-variable dicts produced by kerchunk's ``_descend_vg``, keyed by
+-        variable name, and the file's global attributes.
+-    """
+-    # kerchunk (and hence fsspec) is an optional dependency of virtualizarr.
+-    import fsspec
+-    from kerchunk.hdf4 import HDF4ToZarr
+-
+-    decoder = HDF4ToZarr(url, **reader_options)
+-    with fsspec.open(decoder.path, **(decoder.st or {})) as f:
+-        decoder.f = f
+-
+-        if f.read(len(_MAGIC)) != _MAGIC:
+-            raise ValueError(f"{url} is not an HDF4 file: wrong magic number")
+-
+-        # The file's data descriptors, held in a linked list of blocks.
+-        decoder.tags = {}
+-        while True:
+-            ddh = decoder.read_ddh()
+-            for _ in range(ddh["ndd"]):
+-                ident, info = decoder.read_dd()
+-                decoder.tags[ident] = info
+-            if ddh["next"] == 0:
++def _number_type(code: int, little_endian: bool = False) -> np.dtype:
++    base = code & ~(_DFNT_LITEND | _DFNT_NATIVE)
++    if base not in _NUMBER_TYPES:
++        raise NotImplementedError(f"Unsupported HDF4 number type {code}")
++    kind = _NUMBER_TYPES[base]
++    if kind in ("S1", "u1", "i1"):
++        return np.dtype(kind)
++    order = "<" if (little_endian or code & _DFNT_LITEND) else ">"
++    return np.dtype(order + kind)
++
++
++@dataclass
++class _Element:
++    offset: int
++    length: int
++    special: bool
++
++
++@dataclass
++class _Chunks:
++    """Where an SD's bytes live: whole-array or per-chunk references + compression."""
++
++    chunk_shape: tuple[int, ...]
++    refs: dict[str, tuple[int, int]] = field(default_factory=dict)  # chunk key -> (offset, length)
++    compressed: bool = False
++    fill: bytes | None = None
++
++
++class _HDF4File:
++    """Minimal random-access decoder for the parts of HDF4 the SD model needs."""
++
++    def __init__(self, reader: Any):
++        self.f = reader
++        if self._read(0, 4) != _MAGIC:
++            raise ValueError("not an HDF4 file: wrong magic number")
++        self.elements: dict[tuple[int, int], _Element] = {}
++        offset = 4
++        while True:  # linked list of data-descriptor blocks
++            ndd, nxt = struct.unpack(">HI", self._read(offset, 6))
++            block = self._read(offset + 6, 12 * ndd)
++            for i in range(ndd):
++                tag, ref, off, length = struct.unpack_from(">HHII", block, 12 * i)
++                if tag == _NULL:
++                    continue
++                special = bool(tag & _SPECIAL) and tag < 0x8000
++                self.elements[(tag & ~_SPECIAL if special else tag, ref)] = _Element(off, length, special)
++            if nxt == 0:
+                 break
+-            decoder.f.seek(ddh["next"])
+-
+-        for tag, ref in decoder.tags:
+-            decoder._dec(tag, ref)
+-
+-        attributes = _global_attributes(decoder)
+-        variables = decoder._descend_vg(*_root_vg(decoder))
+-
+-    return variables, attributes
+-
+-
+-def _global_attributes(decoder: Any) -> dict[str, Any]:
+-    """Parse a file's global attributes out of its "Values" tables."""
+-    attributes: dict[str, Any] = {}
+-    for (tag, ref), info in decoder.tags.items():
+-        if tag != "VH" or info["names"][0].upper() != "VALUES":
+-            continue
+-        if not info["name"].startswith(_ODL_METADATA_PREFIXES):
+-            continue
+-
+-        table = decoder.tags[("VS", ref)]
+-        decoder.f.seek(table["offset"])
+-        # Zero-padded to the table's length.
+-        blob = decoder.f.read(table["length"]).split(b"\x00", 1)[0]
+-
+-        # Flatten the ODL text's OBJECT/VALUE pairs into individual attributes.
+-        name = None
+-        for line in blob.decode().split("\n"):
+-            if "OBJECT" in line:
+-                name = line.split()[-1]
+-            if "VALUE" in line and name is not None:
+-                attributes[name] = line.split()[-1].strip('"')
+-    return attributes
+-
+-
+-def _root_vg(decoder: Any) -> tuple[str, int]:
+-    """Identify the root virtual group: the last VG that is not a child of another."""
+-    roots: set[tuple[str, int]] = set()
+-    for (tag, ref), info in decoder.tags.items():
+-        if tag != "VG":
+-            continue
+-        for child in zip(info["tag"], info["refs"]):
+-            if child[0] == "VG":
+-                roots.discard(child)
+-        roots.add((tag, ref))
+-    return sorted(roots, key=lambda vg: vg[1])[-1]
+-
+-
+-def _manifestarray(
++            offset = nxt
++        self._vh_cache: dict[int, dict[str, Any]] = {}
++
++    def _read(self, offset: int, size: int) -> bytes:
++        self.f.seek(offset)
++        return self.f.read(size)
++
++    def payload(self, tag: int, ref: int) -> bytes:
++        """Bytes of a (metadata) element; linked-block storage is reassembled."""
++        el = self.elements[(tag, ref)]
++        if not el.special:
++            return self._read(el.offset, el.length)
++        code, length, _block_len, _num_blocks, link_ref = struct.unpack(">HiiiH", self._read(el.offset, 16))
++        if code != _SPECIAL_LINKED:
++            raise NotImplementedError(f"special element type {code} for tag {tag}")
++        parts = []
++        while link_ref:  # linked list of block tables: next table ref, then data block refs
++            table = self.elements[(_LINKED, link_ref)]
++            b = self._read(table.offset, table.length)
++            vals = struct.unpack(f">{len(b) // 2}H", b)
++            link_ref = vals[0]
++            for block_ref in vals[1:]:
++                if block_ref:
++                    blk = self.elements[(_LINKED, block_ref)]
++                    parts.append(self._read(blk.offset, blk.length))
++        return b"".join(parts)[:length]
++
++    # --- generic objects ----------------------------------------------------------
++    def vgroup(self, ref: int) -> dict[str, Any]:
++        b = self.payload(_VG, ref)
++        (nelt,) = struct.unpack_from(">H", b, 0)
++        tags = struct.unpack_from(f">{nelt}H", b, 2)
++        refs = struct.unpack_from(f">{nelt}H", b, 2 + 2 * nelt)
++        pos = 2 + 4 * nelt
++        name, pos = _string(b, pos)
++        cls, pos = _string(b, pos)
++        return {"name": name, "class": cls, "children": list(zip(tags, refs))}
++
++    def vdata_header(self, ref: int) -> dict[str, Any]:
++        if ref not in self._vh_cache:
++            b = self.payload(_VH, ref)
++            _interlace, nvert, ivsize, nfields = struct.unpack_from(">HiHH", b, 0)
++            pos = 10
++            types = struct.unpack_from(f">{nfields}H", b, pos)
++            pos += 2 * nfields
++            isize = struct.unpack_from(f">{nfields}H", b, pos)
++            pos += 2 * nfields
++            offsets = struct.unpack_from(f">{nfields}H", b, pos)
++            pos += 2 * nfields
++            order = struct.unpack_from(f">{nfields}H", b, pos)
++            pos += 2 * nfields
++            names = []
++            for _ in range(nfields):
++                s, pos = _string(b, pos)
++                names.append(s)
++            name, pos = _string(b, pos)
++            cls, pos = _string(b, pos)
++            self._vh_cache[ref] = dict(nvert=nvert, ivsize=ivsize, types=types, isize=isize,
++                                       offsets=offsets, order=order, fields=names, name=name, cls=cls)
++        return self._vh_cache[ref]
++
++    def attribute(self, ref: int) -> tuple[str, Any]:
++        """An ``Attr0.0`` Vdata: one field ("VALUES") holding ``order`` values."""
++        vh = self.vdata_header(ref)
++        data = self.payload(_VS, ref) if (_VS, ref) in self.elements else b""
++        code, count = vh["types"][0], vh["order"][0]
++        dt = _number_type(code)
++        if dt.kind == "S":  # character attribute
++            # keep embedded NULs (some NASA attributes hold several NUL-separated strings)
++            return vh["name"], _text(data[: count * vh["nvert"]].rstrip(b"\x00"))
++        values = np.frombuffer(data, dtype=dt, count=count * vh["nvert"])
++        values = values.astype(dt.newbyteorder("="))
++        return vh["name"], values[0].item() if values.size == 1 else values.tolist()
++
++    def number_type(self, ref: int) -> np.dtype:
++        _version, typ, _width, cls = self.payload(_NT, ref)[:4]
++        return _number_type(typ, little_endian=cls == _NT_CLASS_LITTLE_ENDIAN)
++
++    def shape(self, ref: int) -> tuple[int, ...]:
++        b = self.payload(_SDD, ref)
++        (rank,) = struct.unpack_from(">H", b, 0)
++        return tuple(struct.unpack_from(f">{rank}i", b, 2))
++
++    # --- where the data are -------------------------------------------------------
++    def _compressed(self, offset: int) -> tuple[int, int, int]:
++        """Decode a SPECIAL_COMP header -> (compression code, offset, length) of the bytes."""
++        (code,) = struct.unpack(">H", self._read(offset, 2))
++        if code != _SPECIAL_COMP:
++            raise NotImplementedError(f"special element type {code} inside a compressed element")
++        _version, _length, comp_ref, _model, coder = struct.unpack(">HIHHH", self._read(offset + 2, 12))
++        el = self.elements.get((_COMPRESSED, comp_ref))
++        if el is None:
++            raise ValueError(f"compressed data element {comp_ref} not found")
++        if el.special:
++            raise NotImplementedError("compressed data stored in linked blocks")
++        return coder, el.offset, el.length
++
++    def chunks(self, sd_ref: int, shape: tuple[int, ...], dtype: np.dtype) -> _Chunks:
++        el = self.elements[(_SD, sd_ref)]
++        if not el.special:  # contiguous, uncompressed
++            return _Chunks(shape, {".".join("0" * len(shape)) or "0": (el.offset, el.length)})
++        (code,) = struct.unpack(">H", self._read(el.offset, 2))
++        if code == _SPECIAL_COMP:
++            coder, off, length = self._compressed(el.offset)
++            _check_coder(coder)
++            return _Chunks(shape, {".".join("0" * len(shape)) or "0": (off, length)},
++                           compressed=coder == _COMP_DEFLATE)
++        if code == _SPECIAL_CHUNKED:
++            return self._chunked(el.offset + 2, len(shape))
++        name = {_SPECIAL_LINKED: "linked blocks", _SPECIAL_EXT: "an external file",
++                _SPECIAL_VLINKED: "variable-length linked blocks"}.get(code, f"special type {code}")
++        raise NotImplementedError(f"SD data stored as {name}")
++
++    def _chunked(self, offset: int, rank: int) -> _Chunks:
++        # header: hdr_len i4, version u1, flag i4, elem_tot_len i4, chunk_size i4, nt_size i4,
++        #         chktbl_tag u2, chktbl_ref u2, sp_tag u2, sp_ref u2, ndims i4,
++        #         ndims x (flag i4, dim_length i4, chunk_length i4), fill_len i4, fill bytes
++        b = self._read(offset, 4 + 1 + 4 * 4 + 2 * 4 + 4 + 12 * rank + 4)
++        pos = 21
++        _tbl_tag, tbl_ref, _sp_tag, _sp_ref, ndims = struct.unpack_from(">HHHHi", b, pos)
++        pos += 12
++        dims = [struct.unpack_from(">iii", b, pos + 12 * i) for i in range(ndims)]
++        pos += 12 * ndims
++        (fill_len,) = struct.unpack_from(">i", b, pos)
++        fill = self._read(offset + pos + 4, fill_len) if fill_len > 0 else None
++        chunk_shape = tuple(d[2] for d in dims)
++
++        vh = self.vdata_header(tbl_ref)
++        rows = np.frombuffer(
++            self.payload(_VS, tbl_ref), count=vh["nvert"],
++            dtype=[*[(f"i{i}", ">u4") for i in range(ndims)], ("tag", ">u2"), ("ref", ">u2")],
++        )
++        refs: dict[str, tuple[int, int]] = {}
++        compressed = None
++        for row in rows:
++            key = ".".join(str(int(row[f"i{i}"])) for i in range(ndims))
++            chunk = self.elements[(_CHUNK, int(row["ref"]))]
++            if chunk.special:
++                coder, off, length = self._compressed(chunk.offset)
++                _check_coder(coder)
++                is_deflate = coder == _COMP_DEFLATE
++            else:
++                off, length, is_deflate = chunk.offset, chunk.length, False
++            if compressed is not None and compressed != is_deflate:
++                raise NotImplementedError("mixed compressed and uncompressed chunks")
++            compressed = is_deflate
++            refs[key] = (off, length)
++        return _Chunks(chunk_shape, refs, compressed=bool(compressed), fill=fill)
++
++
++def _check_coder(coder: int) -> None:
++    if coder not in (_COMP_NONE, _COMP_DEFLATE):
++        raise NotImplementedError(f"HDF4 {_COMP_NAMES.get(coder, coder)} compression is not supported")
++
++
++def _text(raw: bytes) -> str:
++    """UTF-8 if valid, else Latin-1 (lossless; some products carry stray non-ASCII bytes)."""
++    try:
++        return raw.decode()
++    except UnicodeDecodeError:
++        return raw.decode("latin-1")
++
++
++def _string(b: bytes, pos: int) -> tuple[str, int]:
++    (n,) = struct.unpack_from(">H", b, pos)
++    return _text(b[pos + 2 : pos + 2 + n].split(b"\x00", 1)[0]), pos + 2 + n
++
++
++def _flatten_odl(blob: str, attributes: dict[str, Any]) -> None:
++    """Flatten an ODL text's OBJECT/VALUE pairs into individual attributes."""
++    name = None
++    for line in blob.split("\n"):
++        if "OBJECT" in line:
++            name = line.split()[-1]
++        if "VALUE" in line and name is not None:
++            attributes[name] = line.split()[-1].strip('"')
++
++
++def _variable(
++    h4: _HDF4File,
+     name: str,
+-    variable: dict[str, Any],
++    vg: dict[str, Any],
+     url: str,
+-    fs_root: str,
++    dimension_names: str,
+ ) -> ManifestArray:
+-    """Build a ManifestArray from one of kerchunk's decoded variable dicts."""
+-    shape = tuple(variable["dims"])
+-    # Only a variable with byte references holds any data; the rest are the
+-    # zero-length variables HDF4 uses to say "nothing was recorded here".
+-    refs = variable.get("refs", [])
++    sd_ref = nt_ref = sdd_ref = None
++    attributes: dict[str, Any] = {}
++    dims: list[str] = []
++    children = list(vg["children"])
++    for tag, ref in vg["children"]:  # an NDG lists the (tag, ref) of the SD, SDD and NT
++        if tag == _NDG and (_NDG, ref) in h4.elements:
++            b = h4.payload(_NDG, ref)
++            pairs = struct.unpack(f">{len(b) // 2}H", b[: len(b) // 4 * 4])
++            children += list(zip(pairs[0::2], pairs[1::2]))
++    for tag, ref in children:
++        if (tag, ref) not in h4.elements:
++            continue
++        if tag == _SD and sd_ref is None:
++            sd_ref = ref
++        elif tag == _NT and nt_ref is None:
++            nt_ref = ref
++        elif tag == _SDD and sdd_ref is None:
++            sdd_ref = ref
++        elif tag == _VH and h4.vdata_header(ref)["cls"] == "Attr0.0":
++            key, value = h4.attribute(ref)
++            attributes[key] = value
++        elif tag == _VG:
++            sub = h4.vgroup(ref)
++            if sub["class"] == "Dim0.0":
++                dims.append(sub["name"])
++    if sdd_ref is None:
++        raise ValueError(f'"{name}": no shape (SDD) record')
++    shape = h4.shape(sdd_ref)
++    # the data number type is referenced from the SDD; fall back to the Vgroup's NT
++    sdd = h4.payload(_SDD, sdd_ref)
++    rank = len(shape)
++    data_nt_ref = struct.unpack_from(">HH", sdd, 2 + 4 * rank)[1]
++    dtype = h4.number_type(data_nt_ref if (_NT, data_nt_ref) in h4.elements else nt_ref)
++
++    if sd_ref is not None and all(n > 0 for n in shape):
++        ch = h4.chunks(sd_ref, shape, dtype)
++    else:  # HDF4 writes no data element for zero-size or never-written variables
++        ch = _Chunks(shape)
++
++    fill_value = 0
++    if ch.fill is not None and dtype.kind != "S":
++        fill_value = np.frombuffer(ch.fill, dtype=dtype, count=1)[0].item()
++    if "_FillValue" in attributes:  # CF-encode, as the other parsers do
++        enc = encode_cf_fill_value(np.asarray(attributes["_FillValue"]), dtype.newbyteorder("="))
++        if enc is None:
++            del attributes["_FillValue"]
++        else:
++            attributes["_FillValue"] = enc
++
++    if dimension_names == "hdf4" and len(dims) == rank:
++        dim_names = [d.replace("/", "_") for d in dims]
++    elif ch.refs or sd_ref is not None:
++        dim_names = [f"{name.replace('/', '_')}_{c}" for c in "xyzwvu"[:rank]]
++    else:
++        dim_names = ["0"]  # (backwards compatible naming of variables without data)
+ 
+     zarray = {
+         "shape": shape,
+-        # Kerchunk reports an unchunked variable's dimensions as its chunk shape,
+-        # which for a zero-length variable means a chunk edge of 0. Zarr requires
+-        # positive edges, and `from_kerchunk_refs` coerces 0 -> 1 for us.
+-        "chunks": tuple(variable.get("chunks", shape)),
+-        "dtype": variable["dtype"],
+-        # HDF4 records a fill value in its FV tag, which kerchunk does not decode.
+-        "fill_value": 0,
++        "chunks": ch.chunk_shape,  # from_kerchunk_refs coerces zero edges to 1
++        "dtype": dtype.str,
++        "fill_value": fill_value,
+         "filters": None,
+-        "compressor": _ZLIB if refs else None,
++        "compressor": _ZLIB if ch.compressed else None,
+         "zarr_format": 2,
+-        # HDF4 dimensions are anonymous, so kerchunk names them after the
+-        # variable, and gives the zero-length variables a single shared name.
+-        "dimension_names": [f"{name}_x", f"{name}_y"][: len(shape)] if refs else ["0"],
+-    }
+-    attributes = {
+-        key: value.tolist() if isinstance(value, np.generic) else value
+-        for key, value in variable.items()
+-        if key not in _DECODER_KEYS
++        "dimension_names": dim_names,
+     }
+     metadata = from_kerchunk_refs(zarray, attributes)
+-
+     chunk_grid_shape = determine_chunk_grid_shape(metadata.shape, metadata.chunks)
+-    # Each ref is [chunk key, offset, length] plus, when the chunk is compressed,
+-    # its compression type — which we have already accounted for above.
+-    # Kerchunk references are lists, not tuples, despite what the signature of
+-    # `manifest_from_kerchunk_chunk_dict` says.
+-    chunk_dict: dict[ChunkKey, Any] = {
+-        ChunkKey(ref[0]): [url, ref[1], ref[2]] for ref in refs
+-    }
+-    if chunk_dict:
+-        manifest = manifest_from_kerchunk_chunk_dict(
+-            chunk_dict, fs_root=fs_root, shape=chunk_grid_shape
+-        )
++    if ch.refs:
++        chunk_dict = {ChunkKey(k): [url, off, length] for k, (off, length) in ch.refs.items()}
++        manifest = manifest_from_kerchunk_chunk_dict(chunk_dict, fs_root=None, shape=chunk_grid_shape)
+     else:
+         manifest = ChunkManifest(entries={}, shape=chunk_grid_shape)
+-
+     return ManifestArray(metadata=metadata, chunkmanifest=manifest)
+ 
+ 
+ class HDF4Parser:
+     """Create a [ManifestStore][virtualizarr.manifests.ManifestStore] from an HDF4 file.
+ 
++    Reads the HDF4 Scientific Data Sets (SD interface) natively: no kerchunk, no fsspec, no
++    HDF4 C library. Variables stored with an unsupported HDF4 layout (RLE/N-bit/SZIP/JPEG
++    compression, linked blocks, external files) raise ``NotImplementedError``; list them in
++    ``skip_variables``.
++
+     Parameters
+     ----------
+     group
+-        The group within the file to be used as the Zarr root group for the ManifestStore.
++        Must be ``None`` or ``""``: the SD interface exposes a flat set of datasets.
+     skip_variables
+         Variables in the file that will be ignored when creating the ManifestStore.
++    reader_factory
++        Callable that creates a file-like reader from a store and path (default
++        [BlockStoreReader][obspec_utils.readers.BlockStoreReader]).
++    dimension_names
++        ``"generic"`` (default): ``<variable>_x``, ``<variable>_y``, ... as in earlier
++        releases. ``"hdf4"``: the dimension names recorded in the file (e.g.
++        ``Along_swath_lines_1km:MOD_Swath_LST``), so variables that share a dimension align.
+     reader_options
+-        Configuration options used internally for kerchunk's fsspec backend.
++        Deprecated, ignored (was passed to kerchunk's fsspec backend).
+     """
+ 
+     def __init__(
+         self,
+         group: str | None = None,
+         skip_variables: Iterable[str] | None = None,
++        reader_factory: ReaderFactory = BlockStoreReader,
++        dimension_names: Literal["generic", "hdf4"] = "generic",
+         reader_options: dict | None = None,
+     ):
+         self.group = group
+         self.skip_variables = skip_variables
+-        self.reader_options = reader_options or {}
++        self.reader_factory = reader_factory
++        self.dimension_names = dimension_names
+ 
+     def __call__(
+         self,
+@@ -217,36 +460,35 @@ class HDF4Parser:
+         ManifestStore
+             A ManifestStore that provides a Zarr representation of the parsed HDF4 file.
+         """
+-        # both group=None and group='' mean to read the root group
+         if self.group:
+             raise ValueError(
+-                f'Group "{self.group}" not found: kerchunk flattens an HDF4 file into a '
+-                "single root group, so only the root group can be read."
++                f'Group "{self.group}" not found: the HDF4 SD interface is a single flat '
++                "group, so only the root group can be read."
+             )
+-
+-        variables, attributes = _decode(url, self.reader_options)
++        store, path_in_store = registry.resolve(url)
++        h4 = _HDF4File(self.reader_factory(store, path_in_store))
+         skip = set(self.skip_variables or ())
+-        fs_root = Path.cwd().as_uri()
+-
+-        arrays = {}
+-        for name, variable in variables.items():
+-            if not isinstance(variable, dict):
+-                # A scalar at the root of the file is a global attribute, not a
+-                # variable. The ODL blobs are parsed into attributes already.
+-                if not name.startswith(_ODL_METADATA_PREFIXES):
+-                    attributes[name] = (
+-                        variable.tolist()
+-                        if isinstance(variable, np.generic)
+-                        else variable
+-                    )
+-                continue
+-            if name in skip:
+-                continue
+-            if "dims" not in variable:
+-                raise NotImplementedError(
+-                    f'Cannot read "{name}": it is a nested HDF4 group, which is not yet supported.'
+-                )
+-            arrays[name] = _manifestarray(name, variable, url, fs_root)
+ 
++        vgroups = {ref: h4.vgroup(ref) for (tag, ref) in h4.elements if tag == _VG}
++        arrays: dict[str, ManifestArray] = {}
++        attributes: dict[str, Any] = {}
++        for vg in vgroups.values():
++            if vg["class"] == "Var0.0" and vg["name"] not in skip:
++                # "/" separates Zarr nodes; HDF4 allows it in names (e.g. MOD03 "Land/SeaMask")
++                key = vg["name"].replace("/", "_")
++                arrays[key] = _variable(h4, vg["name"], vg, url, self.dimension_names)
++                if key != vg["name"]:
++                    arrays[key].metadata.attributes["hdf4_name"] = vg["name"]
++            elif vg["class"] == "CDF0.0":  # file attributes
++                for tag, ref in vg["children"]:
++                    if tag != _VH or (_VH, ref) not in h4.elements:
++                        continue
++                    if h4.vdata_header(ref)["cls"] != "Attr0.0":
++                        continue
++                    key, value = h4.attribute(ref)
++                    if key.startswith(_ODL_METADATA_PREFIXES) and isinstance(value, str):
++                        _flatten_odl(value, attributes)
++                    else:
++                        attributes[key] = value
+         manifestgroup = ManifestGroup(arrays=arrays, attributes=attributes)
+         return ManifestStore(group=manifestgroup, registry=registry)
+diff --git a/virtualizarr/parsers/utils.py b/virtualizarr/parsers/utils.py
+index c7db025..05a7ff4 100644
+--- a/virtualizarr/parsers/utils.py
++++ b/virtualizarr/parsers/utils.py
+@@ -1,5 +1,7 @@
+ from __future__ import annotations
+ 
++import warnings
++
+ import asyncio
+ from collections.abc import Awaitable, Callable, Iterable
+ from typing import Any
+@@ -112,5 +114,13 @@ def encode_cf_fill_value(
+         fillvalue = fill_value.item()
+     else:
+         fillvalue = fill_value
++    if isinstance(fillvalue, (bytes, str)) and np.dtype(target_dtype).kind in "biuf":
++        # e.g. VIIRS VNP21 ("n/a") or HDF4-derived DMR++ ("NA"): parse numeric text, else drop
++        text = fillvalue.decode() if isinstance(fillvalue, bytes) else fillvalue
++        try:
++            fillvalue = np.dtype(target_dtype).type(text).item()
++        except (ValueError, OverflowError):
++            warnings.warn(f"Ignoring non-numeric _FillValue {text!r} for dtype {target_dtype}")
++            return None
+     encoded_fillvalue = FillValueCoder.encode(fillvalue, target_dtype)
+     return encoded_fillvalue
+diff --git a/virtualizarr/tests/data/hdf4_chunked.expected.npz b/virtualizarr/tests/data/hdf4_chunked.expected.npz
+new file mode 100644
+index 0000000000000000000000000000000000000000..dcf6f88d06665b1898bf498fce0e1db3e0eb3564
+GIT binary patch
+literal 1950
+zcmb`IdsGZq9LK*+FHK2{2w~V(Nu?Lk+I|^D>7j>GBTZ9HO-YZLQk0`3c2`<!S?}zs
+zMeBI1#R+X?B}7S$mGqom)bu)A9$CBE85MH;;jI1LbI<Sm?z#7#`}=*)?|a>x6qSrI
+zVAJ4KQD@jcXzCb?AVFN@YJRXuWb`@(Xdzl*VB?VA<?7|)=Bt3UNYoGJi-Lsu)+~LS
+zICFg?mVQW-FjmNm<VFdD`SSI}ya*9rwk{IzqWQAez|7Q$WoACph_!+BAB`z{jRF`@
+zgc6jY0#%HF8kkUr21Y^?qhwG11fwxVmWejTVLWs&0TVF^x|ob9m<krAVLCpA9zMei
+z=)(XrVTf5Uf-y`m8>TRWIV@m_Ihc!iu)=&;<8v&)7q9`r77M|~BG|zmi?IX_aKutL
+z!5J=a#WJ|T9Ukz+a(KZTE8qiPaIg}7SOtG@5da<n5rkmy5rR+%5QcE9Mg-O%5>bdo
+z41^FN7ICs7$GZ)K)w8uxZ3vb;#X(ryV17shFP1+9ZJ*)*v?2d~XdzY~1Z}>Inc2rM
+zV=+k*a6dmv&yTvo&F?1|dQpK$oT#)`gSu9FYgc)FLwBF3w~p%dqw4WD%Hw~~C23OX
+z3_;#)sxo!or6t@>4SVd9mmeTXw~8%VQ37h!y|JbG>_cj>O7P^|>7{!UJvGmJ9HTbt
+z(tDao9J(92%~7>$G1aQ*Dylx+L{|)!*#4t#OAks8g!z1JM7Nk?w&<)DmEFv1KCJhW
+zS{Z*|XJrObdC$CEi~97aex!d)eUlA!2b%xYl=qmruC=)C?K?(~%+{aW)U%ly+;d)R
+z<;7C@#odjG=2}#^!{$;=TLN{fWhfhZq>>~h)6RHZG36ci7cA}Xqo&@&H&5+xr`D=H
+z+q%AAL`{b-O>jzIPo13P3qCo&(h>X3NmWI^lSFE%TJh4DYWW4rFO&)Bmkx*Q+*k=U
+zZz;&q%+RNHhr;9gjzm!7b8gHG38?I7)Yaa^mn4-en>$O@jwCL(Tz971lEl~IsMq$}
+z)T$#c<p$MLLHDHRDxJ9`wdR$X#Vnwf+N9*bIRVr*yQQPj<vJC8*>Jl1W(l>Oe0Jc^
+z!Wt^t;1YgHTtnw28Itvvi>TdS=}8uI0kwadDbQYJK^+=<zvMLVsLrBLe7C-X%2OG(
+zSt++@gNBDqwj!wccz)ePaS1(A+ZgIFDTSoDFS1<bC6Jiu=)AGXl8V#pDsl}+P;*?U
+z_PCkO)OMA@NmSWQT@}I3T=p}%YR50`Ni(Ion(uts=QdMEMv6f@)0L`67SBBg2{qPQ
+ztT`LrO#8=bZ`;8Rpq8{3m+zb?qs}m+t&tn~B#q+)=ZBY5hquXolbS8mGA-j^ppQ4*
+ziCmbS>8?Yqd(S-8&Ud9^9fRnYOFKxq|MuyF&FATiro(i%l#3({=dZRpH=C|$?(EBX
+za*`?;f;2}@OZvk;+TctahaOIitju7j(Dmw=Brf|RJ@8|f2Gwa$eDznAO8qh}CD}jz
+zd}t|EJ-*WUQzGcM$yxE~Q)KzFE03PYVp63~y;_VehBtTmoGYt_ntSwH%`J-N2}Q4a
+zTPA-4Ht65q+hHFj$W}%ytB-1J*8e8R{m%x*kRZQ~2L<_cJSfORv73_u!&q_ne<uH|
+z<WqgHRC1U6s$OsXZtotHYpYx^<#WuigQsLi-=nneULfc9ijHji=wTP6D!;kl4NW&E
+QWfl20McK%a`O;U>zZE8cc>n+a
+
+literal 0
+HcmV?d00001
+
+diff --git a/virtualizarr/tests/data/hdf4_chunked.hdf4 b/virtualizarr/tests/data/hdf4_chunked.hdf4
+new file mode 100644
+index 0000000000000000000000000000000000000000..0bea8884595a84cfa9b4a5d6305916b0874eb4a7
+GIT binary patch
+literal 18470
+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
+
+literal 0
+HcmV?d00001
+
+diff --git a/virtualizarr/tests/data/make_hdf4_chunked.py b/virtualizarr/tests/data/make_hdf4_chunked.py
+new file mode 100644
+index 0000000..78cec78
+--- /dev/null
++++ b/virtualizarr/tests/data/make_hdf4_chunked.py
+@@ -0,0 +1,79 @@
++"""Generate ``hdf4_chunked.hdf4``: HDF4 chunked SDS fixtures for the native HDF4 parser tests.
++
++pyhdf does not wrap SDsetchunk, so this calls the HDF4 C library (libmfhdf) through ctypes.
++Run once; the (small) output file is committed:
++
++    python make_hdf4_chunked.py /path/to/hdf4/lib   # directory holding libdf.so and libmfhdf.so
++"""
++
++import ctypes
++import sys
++from pathlib import Path
++
++import numpy as np
++
++DFACC_CREATE = 4
++DFNT = {"u2": 23, "f8": 6, "i2": 22}
++HDF_CHUNK, HDF_COMP = 0x1, 0x3  # hproto.h
++COMP_CODE_DEFLATE = 4
++MAX_VAR_DIMS = 32
++
++
++class CompInfo(ctypes.Structure):
++    _fields_ = [("chunk_lengths", ctypes.c_int32 * MAX_VAR_DIMS), ("comp_type", ctypes.c_int32),
++                ("model_type", ctypes.c_int32), ("level", ctypes.c_int32), ("pad", ctypes.c_int32 * 16)]
++
++
++def main(lib_dir: str, out: Path) -> dict:
++    ctypes.CDLL(str(Path(lib_dir) / "libdf.so"), mode=ctypes.RTLD_GLOBAL)
++    lib = ctypes.CDLL(str(Path(lib_dir) / "libmfhdf.so"))
++    for fn, res in [("SDstart", ctypes.c_int32), ("SDcreate", ctypes.c_int32)]:
++        getattr(lib, fn).restype = res
++    sd = lib.SDstart(str(out).encode(), DFACC_CREATE)
++    assert sd >= 0
++    rng = np.random.default_rng(1)
++    datasets = {
++        "chunked": (np.arange(120, dtype=">u2").reshape(10, 12), (4, 5), False),
++        "chunked_deflate": (rng.random((9, 11)).astype(">f8"), (4, 4), True),
++        # chunks of a partially written array stay unwritten -> fill value
++        "chunked_sparse": (np.arange(64, dtype=">i2").reshape(8, 8), (4, 4), True),
++    }
++    expected = {}
++    for name, (arr, chunk, deflate) in datasets.items():
++        dims = (ctypes.c_int32 * arr.ndim)(*arr.shape)
++        sds = lib.SDcreate(sd, name.encode(), DFNT[arr.dtype.str[1:]], arr.ndim, dims)
++        info = CompInfo()
++        for i, c in enumerate(chunk):
++            info.chunk_lengths[i] = c
++        if deflate:
++            info.comp_type, info.level = COMP_CODE_DEFLATE, 6
++        if name == "chunked_sparse":  # must precede SDsetchunk: the chunk header records it
++            fill = (ctypes.c_int16 * 1)(-9)
++            assert lib.SDsetfillvalue(sds, fill) == 0
++        assert lib.SDsetchunk(sds, info, HDF_COMP if deflate else HDF_CHUNK) == 0
++        if name == "chunked_sparse":
++            arr = arr.copy()
++            arr[4:, 4:] = -9  # only three of the four chunks are written
++            sub = np.ascontiguousarray(arr[:4, :], dtype="=i2")
++            start = (ctypes.c_int32 * 2)(0, 0)
++            edge = (ctypes.c_int32 * 2)(4, 8)
++            assert lib.SDwritedata(sds, start, None, edge, sub.ctypes.data_as(ctypes.c_void_p)) == 0
++            sub = np.ascontiguousarray(arr[4:, :4], dtype="=i2")
++            start = (ctypes.c_int32 * 2)(4, 0)
++            edge = (ctypes.c_int32 * 2)(4, 4)
++            assert lib.SDwritedata(sds, start, None, edge, sub.ctypes.data_as(ctypes.c_void_p)) == 0
++        else:
++            native = np.ascontiguousarray(arr, dtype=arr.dtype.newbyteorder("="))
++            start = (ctypes.c_int32 * arr.ndim)(*([0] * arr.ndim))
++            assert lib.SDwritedata(sds, start, None, dims, native.ctypes.data_as(ctypes.c_void_p)) == 0
++        lib.SDendaccess(sds)
++        expected[name] = arr
++    lib.SDend(sd)
++    return expected
++
++
++if __name__ == "__main__":
++    out = Path(__file__).with_name("hdf4_chunked.hdf4")
++    expected = main(sys.argv[1], out)
++    np.savez(out.with_suffix(".expected.npz"), **expected)
++    print("wrote", out, out.stat().st_size, "bytes")
+diff --git a/virtualizarr/tests/test_parsers/test_hdf4.py b/virtualizarr/tests/test_parsers/test_hdf4.py
+index 337ff7f..a74ed5a 100644
+--- a/virtualizarr/tests/test_parsers/test_hdf4.py
++++ b/virtualizarr/tests/test_parsers/test_hdf4.py
+@@ -9,7 +9,6 @@ from xarray import Dataset
+ 
+ from virtualizarr import open_virtual_dataset
+ from virtualizarr.parsers import HDF4Parser
+-from virtualizarr.tests import requires_kerchunk
+ 
+ DATA = Path(__file__).resolve().parents[1] / "data"
+ 
+@@ -44,7 +43,6 @@ def _registry_and_url(fixture: Path = FIXTURE) -> tuple[ObjectStoreRegistry, str
+     return registry, fixture.as_uri()
+ 
+ 
+-@requires_kerchunk
+ def test_hdf4_virtual_dataset() -> None:
+     registry, url = _registry_and_url()
+     parser = HDF4Parser()
+@@ -56,7 +54,6 @@ def test_hdf4_virtual_dataset() -> None:
+         assert var.dtype == "uint8"
+ 
+ 
+-@requires_kerchunk
+ def test_hdf4_skip_variables() -> None:
+     registry, url = _registry_and_url()
+     parser = HDF4Parser(skip_variables=["algorithm QA"])
+@@ -65,7 +62,6 @@ def test_hdf4_skip_variables() -> None:
+         assert "algorithm QA" not in vds.variables
+ 
+ 
+-@requires_kerchunk
+ def test_hdf4_chunk_decodes_via_codec() -> None:
+     """Read the "fire mask" array back through its byte references and zlib
+     codec, asserting the exact max value the kerchunk test suite checks for."""
+@@ -75,7 +71,6 @@ def test_hdf4_chunk_decodes_via_codec() -> None:
+     assert np.asarray(arr[:]).max() == 5
+ 
+ 
+-@requires_kerchunk
+ def test_hdf4_zero_length_variables() -> None:
+     """This granule detected no fires, so every `FP_*` fire-pixel variable has
+     shape (0,). HDF4 reports a chunk edge of 0 for them, which Zarr rejects, so
+@@ -89,7 +84,6 @@ def test_hdf4_zero_length_variables() -> None:
+     assert marr.manifest.dict() == {}
+ 
+ 
+-@requires_kerchunk
+ def test_hdf4_contiguous_deflate_variable_decodes() -> None:
+     """A fire-pixel variable holding real data is stored as one contiguous
+     deflate-compressed block, not as chunks, so its whole array is a single
+@@ -105,7 +99,6 @@ def test_hdf4_contiguous_deflate_variable_decodes() -> None:
+     np.testing.assert_array_equal(np.asarray(arr[:]), [11, 22, 33, 44])
+ 
+ 
+-@requires_kerchunk
+ @pytest.mark.parametrize(
+     "fixture, name", [(FIXTURE, "fire mask"), (FIRES_FIXTURE, "FP_line")]
+ )
+diff --git a/virtualizarr/tests/test_parsers/test_hdf4_native.py b/virtualizarr/tests/test_parsers/test_hdf4_native.py
+new file mode 100644
+index 0000000..41b9059
+--- /dev/null
++++ b/virtualizarr/tests/test_parsers/test_hdf4_native.py
+@@ -0,0 +1,128 @@
++"""Storage layouts and metadata handled by the native HDF4 reader.
++
++Fixtures are written with pyhdf (the HDF4 C library) and read back both through the
++ManifestStore (byte references + codecs) and with pyhdf for comparison.
++"""
++
++from pathlib import Path
++
++import numpy as np
++import pytest
++import zarr
++from obspec_utils.registry import ObjectStoreRegistry
++from obstore.store import LocalStore
++
++from virtualizarr.parsers import HDF4Parser
++
++pyhdf_SD = pytest.importorskip("pyhdf.SD")
++SD, SDC = pyhdf_SD.SD, pyhdf_SD.SDC
++
++
++def _store(path: Path, **kw):
++    registry = ObjectStoreRegistry({"file://": LocalStore()})
++    return HDF4Parser(**kw)(path.as_uri(), registry)
++
++
++def _read(store, name):
++    return np.asarray(zarr.open_array(store, path=name, mode="r")[...])
++
++
++@pytest.fixture
++def layouts(tmp_path: Path) -> tuple[Path, dict]:
++    path = tmp_path / "layouts.hdf"
++    sd = SD(str(path), SDC.WRITE | SDC.CREATE | SDC.TRUNC)
++    data = {}
++
++    def add(name, typ, arr, comp=None, chunks=None, dims=None, **attrs):
++        v = sd.create(name, typ, arr.shape)
++        if chunks is not None:
++            v.setchunk(chunks, comp[0] if comp else SDC.COMP_NONE, comp[1] if comp else 0)
++        elif comp is not None:
++            v.setcompress(*comp)
++        if dims:
++            for i, d in enumerate(dims):
++                v.dim(i).setname(d)
++        v[:] = arr
++        for k, val in attrs.items():
++            setattr(v, k, val)
++        v.endaccess()
++        data[name] = arr
++
++    rng = np.random.default_rng(0)
++    add("contiguous", SDC.INT16, np.arange(35, dtype=">i2").reshape(5, 7), dims=["y", "x"])
++    add("deflate", SDC.FLOAT32, rng.random((5, 7)).astype(">f4"), comp=(SDC.COMP_DEFLATE, 6), dims=["y", "x"])
++    add("cube", SDC.INT32, np.arange(24, dtype=">i4").reshape(2, 3, 4), comp=(SDC.COMP_DEFLATE, 1))
++    add("Land/Sea", SDC.UINT8, np.arange(6, dtype="u1").reshape(2, 3))
++    add("rle", SDC.INT16, np.ones((4, 4), dtype=">i2"), comp=(SDC.COMP_RLE,))
++    sd.history = "first\x00second"  # NUL-separated strings, as in some NASA products
++    sd.scale = 0.5
++    sd.end()
++    return path, data
++
++
++@pytest.mark.parametrize("name", ["contiguous", "deflate", "cube"])
++def test_layouts_round_trip(layouts, name):
++    path, data = layouts
++    store = _store(path, skip_variables=["rle"])
++    np.testing.assert_array_equal(_read(store, name), data[name])
++    np.testing.assert_array_equal(np.asarray(SD(str(path)).select(name)[:]), data[name])
++
++
++# Chunked SDSs (pyhdf cannot write them): generated with the HDF4 C library by
++# ../data/make_hdf4_chunked.py; expected values alongside.
++CHUNKED = Path(__file__).resolve().parents[1] / "data" / "hdf4_chunked.hdf4"
++
++
++@pytest.mark.parametrize("name", ["chunked", "chunked_deflate", "chunked_sparse"])
++def test_chunked_layouts(name):
++    expected = np.load(CHUNKED.with_suffix(".expected.npz"))[name]
++    np.testing.assert_array_equal(_read(_store(CHUNKED), name), expected)
++
++
++def test_chunked_layout_is_referenced_per_chunk():
++    marr = _store(CHUNKED)._group.arrays["chunked"]
++    assert marr.metadata.chunks == (4, 5)
++    assert marr.manifest.shape_chunk_grid == (3, 3)
++    assert len(marr.manifest.dict()) == 9
++
++
++def test_unwritten_chunks_read_as_the_chunk_fill_value():
++    marr = _store(CHUNKED)._group.arrays["chunked_sparse"]
++    assert len(marr.manifest.dict()) == 3  # the 4th chunk was never written
++    assert marr.metadata.fill_value == -9
++
++
++def test_unsupported_compression_raises_and_can_be_skipped(layouts):
++    path, _ = layouts
++    with pytest.raises(NotImplementedError, match="RLE"):
++        _store(path)
++    assert "rle" not in _store(path, skip_variables=["rle"])._group.arrays
++
++
++def test_slash_in_name_and_dimension_names(layouts):
++    path, data = layouts
++    store = _store(path, skip_variables=["rle"], dimension_names="hdf4")
++    assert "Land_Sea" in store._group.arrays
++    assert store._group.arrays["Land_Sea"].metadata.attributes["hdf4_name"] == "Land/Sea"
++    np.testing.assert_array_equal(_read(store, "Land_Sea"), data["Land/Sea"])
++    assert store._group.arrays["contiguous"].metadata.dimension_names == ("y", "x")
++    generic = _store(path, skip_variables=["rle"])
++    assert generic._group.arrays["contiguous"].metadata.dimension_names == ("contiguous_x", "contiguous_y")
++
++
++def test_file_attributes(layouts):
++    path, _ = layouts
++    attrs = _store(path, skip_variables=["rle"])._group.metadata.attributes
++    assert attrs["history"] == "first\x00second"
++    assert attrs["scale"] == pytest.approx(0.5)
++
++
++def test_does_not_need_kerchunk(layouts, monkeypatch):
++    import sys
++
++    monkeypatch.setitem(sys.modules, "kerchunk", None)
++    monkeypatch.setitem(sys.modules, "kerchunk.hdf4", None)
++    path, data = layouts
++    np.testing.assert_array_equal(_read(_store(path, skip_variables=["rle"]), "deflate"), data["deflate"])
++    expected = np.load(CHUNKED.with_suffix(".expected.npz"))["chunked_deflate"]
++    np.testing.assert_array_equal(_read(_store(CHUNKED), "chunked_deflate"), expected)
+diff --git a/virtualizarr/tests/test_parsers/test_nasa_regressions.py b/virtualizarr/tests/test_parsers/test_nasa_regressions.py
+new file mode 100644
+index 0000000..3530e2c
+--- /dev/null
++++ b/virtualizarr/tests/test_parsers/test_nasa_regressions.py
+@@ -0,0 +1,113 @@
++"""Regressions found on NASA MODIS (HDF4), MODIS DMR++ and VIIRS (HDF5) granules.
++
++Fixtures are generated on the fly (pyhdf / h5py), so no binary files are needed.
++"""
++
++import warnings
++from pathlib import Path
++
++import numpy as np
++import pytest
++import xarray as xr
++from obspec_utils.registry import ObjectStoreRegistry
++from obstore.store import LocalStore
++
++from virtualizarr.parsers import DMRPPParser, HDF4Parser, HDFParser
++from virtualizarr.tests import requires_kerchunk
++
++pyhdf_SD = pytest.importorskip("pyhdf.SD")
++
++
++def _open(parser, path: Path) -> xr.Dataset:
++    registry = ObjectStoreRegistry({"file://": LocalStore()})
++    store = parser(path.as_uri(), registry=registry)
++    return xr.open_zarr(store, consolidated=False, zarr_format=3, mask_and_scale=False,
++                        concat_characters=False)
++
++
++@pytest.fixture
++def modis_like_hdf4(tmp_path: Path) -> tuple[Path, dict]:
++    SD, SDC = pyhdf_SD.SD, pyhdf_SD.SDC
++    path = tmp_path / "modis_like.hdf"
++    sd = SD(str(path), SDC.WRITE | SDC.CREATE | SDC.TRUNC)
++    data = {
++        # stored contiguously and uncompressed (like MOD03 Latitude)
++        "contiguous_i2": np.arange(20, dtype=">i2").reshape(4, 5),
++        # big-endian float with a CF fill value (like MOD11_L2 Latitude)
++        "float_f4": np.linspace(-90, 90, 12, dtype=">f4").reshape(3, 4),
++        # three dimensions (like MOD03 T_inst2ECR)
++        "cube_f8": np.arange(18, dtype=">f8").reshape(2, 3, 3),
++        # character array (like MOD03 "Scan Type")
++        "chars": np.array([list(b"Day\0\0"), list(b"Night")], dtype="u1").view("S1"),
++    }
++    v = sd.create("contiguous_i2", SDC.INT16, (4, 5))
++    v[:] = data["contiguous_i2"]
++    v.endaccess()
++    v = sd.create("float_f4", SDC.FLOAT32, (3, 4))
++    v.setcompress(SDC.COMP_DEFLATE, 6)
++    v[:] = data["float_f4"]
++    v.setfillvalue(-999.0)
++    v.endaccess()
++    v = sd.create("cube_f8", SDC.FLOAT64, (2, 3, 3))
++    v.setcompress(SDC.COMP_DEFLATE, 6)
++    v[:] = data["cube_f8"]
++    v.endaccess()
++    v = sd.create("chars", SDC.CHAR8, (2, 5))
++    v[:] = data["chars"]
++    v.endaccess()
++    sd.end()
++    return path, data
++
++
++@requires_kerchunk
++def test_hdf4_contiguous_float_3d_and_char_arrays(modis_like_hdf4) -> None:
++    path, expected = modis_like_hdf4
++    ds = _open(HDF4Parser(), path)
++    for name, want in expected.items():
++        got = ds[name].values
++        assert got.shape == want.shape, name
++        np.testing.assert_array_equal(got, want, err_msg=name)
++    var = ds["float_f4"]
++    fill = var.encoding.get("_FillValue", var.attrs.get("_FillValue"))
++    assert float(fill) == pytest.approx(-999.0)  # big-endian attribute decoded correctly
++    assert ds["cube_f8"].dims == ("cube_f8_x", "cube_f8_y", "cube_f8_z")
++
++
++def test_hdf5_string_fill_value_on_integer_variable(tmp_path: Path) -> None:
++    h5py = pytest.importorskip("h5py")
++    path = tmp_path / "string_fill.h5"
++    with h5py.File(path, "w") as f:
++        d = f.create_dataset("qc", data=np.arange(6, dtype="u2").reshape(2, 3))
++        d.attrs["_FillValue"] = np.bytes_(b"n/a")  # as in VIIRS VNP21 v002
++        e = f.create_dataset("lst", data=np.arange(6, dtype="u2").reshape(2, 3))
++        e.attrs["_FillValue"] = np.bytes_(b"0")  # numeric text is parsed
++    with warnings.catch_warnings(record=True):
++        ds = _open(HDFParser(), path)
++    np.testing.assert_array_equal(ds["qc"].values, np.arange(6).reshape(2, 3))
++    assert "_FillValue" not in ds["qc"].attrs
++    assert ds["lst"].encoding.get("_FillValue", ds["lst"].attrs.get("_FillValue")) is not None
++
++
++DMRPP_BE = """<?xml version="1.0" encoding="ISO-8859-1"?>
++<Dataset xmlns="http://xml.opendap.org/ns/DAP/4.0#" xmlns:dmrpp="http://xml.opendap.org/dap/dmrpp/1.0.0#" dapVersion="4.0" dmrVersion="1.0" name="be.hdf" dmrpp:href="OPeNDAP_DMRpp_DATA_ACCESS_URL" dmrpp:version="3.21.1">
++    <Dimension name="y" size="2"/>
++    <Dimension name="x" size="3"/>
++    <UInt16 name="qc">
++        <Dim name="/y"/>
++        <Dim name="/x"/>
++        <Attribute name="_FillValue" type="String"><Value>NA</Value></Attribute>
++        <dmrpp:chunks fillValue="0" byteOrder="BE">
++            <dmrpp:chunk offset="0" nBytes="12"/>
++        </dmrpp:chunks>
++    </UInt16>
++</Dataset>
++"""
++
++
++def test_dmrpp_big_endian_and_string_fill(tmp_path: Path) -> None:
++    data = np.arange(6, dtype=">u2").reshape(2, 3)
++    (tmp_path / "be.hdf").write_bytes(data.tobytes())
++    (tmp_path / "be.hdf.dmrpp").write_text(DMRPP_BE)
++    with warnings.catch_warnings(record=True):
++        ds = _open(DMRPPParser(), tmp_path / "be.hdf.dmrpp")
++    np.testing.assert_array_equal(ds["qc"].values, data)

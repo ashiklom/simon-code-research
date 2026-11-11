@@ -59,22 +59,57 @@ The same changes applied from user code (e.g. a `swathgeo.vz_compat` module patc
 `DMRPPParser._parse_variable`). Zero install friction, but brittle (private functions,
 breaks silently on upgrade). Not implemented beyond noting it is possible.
 
-### Recommendation
+### Option D — native HDF4 reader in VirtualiZarr, no kerchunk (added after review)
 
-**Option A**, upstreamed as two small PRs (kerchunk, VirtualiZarr) — with **Option B's two
-guards** kept in VirtualiZarr until a fixed kerchunk is released and pinned. Reasons:
+kerchunk is in maintenance mode, so instead of fixing its HDF4 decoder, `optionD-virtualizarr-native-hdf4.diff`
+replaces `parsers/hdf4.py` with a self-contained reader of the HDF4 SD model (494 lines incl. docstrings; the
+tag-walking follows kerchunk's MIT-licensed reader, re-implemented). It reads through the
+`ObjectStoreRegistry` + `BlockStoreReader` like `HDFParser` (no fsspec, no kerchunk, no HDF4 C
+library), and keeps Option A's three small non-HDF4 fixes (DMR++ byte order, string fill values).
 
-* Bug #2 is silent **data corruption** in kerchunk itself: anyone using
-  `kerchunk.hdf4.HDF4ToZarr` directly gets byte-swapped floats today. Working around it only in
-  VirtualiZarr leaves that in place.
-* Bug #4 also corrupts kerchunk's own references for uncompressed arrays.
-* The VirtualiZarr changes are local to the HDF4 parser, the DMR++ dtype line, and the shared
-  fill-value encoder; no public API changes. The only behaviour change for previously working
-  files: a `_FillValue` that is a *numeric string* (e.g. `"0"`) is now parsed instead of raising,
-  and a non-numeric one is dropped with a warning instead of making the whole file unreadable.
-* Dropping vs. keeping the bogus fill value: dropping is the conservative choice (no masking is
-  better than masking with a value the producer never meant); an alternative is to keep the
-  original text under another attribute name, at the cost of inventing a convention.
+* Data descriptors → `Var0.0` Vgroups → `SD`/`SDD`/`NT` + `Attr0.0` Vdatas + `Dim0.0` Vgroups.
+* Storage: contiguous uncompressed; `SPECIAL_COMP` (DEFLATE); `SPECIAL_CHUNKED` with per-chunk
+  DEFLATE or none, unwritten chunks → the chunk header's fill value; chunk tables and other
+  metadata stored as linked blocks are reassembled. RLE/N-bit/Skipping-Huffman/SZIP/JPEG,
+  linked-block or external *data* raise a clear `NotImplementedError` (use `skip_variables`).
+* Correct byte order from the number type (fixes #2 without touching kerchunk), all values of
+  multi-valued attributes (kerchunk kept only the first), NUL-separated string attributes kept
+  intact, `/` in names (MOD03 `Land/SeaMask`, silently lost before) → `_` with `hdf4_name`
+  recorded, n-D variables, char arrays, CF-encoded `_FillValue`.
+* New, opt-in `dimension_names="hdf4"` uses the file's own dimension names (e.g.
+  `Along_swath_lines_1km:MOD_Swath_LST`) so variables that share a dimension align; the default
+  keeps the old `<var>_x/_y` names. `reader_options` (fsspec options for kerchunk) is accepted and ignored.
+* The `hdf4` extra no longer depends on kerchunk; the existing HDF4 tests run ungated.
+* Tests: 12 new (pyhdf-generated contiguous/DEFLATE/3-D/RLE/`/`-name/attribute fixtures, plus a
+  committed 18 KB chunked fixture written through the HDF4 C library by
+  `tests/data/make_hdf4_chunked.py`: chunked, chunked+DEFLATE, partially written).
+
+Verification against the HDF4 C library (pyhdf): **32 MODIS granules** (MOD03/MYD03 from 2013
+and 2024, MOD11_L2/MYD11_L2), **1,324 datasets** (values + dimension names) and **4,652
+attributes**, 0 mismatches; `scripts/50_hdf4_virtual_check.py` ALL OK with kerchunk import blocked.
+Building references over the simulated networks (37 MB MYD03): 35 MB / 16 s over Earthdata
+HTTPS vs. 205 MB / 27 s for the kerchunk + fsspec path (fsspec's cache thrashed); see
+`results/virtual_build.csv` (`hdf4_native`).
+
+### Recommendation (updated)
+
+**Option D**, as two VirtualiZarr PRs: (1) the small format-independent fixes (DMR++
+`byteOrder`, string `_FillValue` handling; ~20 lines, from Option A) and (2) the native HDF4
+parser replacing the kerchunk wrapper. Reasons:
+
+* It removes the dependency on a package in maintenance mode while fixing every bug found,
+  and it gets things right that the kerchunk path never did (multi-valued attributes, `/` in
+  names, chunk fill values, real dimension names, remote reads through the same obstore stack as
+  every other parser).
+* It is a larger diff than A/B (a new 494-line module), but self-contained: one file, the HDF4
+  SD model only, and the only public-API change is an *added* option (`dimension_names`).
+  Existing tests pass unchanged apart from removing the kerchunk gate.
+* Still worth sending kerchunk the 2-line big-endian float fix (Option A's kerchunk part,
+  #2) even in maintenance mode: it is silent data corruption for anyone calling
+  `kerchunk.hdf4` directly.
+
+Options A/B remain valid if maintainers prefer the smallest possible change to the current
+kerchunk-based parser.
 
 ## Test results
 
@@ -84,6 +119,7 @@ guards** kept in VirtualiZarr until a fixed kerchunk is released and pinned. Rea
 | blunt | 5 / 5, bit-identical | — | — |
 | **Option A** | 5 / 5, bit-identical | 3 / 3 | 36 failing/erroring — **exactly** the stock set minus the 3 new tests |
 | **Option B** (stock kerchunk) | 5 / 5, bit-identical | 3 / 3 | identical to A |
+| **Option D** (native, no kerchunk) | 5 / 5, bit-identical; + 32 granules / 1,324 datasets / 4,652 attributes vs. pyhdf | 3 / 3 (+12 new native tests) | identical to A (510 passed) |
 | Option B + Option A's kerchunk | 5 / 5 | 3 / 3 | — (guards are no-ops) |
 
 The 36 pre-existing failures/errors are environmental (DMR++ tests that fetch remote fixtures,

@@ -182,8 +182,11 @@ def build_virtual_hdf4(profiles, ports):
 
 
 def _virtual_build_worker(profile, ports, key, parser_name, q):
-    if parser_name == "hdf4_scan_patched":
+    if parser_name == "hdf4_scan_patched":  # vendor/ with patches/blunt-*.diff applied
         sys.path[:0] = VENDOR
+    if parser_name == "hdf4_native":  # vendor/VirtualiZarr with patches/optionD-*.diff applied
+        sys.path[:0] = VENDOR[:1]
+        sys.modules["kerchunk"] = None  # prove it is not used
     from virtualizarr import open_virtual_dataset
     from virtualizarr.parsers import DMRPPParser, HDF4Parser, HDFParser
 
@@ -194,7 +197,13 @@ def _virtual_build_worker(profile, ports, key, parser_name, q):
         reg = R.obstore_registry(acc)
         g, drop = VIRTUAL_GROUPS.get(key, [("", [])])[0]
         t = time.perf_counter()
-        if parser_name == "hdf4_scan_patched":
+        if parser_name == "hdf4_native":
+            import inspect
+
+            assert "dimension_names" in inspect.signature(HDF4Parser).parameters, "apply optionD patch"
+            url = acc.url(key) if acc.kind != "local" else "file://" + acc.url(key)
+            vds = open_virtual_dataset(url, registry=reg, parser=HDF4Parser())
+        elif parser_name == "hdf4_scan_patched":
             url = acc.url(key) if acc.kind != "local" else "file://" + acc.url(key)
             so = {}
             if acc.kind == "s3":
@@ -221,7 +230,7 @@ def bench_virtual_build(profiles, ports, reps=2, parsers=None):
         rows = old[~old.parser.isin(parsers.split(","))].to_dict("records")
     ctx = mp.get_context("spawn")
     for key in list(VIRTUAL_GROUPS) + HDF4_KEYS:
-        for parser_name in (("hdf4_scan_patched",) if key.endswith(".hdf") else ("hdf5_scan", "dmrpp")):
+        for parser_name in (("hdf4_scan_patched", "hdf4_native") if key.endswith(".hdf") else ("hdf5_scan", "dmrpp")):
             if parsers and parser_name not in parsers.split(","):
                 continue
             if parser_name == "dmrpp" and not (config.RAW / (key + ".dmrpp")).exists():
