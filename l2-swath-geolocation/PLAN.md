@@ -1,5 +1,104 @@
 # Plan: `l2-swath-geolocation`
 
+## Follow-up 4 plan: readable "The analytic method in detail" (2026-11-11)
+
+**Context.** The user found the section in `report/locate-methods.qmd` (lines 65–97) hard to follow:
+ECEF and many constants (e.g. `t_off`) are never defined. Goal: expand it into a readable,
+self-contained explanation with simple diagrams. Already done: branch `exp/l2-swath-geolocation`,
+PROMPT.md commit (917bbd0), and a first draft of `scripts/41_diagrams.py` that renders 7 PNGs to
+`figures/diagram_*.png` (ecef, scan_plane, scans, frames, index_maps, timing, refine) using
+`swathgeo.plotstyle` and constants from `results/analytic_models.json`.
+
+### Steps
+1. **Polish diagrams** (`scripts/41_diagrams.py`): view every PNG and fix overlaps — e.g. in
+   `diagram_scans` the φ−φ₀ label covers the "scan k" label and the y-axis label crowds the bottom
+   (move the φ annotation left / above, shift the axes glyph); in `diagram_scan_plane` "local
+   vertical" runs into the θ/η legend (move the legend right or the label left). Move the stray
+   `AXIS_C = ps.AXIS` to the top of the file. Keep figures schematic, ≤ ~150 KB each.
+   Add a `diagrams` task to `mise.toml` and include it in `figures`/`all`.
+2. **Rewrite the section** in `report/locate-methods.qmd`, keeping the existing
+   "Why a window, and how big?" widget after it:
+   - *Plain-language overview* (what "inverse geolocation" means: predict line/sample from target
+     lat/lon instead of searching), then a short **glossary**: ECEF/ECR (with `diagram_ecef`),
+     ECI/J2000 & GCRS, nadir, line of sight, scan / detector / line / sample, scan angle θ,
+     along-track angle φ, view zenith η, slant range, roll/pitch/yaw, quaternion, bow-tie.
+   - *Step by step*, one subsection per step with its figure: geometry (`diagram_scan_plane`,
+     `diagram_scans`), frame (`diagram_frames`; per-sensor source: MODIS `T_inst2ECR`, VIIRS orbital
+     frame from `orb_pos/vel` with inertial velocity v + ω×S, ECOSTRESS ISS quaternions rotated
+     J2000→ECEF), angles (θ = atan2(u_y,u_z), φ = asin(u_x), sign conventions), timing
+     (`diagram_timing`: t_scan = scan start time from the file, t_off, κ, s), indices
+     (`diagram_index_maps`: j = j_c + sθ/α, VIIRS native→aggregated, d = d_c + (φ−φ0)/δ,
+     line = k·N_det + d, in-swath test), candidate scans + refinement (`diagram_refine`).
+   - **Constants table**: symbol, meaning, units, where the spec value comes from, spec value, and
+     calibrated values for Terra/Aqua/SNPP/NOAA-20/ISS (from `results/analytic_models.json`;
+     N_det, N_samp, α, j_c, s, δ, d_c, φ0, κ, t_off, pitch, yaw; note roll is degenerate with j_c).
+   - Keep the calibration/53-scene validation paragraph, reworded with the newly defined terms.
+   - Use `<sub>`/Unicode rather than `$…$` math outside OJS (avoids the Pandoc/OJS `$` clash);
+     check `src/swathgeo/analytic.py` so every formula matches the code (signs, s, t_scan meaning).
+3. **Render & check**: `mise run site`; Playwright screenshot of `locate-methods.html` (images load,
+   no console/OJS errors, widget still works); `uv run _helpers/build_site.py --only
+   l2-swath-geolocation --skip-assets` passes.
+4. **Commit** (prefix `l2-swath-geolocation: `, trailer lines): diagrams script + figures + mise
+   task; methods page rewrite. Regenerate TRANSCRIPT.md (`uv run _helpers/transcript.py -o
+   l2-swath-geolocation/TRANSCRIPT.md`, skim/redact) in its own commit.
+5. **Git**: push branch, fetch, rebase onto `origin/main`, fast-forward + push `main`, delete local
+   branch; try deleting the remote branch (the session's git proxy refused this before — report if so).
+   Check the "Deploy site" Actions run succeeds.
+
+### Verification
+- All 7 diagrams viewed after fixes: no overlapping text, labels legible.
+- Every symbol used in the section is defined in the glossary or constants table (grep the section
+  for `t_off`, `κ`, `j_c`, `ECEF`, etc.).
+- Rendered page shows all figures; zero console errors; deployed page updated.
+
+---
+
+## Resume plan (after the session worker restart, 2026-11-11 00:18 UTC)
+
+The original plan (below) is implemented. The restart killed the background pipeline
+(`data/chain4.sh`) part-way through the **last** read-benchmark task. Status:
+
+- Done & committed: data, targets, Part A (locators + 53-scene analytic consistency), Part B
+  first pass, network simulator + read harness, methods pages, the HDF4/VirtualiZarr work
+  (blunt patch + minimal Options A/B with regression tests and upstream-suite comparison,
+  `patches/README.md`), README draft, root README line.
+- Interrupted: `results/read_bench.csv` has everything except the rest of **ECOSTRESS `full`**
+  (stopped at `s3_cross_region`); not yet run: Part B rerun (NNLS "PSF-optimal" weights, VIIRS
+  bow-tie exclusion, 200 synthetic polygons) and the DMR++ virtual-build rerun (group-name fix).
+- The user's repeated message about the HDF4 dead end is already handled (Follow-up 2 in
+  PROMPT.md; the patches exist). No new work needed beyond presenting the options at the end.
+
+### Remaining steps
+
+1. **Finish benchmarks** (sequential, background, one at a time so timings stay clean):
+   `30_bench_read.py --steps read` (resumes; only remaining ECOSTRESS-full combos run) →
+   `20_footprints.py areal synthetic` → `30_bench_read.py --steps build --build-parsers dmrpp`.
+2. **Figures + site data**: `scripts/40_figures.py` (all steps). Keep only small vector exports
+   in `results/vectors/` (box/circle; move county-sized `.fgb` to `data/vectors/`); no release
+   needed (nothing > ~4 MB the site requires) — if that changes, ask first.
+3. **Write-up**: fill the `<!-- … -->` placeholders in `report/index.qmd`, `footprint.qmd`,
+   `read.qmd` and `README.md` (key results) from the final CSVs; mention the time-budget rules
+   (90 s per combination, ECOSTRESS-full reader subset, default-GDAL skip on slow profiles for the
+   ECOSTRESS county window) and the icechunk no-retry finding.
+4. **Render & check**: `mise run site`; Playwright screenshots of every page, no console/OJS
+   errors; `uv run _helpers/build_site.py --only l2-swath-geolocation --skip-assets` passes.
+5. **Tests**: `mise run test` (core tests incl. netsim) passes.
+6. **Record**: update PLAN.md with this plan (own commit); TRANSCRIPT.md via
+   `uv run _helpers/transcript.py -o l2-swath-geolocation/TRANSCRIPT.md` (skim/redact);
+   `publish.toml` (build = `mise run site`, output = `report/_site`, models, tools).
+7. **Git**: commit in logical pieces (prefix `l2-swath-geolocation: `), push branch, fetch,
+   rebase on `origin/main`, fast-forward + push `main`, delete `exp/l2-swath-geolocation` locally
+   and on origin. Leave the vendored submodules at their upstream tags (patches live in `patches/`).
+8. **Report back**: summary of results + the HDF4 fix options with the recommendation
+   (Option A upstream in kerchunk + VirtualiZarr, keeping Option B's guards until a fixed kerchunk
+   is released).
+
+### Verification
+- `results/read_bench.csv` has rows for every (sensor, task, profile, reader) combination that
+  the harness selects; `results/synthetic_errors.csv` has 200 polygons × 5 scenes incl. `err_psf_lsq`.
+- Site renders; footprint page loads `areal_means.csv`/`synthetic_errors.csv` without OJS errors.
+- `scripts/50_hdf4_virtual_check.py` with `PYTHONPATH=vendor/...` (blunt patch) still prints ALL OK.
+
 ## Context
 
 Extracting values from L2 *swath* products (curvilinear lat/lon, no grid) for points and
