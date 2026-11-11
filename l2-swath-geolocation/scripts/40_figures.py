@@ -235,9 +235,11 @@ def areal_figs():
         ax.grid(axis="y", visible=False)
     axes[0].set_yticks(np.arange(len(scenes)), [SCENE_LABEL[s] for s in scenes])
     axes[0].invert_yaxis()
-    axes[2].legend(loc="lower right", fontsize=7.5)
+    h, l = axes[0].get_legend_handles_labels()
+    fig.legend(h, l, loc="lower center", ncol=4, fontsize=8, bbox_to_anchor=(0.5, -0.02))
     fig.suptitle("Real LST: how much does the pixel model change an areal mean?", x=0.01, ha="left",
                  fontweight="bold", color=ps.INK)
+    fig.tight_layout(rect=(0, 0.08, 1, 1))
     ps.save(fig, "areal_real")
     a.to_csv(SITE / "areal_means.csv", index=False)
 
@@ -255,7 +257,11 @@ def synthetic_figs():
                     linewidth=1.6)
         ax.set_xscale("log")
         ax.set_yscale("log")
+        from matplotlib.ticker import NullFormatter
         ax.set_xticks([2, 5, 10, 20], ["2", "5", "10", "20"])
+        ax.xaxis.set_minor_formatter(NullFormatter())
+        ax.set_yticks([0.2, 0.3, 0.5, 1.0, 1.5], ["0.2", "0.3", "0.5", "1.0", "1.5"])
+        ax.yaxis.set_minor_formatter(NullFormatter())
         ax.set_title(SCENE_LABEL[sc], fontsize=9.5)
         ax.set_xlabel("polygon size (km)")
     np.atleast_1d(axes)[0].set_ylabel("RMSE of polygon mean LST (K)")
@@ -275,36 +281,52 @@ READER_COLOR = {"h5py": ps.CAT[0], "h5py_blockcache": ps.CAT[6], "h5py_ros3": "#
                 "icechunk_virtual": ps.CAT[5], "icechunk_virtual_retry": "#0d366b"}
 
 
+PROFILE_COLOR = {"local": ps.INK2, "s3_in_region": ps.CAT[0], "s3_cross_region": ps.CAT[1],
+                 "https_earthdata": ps.CAT[2], "nccs_portal": ps.CAT[7]}
+READER_LABEL = {"h5py": "h5py + fsspec (defaults)", "h5py_blockcache": "h5py + fsspec blockcache 8 MiB",
+                "h5py_ros3": "h5py ROS3 driver", "xarray_h5netcdf": "xarray + h5netcdf (fsspec)",
+                "gdal": "GDAL (defaults)", "gdal_tuned": "GDAL (tuned)", "pyhdf": "pyhdf (local only)",
+                "download_then_read": "download whole file, then read", "icechunk_virtual": "icechunk virtual refs",
+                "icechunk_virtual_retry": "icechunk virtual refs + app retry"}
+
+
 def read_figs():
     if not (RES / "read_bench.csv").exists():
         return
     r = pd.read_csv(RES / "read_bench.csv")
-    ok = r[r.seconds.notna()]
-    profs = [p for p in PROFILE_LABEL if p in set(r.profile) and not p.startswith("zero")]
+    profs = [p for p in PROFILE_COLOR if p in set(r.profile)]
     for task, title in [("window_site", "33 × 33 pixel window (one site)"),
                         ("window_poly", "County-sized window"), ("full", "Full granule (lat, lon, LST)")]:
-        fig, axes = plt.subplots(1, 3, figsize=(13.5, 3.9), sharey=True)
+        fig, axes = plt.subplots(1, 3, figsize=(14, 5.2), sharex=True)
         for ax, s in zip(axes, SENSORS):
-            sub = ok[(ok.task == task) & (ok.sensor == s)]
-            readers = [x for x in READER_COLOR if x in set(sub.reader)]
-            for k, rd in enumerate(readers):
-                for i, p in enumerate(profs):
-                    v = sub[(sub.reader == rd) & (sub.profile == p)].seconds.values
-                    if len(v) == 0:
+            sub = r[(r.task == task) & (r.sensor == s)]
+            readers = [x for x in READER_LABEL if x in set(sub.reader)]
+            for i, rd in enumerate(readers):
+                for k, p in enumerate(profs):
+                    g = sub[(sub.reader == rd) & (sub.profile == p)]
+                    if len(g) == 0:
                         continue
-                    y = i + (k - (len(readers) - 1) / 2) * 0.1
-                    ax.scatter(v, np.full(len(v), y), s=9, color=READER_COLOR[rd], alpha=0.35, linewidth=0)
-                    ax.scatter(np.median(v), y, s=26, color=READER_COLOR[rd], edgecolor=ps.SURFACE, linewidth=0.6,
-                               zorder=3, label=rd if i == 0 else None)
+                    y = i + (k - (len(profs) - 1) / 2) * 0.14
+                    v = g.seconds.dropna().values
+                    if len(v):
+                        ax.scatter(v, np.full(len(v), y), s=8, color=PROFILE_COLOR[p], alpha=0.35, linewidth=0)
+                        ax.scatter(np.median(v), y, s=24, color=PROFILE_COLOR[p], edgecolor=ps.SURFACE, linewidth=0.6,
+                                   zorder=3)
+                    if g.seconds.isna().any():  # failed / timed-out repetitions
+                        ax.scatter(400, y, marker="x", s=22, color=PROFILE_COLOR[p], linewidth=1.2, zorder=3)
+            ax.set_yticks(range(len(readers)), [READER_LABEL[x] for x in readers], fontsize=8)
+            ax.invert_yaxis()
             ax.set_xscale("log")
+            ax.set_xlim(0.003, 600)
+            ax.axvline(300, color=ps.AXIS, linewidth=0.8)
             ax.set_title({"modis": "MODIS (HDF4)", "viirs": "VIIRS (NetCDF4/HDF5)", "ecostress": "ECOSTRESS (HDF5)"}[s])
-            ax.set_xlabel("seconds (log)")
+            ax.set_xlabel("seconds (log); × = failed or timed out")
             ax.grid(axis="y", visible=False)
-            ax.legend(loc="lower right", fontsize=7)
-        axes[0].set_yticks(range(len(profs)), [PROFILE_LABEL[p] for p in profs])
-        axes[0].invert_yaxis()
-        fig.suptitle(f"Read time: {title}. Big dots = median, small = repetitions; failures omitted", x=0.01,
-                     ha="left", fontweight="bold", color=ps.INK)
+        handles = [plt.Line2D([], [], marker="o", linestyle="", color=PROFILE_COLOR[p], label=PROFILE_LABEL[p]) for p in profs]
+        fig.legend(handles=handles, loc="lower center", ncol=len(profs), bbox_to_anchor=(0.5, -0.02))
+        fig.suptitle(f"Read time: {title}. Big dots = median, small = repetitions", x=0.01, ha="left",
+                     fontweight="bold", color=ps.INK)
+        fig.tight_layout(rect=(0, 0.05, 1, 1))
         ps.save(fig, f"read_{task}")
     r.to_csv(SITE / "read_bench.csv", index=False)
     if (RES / "virtual_build.csv").exists():

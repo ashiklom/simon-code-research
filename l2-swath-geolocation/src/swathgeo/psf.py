@@ -196,7 +196,7 @@ def area_weights(polys_local, poly_local):
 
 
 def psf_lsq_weights(pg: PixelGeom, poly_local, psf, k=None, cell=None, group=None, cell_factor=0.5,
-                    max_pixels=8000):
+                    max_pixels=2500):
     """PSF-optimal weights: non-negative least squares so that the weighted sum of the pixels'
     PSFs best reproduces the polygon's indicator function,
 

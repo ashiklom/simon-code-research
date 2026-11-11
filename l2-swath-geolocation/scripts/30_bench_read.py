@@ -67,7 +67,9 @@ PROFILES = ["local", "zero_s3", "zero_http", "s3_in_region", "s3_cross_region", 
 REPS = {"local": 3, "zero_s3": 2, "zero_http": 2, "s3_in_region": 3, "s3_cross_region": 3,
         "https_earthdata": 3, "nccs_portal": 5}
 TIMEOUT_S = 300
-REP_BUDGET_S = 90  # stop repeating a reader/profile/task once it has used this much time
+REP_BUDGET_S = 90
+ECO_FULL_READERS = {"h5py_blockcache", "h5py_ros3", "gdal_tuned", "download_then_read", "icechunk_virtual_retry",
+                    "pyhdf"}  # stop repeating a reader/profile/task once it has used this much time
 ICE = config.DATA / "icechunk"
 MOTO_PORT = 17999
 BASE_PORT = 18000
@@ -322,6 +324,11 @@ def bench_reads(profiles, sensors, ports, reps_override=None):
                 for reader_name in READERS:
                     if (sensor, task, profile, reader_name) in done:
                         continue
+                    if (sensor == "ecostress" and task == "window_poly" and reader_name == "gdal"
+                            and profile in ("s3_cross_region", "https_earthdata", "nccs_portal")):
+                        continue  # already times out (300 s) for the 33 x 33 window on these profiles
+                    if sensor == "ecostress" and task == "full" and reader_name not in ECO_FULL_READERS:
+                        continue  # 780 MB file: only the informative readers (time budget)
                     rdr = make_reader(reader_name)
                     if not rdr.supports(fmt, acc.kind):
                         continue

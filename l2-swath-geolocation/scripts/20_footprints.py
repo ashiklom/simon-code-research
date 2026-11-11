@@ -184,7 +184,7 @@ def export(sw, name, pname, pg, W, lst):
              "W_t_m": sub.W_t.round(1), "lst_K": lst[idx].round(2)}
     attrs.update({f"w_{s}": W[s][idx] for s in SCHEMES})
     model = fp.footprint_polygons(sub, "model")
-    small = len(idx) < 20000
+    small = len(idx) < 20000 and pname != "colusa_county"  # county exports stay out of git (size)
     outdir = VEC if small else VEC_FULL
     gdf = gpd.GeoDataFrame(attrs, geometry=model, crs=4326)
     gdf.to_file(outdir / f"{name}__{pname}__footprints.fgb", driver="FlatGeobuf")
