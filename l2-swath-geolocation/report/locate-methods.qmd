@@ -64,37 +64,191 @@ pixels per lookup but more cells to visit for polygons; coarser cells mean more 
 
 ## The analytic method in detail
 
-The three instruments are cross-track scanners: a mirror (MODIS, ECOSTRESS) or rotating telescope
-(VIIRS) sweeps the line of sight (LOS) across the track while the platform moves. Each **scan**
-images `N_det` lines at once (MODIS 10, VIIRS 16, ECOSTRESS 128 L1B lines). Given the spacecraft
-position **S** and attitude for every scan — which the products ship as metadata — the inverse
-problem is closed-form:
+Every other method on this page *searches*: it compares the target against millions of pixel
+centres, or against an index built from them. The analytic method instead *predicts* which line and
+sample of the swath array can see the target, using only the spacecraft's position and orientation
+(a few kB of metadata that ships with each granule) and a dozen instrument constants. This is
+"inverse geolocation": the data producer's geolocation maps (line, sample) → (lat, lon); we go
+backwards. Because a prediction can be off by a pixel or two, it ends by reading a small window of the
+real latitude/longitude around the predicted pixel and taking the nearest pixel centre.
 
-1. **Frame.** MODIS: the per-scan instrument→Earth matrix `T_inst2ECR` from MOD03. VIIRS: an orbital
-   frame (x along the *inertial* velocity, z to geodetic nadir). ECOSTRESS: the ISS attitude
-   quaternions from `ECO_L1B_ATT` (the ISS flies pitched ~7° and yawed a few degrees; ignoring this
-   puts swath-edge pixels hundreds of lines off).
-2. **Angles.** For the target **T** (ECEF, with or without terrain height), the LOS
-   **u** = (T − S)/|T − S| expressed in that frame gives the scan angle θ = atan2(u<sub>y</sub>, u<sub>z</sub>)
-   and the along-track angle φ = asin(u<sub>x</sub>).
-3. **Timing.** Sample *j* is observed at t<sub>scan</sub> + t<sub>off</sub> + κθ, so **S** is moved along the
-   orbit to that time (MODIS: ~3 km across the Earth view) and the angles recomputed.
-4. **Sample.** MODIS/ECOSTRESS: j = j<sub>c</sub> + sθ/α. VIIRS: native index n = n<sub>c</sub> + sθ/α
-   (6304 native samples), then mapped through the on-board aggregation zones
-   (640 × 1:1, 368 × 2:1, 1184 × 3:1, 368 × 2:1, 640 × 1:1).
-5. **Line.** detector d = d<sub>c</sub> + (φ − φ<sub>0</sub>)/δ. The target belongs to the scan whose detector array
-   contains it; at bow-tie / scan overlaps several scans qualify and all are searched.
-6. **Refine.** Read a (2k+1)² window of the real lat/lon around the prediction in each candidate
-   scan and take the nearest centre.
+### Terms and coordinate systems
 
-The constants (j<sub>c</sub>, α, φ<sub>0</sub>, δ, κ, t<sub>off</sub>, and for VIIRS/ECOSTRESS a small pitch/yaw) start
-from the instrument documentation ("spec"). Because documentation alone misses timing offsets and
-mounting angles, we also **calibrate** them by least squares on one reference granule per platform
-(June 2024, California) using that granule's own pixel centres, then **freeze** them and test on 53
-scenes: 6 regions (equatorial, Sahara, Siberia, Argentina, near the dateline, California),
-ascending and descending passes, 2013 vs 2024 (before/after the Terra and Aqua orbit lowering and
-drift), SNPP vs NOAA-20, and ECOSTRESS in 2019 and 2024 (different ISS altitudes). The orbit itself
-is never assumed: each granule's own ephemeris is used, which is why orbit drift does not matter.
+**ECEF** (Earth-Centred, Earth-Fixed) is a 3-D Cartesian coordinate system in metres. Its origin is
+the Earth's centre of mass, Z points to the North Pole, X to latitude 0°/longitude 0°, and Y to
+0°/90°E. The axes rotate with the Earth, so a point on the ground has fixed ECEF coordinates.
+MODIS documentation calls the same system **ECR** (Earth-Centred Rotating). We convert the target's
+latitude, longitude and height to ECEF on the WGS84 ellipsoid, because the satellite positions in
+the files are already in ECEF.
+
+![](figures/diagram_ecef.png){fig-alt="ECEF axes with the Earth's centre, a satellite S, a target T, and the line of sight from S to T." width=70%}
+
+The other terms used below:
+
+| Term | Meaning |
+|---|---|
+| **ECI / J2000** | Earth-Centred *Inertial*: like ECEF but the axes stay fixed relative to the stars rather than rotating with the Earth. The ISS attitude for ECOSTRESS is given in J2000; we convert it to ECEF with astropy (GCRS → ITRS: precession, nutation and Earth rotation). |
+| **S**, **T** | ECEF position vectors of the satellite (from the granule's orbit data) and the target (from its lat/lon/height). |
+| **Nadir** | The point straight below the satellite, and the "down" direction from it. |
+| **Line of sight (LOS)**, **u** | The unit vector from the satellite to the target, **u** = (**T** − **S**) / \|**T** − **S**\|. |
+| **Scan** | One sweep of the scan mirror (MODIS, ECOSTRESS) or rotating telescope (VIIRS) across the track. Each scan images *N*<sub>det</sub> lines at once, one per detector in a short along-track column. |
+| **Detector *d*** | Which detector in that column, 0 … *N*<sub>det</sub> − 1. Together with the scan number *k*, it gives the array row: **line** = *k* · *N*<sub>det</sub> + *d*. |
+| **Sample *j*** | The array column: the position along one scan, 0 … *N*<sub>samp</sub> − 1. |
+| **Scan angle θ** | How far the LOS is tilted across the track away from nadir, measured at the satellite. It sets the sample. |
+| **Along-track angle φ** | How far the LOS is tilted forwards or backwards along the track. It sets the detector. |
+| **View zenith angle η** | The same LOS measured from the vertical *at the target*. Earth curvature makes η larger than θ (MODIS edge: θ = 55°, η ≈ 65°). |
+| **Slant range *r*** | The distance from the satellite to the target. |
+| **Roll, pitch, yaw** | Small rotations of the spacecraft about its along-track (x), cross-track (y) and nadir (z) axes. |
+| **Quaternion** | Four numbers that encode a 3-D rotation, used here for the ISS orientation (body → J2000). |
+| **Bow-tie overlap** | At wide scan angles, neighbouring scans' footprints grow and overlap (MODIS especially), so one target can be seen by two scans. |
+
+: Terms used in the steps below. {tbl-colwidths="[22,78]"}
+
+### Step 1: the geometry of one scan
+
+![](figures/diagram_scan_plane.png){fig-alt="Cross-section through the scan plane showing the satellite S at height h, nadir, a target T, scan angle theta at the satellite, view zenith eta at the target, and slant range r." width=80%}
+
+![](figures/diagram_scans.png){fig-alt="Top view of three successive scans, each made of N_det detector lines, with sample index across the track and a target offset from the scan's centre line by phi minus phi0." width=85%}
+
+The figures show the two angles that matter. Across the track, the mirror tilts the LOS by the scan
+angle θ, and θ determines the sample *j*. Along the track, the detectors of one scan sit side by side, so a
+target slightly ahead of or behind the centre of the detector array is seen by a different
+detector. Its offset is the along-track angle φ, and φ determines the detector *d*.
+
+### Step 2: a spacecraft reference frame
+
+To measure θ and φ, **u** has to be expressed in axes attached to the spacecraft:
+**x** along-track (direction of flight), **z** towards nadir, and **y** = **z** × **x** across the track.
+Each scan has its own frame (a 3 × 3 rotation matrix whose columns are **x**, **y**, **z** in ECEF),
+built from the granule's metadata:
+
+* **MODIS** (`MOD03`/`MYD03`): the file provides this matrix for every scan (`T_inst2ECR`, instrument
+  frame → ECR). No modelling needed.
+* **VIIRS** (`VNP03MOD`/`VJ103MOD`): we build an *orbital frame* from the per-scan position
+  (`orb_pos_ev_mid`) and velocity (`orb_vel_ev_mid`). **z** is the downward normal of the WGS84
+  ellipsoid below the satellite (geodetic nadir). **x** is the *inertial* velocity, made perpendicular to **z**.
+  The file's velocity is relative to the rotating Earth (ECEF). The spacecraft actually flies along its
+  inertial velocity, which is that velocity plus the Earth's rotation, **v** + **ω** × **S** (figure,
+  right). Without this correction the frame is yawed by up to ~3.5° and swath-edge pixels land tens of km
+  away.
+* **ECOSTRESS** (`ECO_L1B_ATT`): the ISS is not aligned with its orbit. It flies pitched ~7° and yawed a
+  few degrees, so we use its measured orientation: attitude quaternions (body → J2000), converted to
+  ECEF and interpolated to each scan's time. An orbital frame here would put swath-edge pixels hundreds of lines off.
+
+For VIIRS and ECOSTRESS the frame is then rotated by a small calibrated pitch and yaw (below) that
+absorb instrument mounting offsets.
+
+![](figures/diagram_frames.png){fig-alt="Left: the spacecraft frame with x along-track, y cross-track and z to nadir. Right: inertial velocity as the sum of the Earth-fixed velocity and omega cross S, about 3.5 degrees apart." width=95%}
+
+### Step 3: angles from the line of sight
+
+Write **u** in that frame as (*u*<sub>x</sub>, *u*<sub>y</sub>, *u*<sub>z</sub>), its components along **x**, **y**, **z**. Then
+
+* scan angle **θ = atan2(*u*<sub>y</sub>, *u*<sub>z</sub>)**: the tilt of the LOS from nadir within the
+  cross-track plane (0 at nadir; MODIS reaches ±55°, VIIRS ±56°, ECOSTRESS ±25.5°);
+* along-track angle **φ = asin(*u*<sub>x</sub>)**: the small tilt forwards/backwards (a few mrad).
+
+### Step 4: the satellite moves during a scan
+
+![](figures/diagram_timing.png){fig-alt="Satellite positions along the orbit at the times different scan angles are observed, spanning about 2.9 km for MODIS Aqua." width=95%}
+
+The file stores one position per scan, valid at a reference time *t*<sub>scan</sub>: MODIS "EV centre
+time", VIIRS `ev_mid_time`, and for ECOSTRESS the start time of the scan's first line. But the mirror
+sweeps across the swath over a fraction of a second while the satellite moves at ~7 km/s. The sample at
+scan angle θ is observed at
+
+> *t* = *t*<sub>scan</sub> + *t*<sub>off</sub> + *s* · κ · θ
+
+where κ (seconds per radian) is how long the LOS takes to rotate through one radian, *s* = ±1 is the
+direction of the sweep, and *t*<sub>off</sub> is the time at which the LOS points to nadir (θ = 0),
+measured from *t*<sub>scan</sub>. We move **S** to that time (**S** + **v** · (*t* − *t*<sub>scan</sub>))
+and recompute θ and φ. Two iterations suffice.
+
+### Step 5: angles → array indices
+
+![](figures/diagram_index_maps.png){fig-alt="Left: sample index versus scan angle, linear for MODIS and piecewise for VIIRS. Middle: VIIRS native-to-aggregated sample mapping with 1:1, 2:1, 3:1 zones. Right: detector index versus along-track angle for MODIS." width=100%}
+
+* **Sample.** Samples are evenly spaced in scan angle, α radians apart, so
+  **j = j<sub>c</sub> + s · θ / α** (MODIS, ECOSTRESS), where *j*<sub>c</sub> is the sample at nadir.
+  VIIRS applies the same formula to its 6304 *native* samples. To keep pixels from growing too fast,
+  it then sums them on board: 3 native → 1 near nadir, 2 → 1 further out, 1 → 1 at the edges
+  (640 × 1:1, 368 × 2:1, 1184 × 3:1, 368 × 2:1, 640 × 1:1 = 3200 output samples). We map the native
+  index through these zones (middle panel).
+* **Detector.** Detectors are δ radians apart along-track, centred on the angle φ<sub>0</sub>, so
+  **d = d<sub>c</sub> + (φ − φ<sub>0</sub>) / δ**, where *d*<sub>c</sub> = (*N*<sub>det</sub> − 1)/2 is the middle detector.
+  The line is *k* · *N*<sub>det</sub> + *d*.
+* **Which scan?** For each target we first pick the scan *k* whose φ (measured from that scan's
+  position) is closest to φ<sub>0</sub>, then evaluate it and its two neighbours. The target belongs to the
+  scan where −0.5 ≤ *d* ≤ *N*<sub>det</sub> − 0.5. Under bow-tie overlap two scans qualify. The prediction uses the one
+  where *d* is closest to the centre, and the refinement step searches both. A target is
+  *outside the swath* if no scan qualifies or *j* falls outside 0 … *N*<sub>samp</sub> − 1.
+
+### Step 6: refinement
+
+![](figures/diagram_refine.png){fig-alt="Two overlapping scans as pixel grids, an analytic prediction marked with a cross, a window of plus or minus k pixels around it in each scan, and the nearest pixel centre." width=80%}
+
+The prediction is a fractional (line, sample). We read a window of ±*k* lines and samples of the
+real latitude/longitude around it, in every candidate scan, and keep the pixel whose centre is nearest
+to the target. How large *k* must be is the question of the widget below.
+Each window stays inside its own scan's lines: across a scan boundary, adjacent array rows can be
+kilometres apart on the ground (or overlap), so the next scan gets its own window instead.
+
+### The constants
+
+What each constant means:
+
+| Symbol | Meaning | Units |
+|---|---|---|
+| *N*<sub>det</sub> | detectors (lines) per scan: MODIS 10, VIIRS 16, ECOSTRESS 128 | – |
+| *N*<sub>samp</sub> | samples per line: MODIS 1354, VIIRS 3200 (6304 native), ECOSTRESS 5400 | – |
+| α | scan angle between neighbouring samples (VIIRS: native samples) | mrad |
+| *j*<sub>c</sub> | sample index that looks at nadir (θ = 0) (VIIRS: native index) | sample |
+| *s* | direction of the sweep: sign of d*j*/dθ (−1 for all three in these files) | – |
+| δ | along-track angle between neighbouring detectors | mrad |
+| *d*<sub>c</sub> | middle detector, (*N*<sub>det</sub> − 1)/2: 4.5, 7.5, 63.5 | detector |
+| φ<sub>0</sub> | along-track angle of the detector-array centre (nominally 0) | mrad |
+| κ | time the LOS takes to rotate one radian (1 / LOS rotation rate) | s/rad |
+| *t*<sub>off</sub> | time of the nadir look minus the file's scan time *t*<sub>scan</sub> (nominally 0) | s |
+| pitch, yaw | extra rotation of the VIIRS/ECOSTRESS frame for instrument mounting (MODIS: already in `T_inst2ECR`) | ° |
+
+: Constants of the analytic model. {tbl-colwidths="[14,74,12]"}
+
+Their values, from the documentation ("spec") and after calibration ("cal."):
+
+| Platform | α | *j*<sub>c</sub> | δ | φ<sub>0</sub> | κ | *t*<sub>off</sub> | pitch | yaw |
+|---|---|---|---|---|---|---|---|---|
+| MODIS spec | 1.418 | 676.5 | 1.418 | 0 | 0.235 | 0 | – | – |
+| Terra cal. | 1.418 | 677.9 | 1.418 | −0.28 | 0.192 | −0.090 | – | – |
+| Aqua cal. | 1.418 | 678.1 | 1.418 | −0.93 | 0.225 | −0.165 | – | – |
+| VIIRS spec | 0.3104 | 3151.5 | 0.895 | 0 | 0.284 | 0 | 0 | 0 |
+| SNPP cal. | 0.3117 | 3153.2 | 0.895 | +1.42 | 0.259 | +0.755 | −0.44 | +0.02 |
+| NOAA-20 cal. | 0.3104 | 3156.7 | 0.891 | −1.53 | 0.258 | −0.871 | +0.62 | +0.03 |
+| ECOSTRESS spec | 0.1648 | 2699.5 | 0.172 | 0 | 0.188 | 0 | 0 | 0 |
+| ISS cal. | 0.1714 | 2701.4 | 0.185 | +0.02 | 0.139 | +0.138 | +0.30 | +0.09 |
+
+: Units as in the table above. All calibrated values: [`results/analytic_models.json`](https://github.com/ashiklom/simon-code-research/blob/main/l2-swath-geolocation/results/analytic_models.json). {tbl-colwidths="[22,10,11,10,10,9,10,9,9]"}
+
+Spec values come from the instrument documentation. MODIS: 1354 frames of 1.418 mrad over ±55°,
+two-sided mirror at 20.3 rpm, so the LOS turns at 4.25 rad/s (MOD03 geolocation ATBD). VIIRS: 6304
+native samples over ±56.06°, 1.7864 s per telescope revolution, 742 m detectors at 829 km (VIIRS
+geolocation ATBD). ECOSTRESS: 5400 samples over ±25.5°, two-sided mirror at 25.4 rpm, 69 m detectors
+at ~400 km (ECOSTRESS L1 ATBD). Roll is not fitted because a small roll does the same thing as a shift
+of *j*<sub>c</sub>. For VIIRS, *t*<sub>off</sub> and pitch both move the prediction along-track and
+partly trade off against each other. That is why the two VIIRS platforms have large values of opposite sign that
+mostly cancel, so read them as a pair rather than as physical timing errors.
+
+**Calibration and testing.** The documentation alone misses timing offsets and mounting angles. With
+spec constants, MODIS needs a ±3 pixel window, VIIRS 6–14 and ECOSTRESS ±107. We therefore fit
+*j*<sub>c</sub>, α, φ<sub>0</sub>, δ, κ, *t*<sub>off</sub> (and pitch/yaw) by least squares on one reference granule per
+platform (June 2024, California), using 3000 of that granule's own pixel centres as truth. We then
+**freeze** the constants and test them on 53 scenes: 6 regions (equatorial, Sahara, Siberia, Argentina,
+near the dateline, California), ascending and descending passes, 2013 vs 2024 (before/after the Terra
+and Aqua orbit lowering and drift), SNPP vs NOAA-20, and ECOSTRESS in 2019 and 2024 (different ISS
+altitudes). The orbit itself is never assumed: each granule's own position, velocity and attitude are
+used, which is why orbit drift does not matter. With the target's terrain height (from a DEM, or the
+geolocation file's `height`), the frozen constants find the right pixel within ±1 (MODIS), ±2 (VIIRS)
+and ±3 (ECOSTRESS) pixels in every scene. Assuming height 0 widens this to ±3/±9/±16, because a raised
+target appears shifted outwards by about *h* · tan η (parallax).
 
 ### Why a window, and how big?
 
