@@ -37,14 +37,31 @@ def _shutdown():
         p.shutdown(cancel_futures=True)
 
 
-def process_map(fn, items, workers: int, ahead: int | None = None):
-    """Ordered results of fn(item) computed in `workers` processes (fn must be picklable)."""
+def process_map(fn, items, workers: int, ahead: int | None = None, timeout: float = 900, retries: int = 2):
+    """Ordered results of fn(item) computed in `workers` processes (fn must be picklable).
+
+    A task that produces no result within `timeout` seconds is resubmitted (up to `retries`
+    times): a lost task otherwise blocks the whole run while every worker sits idle.
+    """
+    from concurrent.futures import TimeoutError as FutTimeout
+
     ahead = ahead or 4 * workers
     ex = _pool(workers)
     q = deque()
+
+    def get(item, fut):
+        for attempt in range(retries + 1):
+            try:
+                return fut.result(timeout=timeout)
+            except FutTimeout:
+                if attempt == retries:
+                    raise
+                fut.cancel()
+                fut = ex.submit(fn, item)
+
     for x in items:
-        q.append(ex.submit(fn, x))
+        q.append((x, ex.submit(fn, x)))
         if len(q) >= ahead:
-            yield q.popleft().result()
+            yield get(*q.popleft())
     while q:
-        yield q.popleft().result()
+        yield get(*q.popleft())
