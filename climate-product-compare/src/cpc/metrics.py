@@ -136,14 +136,18 @@ def _window(s: pd.Series, w) -> pd.Series:
 
 
 def day_overrides() -> dict[tuple[str, str], float]:
-    """(product, var) -> day_end_offset_h from the lag check (USCRN-wide if available, else pilot)."""
-    for name in ("uscrn", "pilot"):
+    """(product, var) -> day_end_offset_h from the lag check.
+
+    USCRN-wide results take precedence; products only checked in the pilot (e.g. Daymet, which
+    finished extracting later) fall back to the pilot table."""
+    out: dict[tuple[str, str], float] = {}
+    for name in ("pilot", "uscrn"):  # later overrides earlier
         f = config.RESULTS / f"day_window_overrides_{name}.csv"
         if f.exists():
             d = pd.read_csv(f)
-            d = d[d.use_h != d.documented_h]
-            return {(r.product, r.var): float(r.use_h) for r in d.itertuples()}
-    return {}
+            for r in d.itertuples():
+                out[(r.product, r.var)] = float(r.use_h) if r.use_h != r.documented_h else None
+    return {k: v for k, v in out.items() if v is not None}
 
 
 def site_metrics(site: pd.Series, products: list[str], network: str = "USCRN", root: str | None = None,
