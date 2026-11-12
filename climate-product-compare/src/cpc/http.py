@@ -75,3 +75,16 @@ def fsspec_open(url: str, *, headers: dict | None = None, read_timeout: float = 
     if headers:
         ck["headers"] = headers
     return fsspec.open(url, block_size=2**16, cache_type="none", client_kwargs=ck).open()
+
+
+def get_patient(url: str, *, codes=(401, 403, 429), tries: int = 6, base_sleep: float = 10, **kw) -> requests.Response:
+    """GET that also backs off on throttling-style 4xx codes (some APIs answer 403 under load)."""
+    for attempt in range(tries):
+        try:
+            return get(url, **kw)
+        except requests.HTTPError as e:
+            code = e.response.status_code if e.response is not None else 0
+            if code not in codes or attempt == tries - 1:
+                raise
+            time.sleep(base_sleep * 2 ** attempt)
+    raise RuntimeError("unreachable")

@@ -16,7 +16,7 @@ def module(network: str):
     return importlib.import_module(f"cpc.obs.{NETWORKS[network]}")
 
 
-def run(network: str, sites: pd.DataFrame, *, root=None, force=False, update=False, workers=4, batch=8, log=print):
+def run(network: str, sites: pd.DataFrame, *, root=None, force=False, update=False, workers=2, batch=8, log=print):
     """Ingest a network. update=True re-fetches each known station from the year of its last
     update onward (incremental refresh) and still ingests stations not yet in the store."""
     mod = module(network)

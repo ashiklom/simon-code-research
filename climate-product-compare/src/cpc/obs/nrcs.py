@@ -51,7 +51,7 @@ def fetch_site(row, years) -> pd.DataFrame:
     for y in years:
         if pd.Timestamp(f"{y}-01-01") > pd.Timestamp.now():
             break
-        r = http.get(f"{API}/data", params={"stationTriplets": row.triplet, "elements": ELEMENTS, "duration": "HOURLY",
+        r = http.get_patient(f"{API}/data", params={"stationTriplets": row.triplet, "elements": ELEMENTS, "duration": "HOURLY",
                                             "beginDate": f"{y}-01-01 00:00", "endDate": f"{y}-12-31 23:00"}, timeout=300)
         js = r.json()
         if not js:
