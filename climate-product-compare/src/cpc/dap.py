@@ -36,6 +36,16 @@ def parse_ascii(text: str, var: str, shape: list[int]) -> np.ndarray:
             start = i + 1
             break
     if start is None:
+        # Hyrax style: "var[i][j], v1, v2, ..." rows
+        pre = re.compile(rf"^{re.escape(var.split('.')[-1])}(?:\[\d+\])*,")
+        rows = [ln.split(",", 1)[1] for ln in lines if pre.match(ln)]
+        if rows:
+            vals = [float(x) for r in rows for x in r.split(",") if x.strip()]
+            a = np.asarray(vals, dtype="f8")
+            n_expected = int(np.prod(shape))
+            if a.size != n_expected:
+                raise ValueError(f"DAP ascii: expected {n_expected} values for {var}, got {a.size}")
+            return a.reshape(shape)
         raise ValueError(f"DAP ascii: array {var} not found in response: {text[:300]!r}")
     vals = []
     n_expected = int(np.prod(shape))

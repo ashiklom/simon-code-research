@@ -64,3 +64,14 @@ def earthdata_token() -> str:
 
 def earthdata_headers() -> dict[str, str]:
     return {"Authorization": f"Bearer {earthdata_token()}"}
+
+
+def fsspec_open(url: str, *, headers: dict | None = None, read_timeout: float = 60, total_timeout: float = 600):
+    """Open a remote file for exact range reads (no read-ahead cache) with socket timeouts."""
+    import aiohttp
+    import fsspec
+
+    ck = {"timeout": aiohttp.ClientTimeout(total=total_timeout, sock_connect=30, sock_read=read_timeout)}
+    if headers:
+        ck["headers"] = headers
+    return fsspec.open(url, block_size=2**16, cache_type="none", client_kwargs=ck).open()
