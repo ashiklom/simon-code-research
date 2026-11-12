@@ -58,27 +58,34 @@ def _day(code: str, d: pd.Timestamp) -> pd.DataFrame | None:
     return df
 
 
+def _day_hourly(code: str, d: pd.Timestamp) -> pd.DataFrame | None:
+    """One day of 1-/3-min data -> hourly means (end-of-hour stamps, >= 80 % of samples, QC 0)."""
+    raw = _day(code, d)
+    if raw is None or raw.empty:
+        return None
+    t = pd.to_datetime(dict(year=raw.year, month=raw.month, day=raw.day, hour=raw.hour, minute=raw["min"]))
+    out = pd.DataFrame(index=t)
+    for v, src in (("tair", "temp"), ("rh", "rh"), ("sw", "dw_psp"), ("wind", "windspd"), ("ps", "pressure")):
+        out[v] = raw[src].where((raw[src + "_qc"] == 0) & (raw[src] > -9999)).values
+    out["sw"] = out.sw.clip(lower=0)
+    out["ps"] = out.ps * 100
+    # sample stamps mark the start of each sample -> the hour ending at ceil(t + 1 min)
+    lab = (out.index + pd.Timedelta(minutes=1)).ceil("h")
+    g = out.groupby(lab)
+    per_hour = 60 if len(raw) > 600 else 20
+    return g.mean().where(g.count() >= 0.8 * per_hour)
+
+
 def fetch_site(row, years) -> pd.DataFrame:
     from ..physics import dewpoint_from_rh, vpd_kpa
 
     days = [d for y in years for d in pd.date_range(f"{y}-01-01", f"{y}-12-31") if d <= pd.Timestamp.now()]
     with ThreadPoolExecutor(8) as ex:
-        parts = [p for p in ex.map(lambda d: _day(row.code, d), days) if p is not None]
+        parts = [p for p in ex.map(lambda d: _day_hourly(row.code, d), days) if p is not None]
     if not parts:
         return pd.DataFrame()
-    d = pd.concat(parts, ignore_index=True)
-    t = pd.to_datetime(dict(year=d.year, month=d.month, day=d.day, hour=d.hour, minute=d["min"]))
-    out = pd.DataFrame(index=t)
-    for v, src in (("tair", "temp"), ("rh", "rh"), ("sw", "dw_psp"), ("wind", "windspd"), ("ps", "pressure")):
-        x = d[src].where((d[src + "_qc"] == 0) & (d[src] > -9999)).values
-        out[v] = x
-    out["sw"] = out.sw.clip(lower=0)
-    out["ps"] = out.ps * 100
-    # sample timestamps mark the start of each 1-min (or 3-min) sample -> hour ending ceil
-    lab = (out.index + pd.Timedelta(minutes=1)).ceil("h")
-    g = out.groupby(lab)
-    per_hour = g.size().median()
-    h = g.mean().where(g.count() >= 0.8 * per_hour)
+    h = pd.concat(parts)
+    h = h[~h.index.duplicated()].sort_index()
     h["tdew"] = dewpoint_from_rh(h.tair.values, h.rh.values)
     h["vpd"] = vpd_kpa(h.tair.values, h.rh.values)
     h.index.name = "time"
