@@ -25,7 +25,9 @@ def check(outputs, row):
     c["anonymous GET (private bucket)"] = r.status_code
     rr = s3.get_object(Bucket=b, Key="hello.txt", Range="bytes=1-3")
     c["Range GET"] = f"{rr['ResponseMetadata']['HTTPStatusCode']} {rr['Body'].read()!r}"
-    vh = boto3.client("s3", config=Config(s3={"addressing_style": "virtual"}))
+    # botocore silently uses path style for IP-literal endpoints, so use a hostname endpoint.
+    vh = boto3.client("s3", endpoint_url=ENDPOINT.replace("127.0.0.1", "localhost"),
+                      config=Config(s3={"addressing_style": "virtual"}, retries={"max_attempts": 1}))
     try:
         vh.head_object(Bucket=b, Key="hello.txt")
         c["virtual-host addressing"] = "ok"
@@ -50,5 +52,6 @@ def check(outputs, row):
     good = (c["presigned GET"].startswith("200") and c["virtual-host addressing"] == "ok" and c["70 MiB object"] == "ok"
             and err is None)
     for o in s3.list_object_versions(Bucket=b).get("Versions", []):
-        s3.delete_object(Bucket=b, Key=o["Key"], VersionId=o["VersionId"])
+        if o["Key"] != "hello.txt":  # keep the tofu-managed object
+            s3.delete_object(Bucket=b, Key=o["Key"], VersionId=o["VersionId"])
     return result("works" if good else "partial", "; ".join(f"{k}: {v}" for k, v in c.items()))

@@ -106,6 +106,7 @@ Some positive surprises, where the emulator's fidelity goes well beyond stubbing
 - **CloudFront.** Caches by policy (`x-cache: Hit from cloudfront`) and enforces **WAFv2** rules.
 - **ECS.** Models image-pull *reachability* from the task's subnet routes. A subnet without a NAT
   or IGW gets `CannotPullContainerError … dial tcp public.ecr.aws:443: i/o timeout`.
+- **ACM.** Refuses certificates for reserved TLDs (`.example`) just as AWS does.
 - **Event sources.** EventBridge `rate(1 minute)` rules, SQS and DynamoDB-stream mappings, and
   S3 notifications actually invoke Lambdas.
 - **ALBs.** Each gets a local listener that invokes Lambda targets.
@@ -116,7 +117,8 @@ Some negative surprises, where the API accepts the configuration and nothing hap
 - Cognito pre-token-generation output;
 - user pool domains (no `/oauth2/token`);
 - Python layers;
-- CloudFormation RDS resources.
+- CloudFormation RDS resources;
+- ACM DNS validation (certificates stay `PENDING_VALIDATION`).
 
 On top of these, the HTTP API (v2) JWT authorizer **lets forged tokens through**.
 

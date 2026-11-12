@@ -1,0 +1,845 @@
+{
+ "emulator": {
+  "version": "1.0.322",
+  "release_date": "2026.11.10",
+  "commit": "7753983c6e495ec3612695b1336bf4936fc7b7fd",
+  "deb_sha256": "ef3c75e5d4196bf2c0170b55b75b01e340e0ef497e636b700a1efe68d68a60d7",
+  "source": "deb-latest"
+ },
+ "probes": [
+  {
+   "name": "alb-lambda",
+   "title": "Application Load Balancer -> Lambda target",
+   "category": "Networking",
+   "aws_expected": "HTTP request to the (internal) ALB DNS name invokes the Lambda and returns 'alb-ok'.",
+   "findings": [
+    "elb-data-plane"
+   ],
+   "expect_apply_failure": false,
+   "apply": {
+    "ok": true,
+    "seconds": 64.3,
+    "error": null
+   },
+   "check": {
+    "status": "works",
+    "detail": "http://127.0.0.1:19302/x -> alb-ok /x"
+   },
+   "drift": {
+    "no_changes": true,
+    "resources": [],
+    "error": null
+   },
+   "destroy": {
+    "ok": true,
+    "seconds": 8.7,
+    "error": null
+   },
+   "ran_at": "2026-11-12T17:11:11Z"
+  },
+  {
+   "name": "apigw-cors-browser",
+   "title": "Browser-style cross-origin calls to a REST API with CORS headers (MOCK integration)",
+   "category": "API Gateway",
+   "aws_expected": "GET and OPTIONS preflight from Origin https://maps.example.org return 200 with Access-Control-Allow-Origin.",
+   "findings": [
+    "front-door-cross-origin"
+   ],
+   "expect_apply_failure": false,
+   "apply": {
+    "ok": true,
+    "seconds": 3.0,
+    "error": null
+   },
+   "check": {
+    "status": "partial",
+    "detail": "no Origin: 200 {\"ok\": true} ACAO=*; cross-site GET: 403 {\"__type\":\"AccessDenied\",\"message\":\"Requests a browser sends from another site a ACAO=None; preflight: 403 {\"__type\":\"AccessDenied\",\"message\":\"Requests a browser sends"
+   },
+   "drift": {
+    "no_changes": true,
+    "resources": [],
+    "error": null
+   },
+   "destroy": {
+    "ok": true,
+    "seconds": 3.4,
+    "error": null
+   },
+   "ran_at": "2026-11-12T17:11:27Z"
+  },
+  {
+   "name": "apigwv2-jwt",
+   "title": "HTTP API (v2) JWT authorizer + Lambda permission enforcement",
+   "category": "API Gateway",
+   "aws_expected": "Valid Cognito token -> 200; token with altered payload, foreign-key signature or alg=none -> 401; route whose Lambda has no lambda:InvokeFunction permission for API Gateway -> 500.",
+   "findings": [
+    "apigwv2-jwt-no-signature-check",
+    "apigwv2-no-lambda-permission-check"
+   ],
+   "expect_apply_failure": false,
+   "apply": {
+    "ok": true,
+    "seconds": 13.1,
+    "error": null
+   },
+   "check": {
+    "status": "partial",
+    "detail": "valid: 200 {\"claims\": \"probe\"}; altered-payload: 200 {\"claims\": \"mallory\"}; foreign-key-signature: 200 {\"claims\": \"mallory\"}; alg-none: 401 {\"message\":\"Unauthorized\"}; no-token: 401 {\"message\":\"Unauthorized\"}; valid, Lambda without permission: 200 {\"claims\": \"probe\"}",
+    "mismatches": [
+     "altered-payload",
+     "foreign-key-signature",
+     "valid, Lambda without permission"
+    ]
+   },
+   "drift": {
+    "no_changes": true,
+    "resources": [],
+    "error": null
+   },
+   "destroy": {
+    "ok": true,
+    "seconds": 8.8,
+    "error": null
+   },
+   "ran_at": "2026-11-12T17:11:53Z"
+  },
+  {
+   "name": "cloudfront-edge",
+   "title": "CloudFront edge features in front of a REST API",
+   "category": "CloudFront",
+   "aws_expected": "viewer-request CloudFront Function runs; response-headers policy adds header; origin Content-Type/custom headers pass through; 2nd GET is a cache hit (same body); http:// -> 301; WAF blocks /blocked (403); Authorization forwarded only if in the cache key (not here), X-Custom via origin request policy.",
+   "findings": [
+    "cloudfront-no-functions",
+    "cloudfront-drops-origin-headers",
+    "cloudfront-authorization-dropped",
+    "cloudfront-viewer-protocol",
+    "cloudfront-waf-works"
+   ],
+   "expect_apply_failure": false,
+   "apply": {
+    "ok": true,
+    "seconds": 36.2,
+    "error": null
+   },
+   "check": {
+    "status": "partial",
+    "detail": "OK: ['origin reachable', 'X-Custom forwarded (origin request policy)', 'query string forwarded', '2nd request cache hit (same nonce)', 'x-cache header present', 'WAF blocks /blocked (403)'] | NOT: ['CloudFront Function ran (x-cf-function seen by origin)', 'response-headers policy header (X-Probe-RHP)', 'origin Content-Type kept (text/x-probe)', 'origin custom header kept (X-Origin-Header)', 'http:// redirected to https (301)'] | http:// -> 200 | x-cache=Hit from cloudfront",
+    "checks": {
+     "origin reachable": true,
+     "CloudFront Function ran (x-cf-function seen by origin)": false,
+     "response-headers policy header (X-Probe-RHP)": false,
+     "origin Content-Type kept (text/x-probe)": false,
+     "origin custom header kept (X-Origin-Header)": false,
+     "X-Custom forwarded (origin request policy)": true,
+     "query string forwarded": true,
+     "2nd request cache hit (same nonce)": true,
+     "x-cache header present": true,
+     "WAF blocks /blocked (403)": true,
+     "http:// redirected to https (301)": false
+    }
+   },
+   "drift": {
+    "no_changes": true,
+    "resources": [],
+    "error": null
+   },
+   "destroy": {
+    "ok": true,
+    "seconds": 50.6,
+    "error": null
+   },
+   "ran_at": "2026-11-12T17:13:25Z"
+  },
+  {
+   "name": "cognito-advanced",
+   "title": "Cognito: pre-token-generation V2 claims/scopes, custom attributes, SRP, hosted OAuth2 client_credentials",
+   "category": "Cognito",
+   "aws_expected": "Tokens are RS256; pre-token trigger adds custom_role claim + tiler/read scope; ID token carries custom:department; SRP works; https://<domain>.auth.<region>.amazoncognito.com/oauth2/token issues client_credentials tokens with scope tiler/read.",
+   "findings": [
+    "cognito-es256",
+    "cognito-pretoken-ignored",
+    "cognito-custom-attrs-missing",
+    "cognito-no-oauth-endpoints",
+    "cognito-no-srp",
+    "cognito-iss-host"
+   ],
+   "expect_apply_failure": false,
+   "apply": {
+    "ok": true,
+    "seconds": 8.6,
+    "error": null
+   },
+   "check": {
+    "status": "gap",
+    "detail": "alg: ES256; iss: https://127.0.0.1:9297/us-east-1_ae24e29f5; pretoken claim in access token: None; pretoken scope added: False; custom:department in id token: None; USER_SRP_AUTH: ClientError: An error occurred (NotImplemented) when calling the InitiateAuth operation: oper; POST <emulator>/oauth2/token: 404 {\"__type\":\"UnknownService\",\"message\":\"could not resolve a ta; POST /oauth2/token Host:probe-adv-d6f78115.auth.us-east-1.amazoncognito.com: 404 {\"__type\":\"UnknownService\",\"message\":\"no emulated service is",
+    "checks": {
+     "alg": false,
+     "pretoken": false,
+     "scope": false,
+     "attr": false,
+     "srp": false,
+     "oauth": false
+    }
+   },
+   "drift": {
+    "no_changes": false,
+    "resources": [
+     "aws_cognito_user.u"
+    ],
+    "attributes": [
+     "attributes = {"
+    ],
+    "error": null
+   },
+   "destroy": {
+    "ok": true,
+    "seconds": 8.9,
+    "error": null
+   },
+   "ran_at": "2026-11-12T17:30:39Z"
+  },
+  {
+   "name": "dynamodb-stream",
+   "title": "DynamoDB table + stream -> Lambda",
+   "category": "Event sources",
+   "aws_expected": "PutItem produces an INSERT stream record delivered to the Lambda.",
+   "findings": [],
+   "expect_apply_failure": false,
+   "apply": {
+    "ok": true,
+    "seconds": 10.0,
+    "error": null
+   },
+   "check": {
+    "status": "works",
+    "detail": "CRUD ok; stream record delivered"
+   },
+   "drift": {
+    "no_changes": false,
+    "resources": [
+     "aws_dynamodb_table.t"
+    ],
+    "attributes": [
+     "max_read_request_units = -1 -> null",
+     "max_write_request_units = -1 -> null"
+    ],
+    "error": null
+   },
+   "destroy": {
+    "ok": true,
+    "seconds": 9.4,
+    "error": null
+   },
+   "ran_at": "2026-11-12T17:31:04Z"
+  },
+  {
+   "name": "ec2-instance",
+   "title": "EC2 instance (AL2023 AMI from SSM public parameter, user_data)",
+   "category": "Containers & VMs",
+   "aws_expected": "Instance boots; console output shows user_data ran.",
+   "findings": [
+    "no-container-or-vm-execution",
+    "ec2-runinstances-empty-az"
+   ],
+   "expect_apply_failure": false,
+   "apply": {
+    "ok": false,
+    "seconds": 14.2,
+    "error": "reading EC2 Instance (i-00000000000000001) launch template: reading EC2 Instance (i-00000000000000001) launch template ID tag: operation error EC2: DescribeTags, https response error StatusCode: 501, RequestID: 00000000-0000-0000-0000-000000000018, api error NotImplemented: operation DescribeTags is scaffolded but not implemented in this emulator"
+   },
+   "check": {
+    "status": "gap",
+    "detail": "reading EC2 Instance (i-00000000000000001) launch template: reading EC2 Instance (i-00000000000000001) launch template ID tag: operation error EC2: DescribeTags, https response error StatusCode: 501, RequestID: 00000000-0000-0000-0000-000000000018, api error NotImplemented: operation DescribeTags is scaffolded but not implemented in this emulator | subnet created without availability_zone has AZ='us-east-1a'"
+   },
+   "destroy": {
+    "ok": false,
+    "seconds": 3.0,
+    "error": "reading EC2 Instance (i-00000000000000001) launch template: reading EC2 Instance (i-00000000000000001) launch template ID tag: operation error EC2: DescribeTags, https response error StatusCode: 501, RequestID: 00000000-0000-0000-0000-000000000019, api error NotImplemented: operation DescribeTags is scaffolded but not implemented in this emulator"
+   },
+   "ran_at": "2026-11-12T17:50:41Z"
+  },
+  {
+   "name": "ec2-security-group",
+   "title": "aws_security_group in a new VPC",
+   "category": "OpenTofu provider x emulator",
+   "aws_expected": "AWS adds a default allow-all egress rule to every new SG; the provider revokes it, then adds the configured rules.",
+   "findings": [
+    "ec2-sg-default-egress"
+   ],
+   "expect_apply_failure": true,
+   "apply": {
+    "ok": false,
+    "seconds": 4.1,
+    "error": "revoking default IPv4 egress rule for Security Group (sg-000000000000000ae): operation error EC2: RevokeSecurityGroupEgress, https response error StatusCode: 400, RequestID: 00000000-0000-0000-0000-000000000003, api error InvalidPermission.NotFound: The specified rule does not exist in this security group."
+   },
+   "check": {
+    "status": "gap",
+    "detail": "revoking default IPv4 egress rule for Security Group (sg-000000000000000ae): operation error EC2: RevokeSecurityGroupEgress, https response error StatusCode: 400, RequestID: 00000000-0000-0000-0000-000000000003, api error InvalidPermission.NotFound:  | new SG egress rules as created by the emulator: [{'IpProtocol': '-1', 'UserIdGroupPairs': [], 'IpRanges': [{'CidrIp': '0.0.0.0/0'}], 'Ipv6Ranges': [], 'PrefixListIds': []}]"
+   },
+   "destroy": {
+    "ok": true,
+    "seconds": 3.8,
+    "error": null
+   },
+   "ran_at": "2026-11-12T17:15:03Z"
+  },
+  {
+   "name": "ecs-fargate",
+   "title": "ECS Fargate RunTask (busybox container)",
+   "category": "Containers & VMs",
+   "aws_expected": "Task goes PROVISIONING -> RUNNING -> STOPPED with container exit code 0.",
+   "findings": [
+    "no-container-or-vm-execution"
+   ],
+   "expect_apply_failure": false,
+   "apply": {
+    "ok": true,
+    "seconds": 13.4,
+    "error": null
+   },
+   "check": {
+    "status": "partial",
+    "detail": "status sequence ['PROVISIONING', 'PENDING', 'RUNNING'] (stayed RUNNING for 60 s until StopTask); the container command (echo probe-ecs-ran; sleep 2) would have exited after ~2 s on AWS"
+   },
+   "drift": {
+    "no_changes": true,
+    "resources": [],
+    "attributes": [],
+    "error": null
+   },
+   "destroy": {
+    "ok": true,
+    "seconds": 3.3,
+    "error": null
+   },
+   "ran_at": "2026-11-12T17:52:03Z"
+  },
+  {
+   "name": "eventbridge-schedule",
+   "title": "EventBridge scheduled rule rate(1 minute) -> Lambda",
+   "category": "Event sources",
+   "aws_expected": "Lambda invoked about once a minute with a 'Scheduled Event'.",
+   "findings": [],
+   "expect_apply_failure": false,
+   "apply": {
+    "ok": true,
+    "seconds": 8.4,
+    "error": null
+   },
+   "check": {
+    "status": "works",
+    "detail": "scheduled invocation observed"
+   },
+   "drift": {
+    "no_changes": true,
+    "resources": [],
+    "error": null
+   },
+   "destroy": {
+    "ok": true,
+    "seconds": 8.4,
+    "error": null
+   },
+   "ran_at": "2026-11-12T17:16:14Z"
+  },
+  {
+   "name": "iam-deny-enforced",
+   "title": "IAM evaluation inside Lambda (allow prefix, explicit deny, implicit deny)",
+   "category": "IAM",
+   "aws_expected": "public/ok.txt readable; private/* AccessDenied (explicit deny); PutObject AccessDenied (implicit deny).",
+   "findings": [
+    "iam-enforced-in-lambda"
+   ],
+   "expect_apply_failure": false,
+   "apply": {
+    "ok": true,
+    "seconds": 8.6,
+    "error": null
+   },
+   "check": {
+    "status": "works",
+    "detail": "{'public/ok.txt': 'ok', 'private/secret.txt': 'DENIED: An error occurred (AccessDenied) when calling the GetObject operation: User: arn:aws:sts::000000000000:assumed-role/prob', 'put': 'DENIED: An error occurred (AccessDenied) when calling the PutObject operation: User: arn:aws:sts::000000000000:assumed-role/prob'}"
+   },
+   "drift": {
+    "no_changes": true,
+    "resources": [],
+    "error": null
+   },
+   "destroy": {
+    "ok": true,
+    "seconds": 8.6,
+    "error": null
+   },
+   "ran_at": "2026-11-12T17:16:35Z"
+  },
+  {
+   "name": "kms-secrets",
+   "title": "KMS key + alias, Secrets Manager secret encrypted with it",
+   "category": "Security services",
+   "aws_expected": "Encrypt/Decrypt round-trip via alias; GetSecretValue returns the stored JSON; rotation flag on key.",
+   "findings": [],
+   "expect_apply_failure": false,
+   "apply": {
+    "ok": true,
+    "seconds": 7.3,
+    "error": null
+   },
+   "check": {
+    "status": "works",
+    "detail": "decrypt_ok=True secret_ok=True rotation=True"
+   },
+   "drift": {
+    "no_changes": true,
+    "resources": [],
+    "error": null
+   },
+   "destroy": {
+    "ok": true,
+    "seconds": 3.3,
+    "error": null
+   },
+   "ran_at": "2026-11-12T17:16:49Z"
+  },
+  {
+   "name": "lambda-function-url",
+   "title": "Lambda function URL (auth NONE)",
+   "category": "Lambda runtime",
+   "aws_expected": "https://<id>.lambda-url.<region>.on.aws/ invokes the function over HTTPS.",
+   "findings": [
+    "lambda-function-url"
+   ],
+   "expect_apply_failure": false,
+   "apply": {
+    "ok": true,
+    "seconds": 8.1,
+    "error": null
+   },
+   "check": {
+    "status": "partial",
+    "detail": "published URL https://a32a868a2e6c4a928f218c5c36bdd5f2.lambda-url.us-east-1.on.aws/ is unreachable (real AWS hostname, no DNS); works when sent to https://127.0.0.1:9297 with Host: a32a868a2e6c4a928f218c5c36bdd5f2.lambda-url.us-east-1.on.aws -> 200 {\"hello\": \"url\", \"path\": \"/probe\"}"
+   },
+   "drift": {
+    "no_changes": true,
+    "resources": [],
+    "error": null
+   },
+   "destroy": {
+    "ok": true,
+    "seconds": 8.9,
+    "error": null
+   },
+   "ran_at": "2026-11-12T17:17:21Z"
+  },
+  {
+   "name": "lambda-python-layer",
+   "title": "Python Lambda layer (pure-Python module under python/)",
+   "category": "Lambda runtime",
+   "aws_expected": "Layer is extracted to /opt; python/ is on sys.path, so `import probe_layer_mod` works.",
+   "findings": [
+    "lambda-python-layers"
+   ],
+   "expect_apply_failure": false,
+   "apply": {
+    "ok": true,
+    "seconds": 8.5,
+    "error": null
+   },
+   "check": {
+    "status": "gap",
+    "detail": "invoke error: {'errorMessage': \"No module named 'probe_layer_mod'\", 'errorType': 'ModuleNotFoundError', 'requestId': '3c1de2a0-f02c-4752-a759-bd46fab63e9e', 'stackTrace': ['  File \"/var/task/app.py\", line 2, in handler\\n    import probe_layer_mod\\n']}"
+   },
+   "drift": {
+    "no_changes": true,
+    "resources": [],
+    "error": null
+   },
+   "destroy": {
+    "ok": true,
+    "seconds": 8.9,
+    "error": null
+   },
+   "ran_at": "2026-11-12T17:17:42Z"
+  },
+  {
+   "name": "lambda-runtimes",
+   "title": "Lambda runtimes: python3.12/3.13, nodejs22.x, provided.al2023, ruby3.3, java21",
+   "category": "Lambda runtime",
+   "aws_expected": "Every managed runtime runs the handler (python = CPython, node = V8, custom runtimes via bootstrap).",
+   "findings": [
+    "lambda-rustpython",
+    "lambda-runtimes-limited"
+   ],
+   "expect_apply_failure": false,
+   "apply": {
+    "ok": true,
+    "seconds": 33.6,
+    "error": null
+   },
+   "check": {
+    "status": "partial",
+    "detail": "java21: ERROR InvalidRuntimeException: he Invoke operation (reached max retries: 1): The runtime java21 is not supported by this emulator, which runs the Python and node runtimes.; nodejs22: {'ok': True, 'node': 'v22.0.0'}; provided: ERROR InvalidRuntimeException:  operation (reached max retries: 1): The runtime provided.al2023 is not supported by this emulator, which runs the Python and node runtimes.; python3-12: {'ok': True, 'impl': 'rustpython', 'version': '3.14.0.alpha (heads/unknown-branch:0000000, Nov 10 2026, 20:51:54)\\n[RustPython 0.6.0 with rustc 1.99.1 (58cf8f9c; python3-13: {'ok': True, 'impl': 'rustpython'}; ruby33: ERROR InvalidRuntimeException: e Invoke operation (reached max retries: 1): The runtime ruby3.3 is not supported by this emulator, which runs the Python and node runtimes.",
+    "per_runtime": {
+     "java21": "ERROR InvalidRuntimeException: he Invoke operation (reached max retries: 1): The runtime java21 is not supported by this emulator, which runs the Python and node runtimes.",
+     "nodejs22": "{'ok': True, 'node': 'v22.0.0'}",
+     "provided": "ERROR InvalidRuntimeException:  operation (reached max retries: 1): The runtime provided.al2023 is not supported by this emulator, which runs the Python and node runtimes.",
+     "python3-12": "{'ok': True, 'impl': 'rustpython', 'version': '3.14.0.alpha (heads/unknown-branch:0000000, Nov 10 2026, 20:51:54)\\n[RustPython 0.6.0 with rustc 1.99.1 (58cf8f9c",
+     "python3-13": "{'ok': True, 'impl': 'rustpython'}",
+     "ruby33": "ERROR InvalidRuntimeException: e Invoke operation (reached max retries: 1): The runtime ruby3.3 is not supported by this emulator, which runs the Python and node runtimes."
+    }
+   },
+   "drift": {
+    "no_changes": true,
+    "resources": [],
+    "error": null
+   },
+   "destroy": {
+    "ok": true,
+    "seconds": 8.7,
+    "error": null
+   },
+   "ran_at": "2026-11-12T17:18:29Z"
+  },
+  {
+   "name": "rds-cluster-native",
+   "title": "aws_rds_cluster (Aurora PostgreSQL Serverless v2) via the AWS provider",
+   "category": "OpenTofu provider x emulator",
+   "aws_expected": "Cluster created; provider's DescribeGlobalClusters(Filters=[db-cluster-id]) succeeds.",
+   "findings": [
+    "rds-describeglobalclusters-filter"
+   ],
+   "expect_apply_failure": true,
+   "apply": {
+    "ok": false,
+    "seconds": 34.0,
+    "error": "reading RDS Global Cluster for RDS Cluster (probe-native): operation error RDS: DescribeGlobalClusters, https response error StatusCode: 400, RequestID: 2c395fb4-c327-41b4-bea0-8ae95774613f, api error InvalidParameterValue: unrecognized filter name: db-cluster-id; the only supported filter is region"
+   },
+   "check": {
+    "status": "gap",
+    "detail": "apply failed: reading RDS Global Cluster for RDS Cluster (probe-native): operation error RDS: DescribeGlobalClusters, https response error StatusCode: 400, RequestID: 2c395fb4-c327-41b4-bea0-8ae95774613f, api error InvalidParameterValue: unrecognized filter name: db-cluster-id; the only supported filter is region | cluster exists in emulator anyway: True (tofu marks it tainted)"
+   },
+   "destroy": {
+    "ok": false,
+    "seconds": 2.9,
+    "error": "reading RDS Global Cluster for RDS Cluster (probe-native): operation error RDS: DescribeGlobalClusters, https response error StatusCode: 400, RequestID: 319f2063-de49-4a33-bccd-723574e3e516, api error InvalidParameterValue: unrecognized filter name: db-cluster-id; the only supported filter is region"
+   },
+   "ran_at": "2026-11-12T17:19:17Z"
+  },
+  {
+   "name": "rds-postgis-wire",
+   "title": "Aurora PostgreSQL SQL fidelity: PostGIS, wire protocol vs Data API, PL/pgSQL",
+   "category": "RDS / Aurora",
+   "aws_expected": "CREATE EXTENSION postgis works (tipg needs it); rows written via the Data API are visible over the PostgreSQL wire protocol (same database); DO blocks run; version() is PostgreSQL 16.",
+   "findings": [
+    "rds-sqlite-no-postgis",
+    "rds-dataapi-separate-store",
+    "rds-random-port"
+   ],
+   "expect_apply_failure": false,
+   "apply": {
+    "ok": true,
+    "seconds": 5.3,
+    "error": null
+   },
+   "check": {
+    "status": "partial",
+    "detail": "dataapi CREATE EXTENSION postgis: ERR ecuteStatement operation: near \"EXTENSION\": syntax error in CREATE EXTENSION IF NOT EXISTS postgis at offset 7; dataapi version(): ERR eption) when calling the ExecuteStatement operation: no such function: version in SELECT version() at offset 7; dataapi create+insert: ['ok', 'ok']; dataapi DO block: ERR when calling the ExecuteStatement operation: ERROR: syntax error at or near \"DO\"; Position: 1; SQLState: 42601; endpoint: 127.0.0.1:19303; wire version(): [('PostgreSQL 16.6',)]; wire sees Data API row: ERR no such table: t; wire CREATE EXTENSION postgis: ERR extension \"postgis\" is not available; wire ST_AsText(ST_Point(1,2)): ERR syntax error at or near \"ST_Point\""
+   },
+   "drift": {
+    "no_changes": true,
+    "resources": [],
+    "error": null
+   },
+   "destroy": {
+    "ok": true,
+    "seconds": 5.4,
+    "error": null
+   },
+   "ran_at": "2026-11-12T17:19:40Z"
+  },
+  {
+   "name": "rds-via-cloudformation",
+   "title": "Aurora cluster through aws_cloudformation_stack (AWS::RDS::DBCluster)",
+   "category": "CloudFormation",
+   "aws_expected": "Stack CREATE_COMPLETE creates a real cluster visible to rds:DescribeDBClusters; outputs resolve.",
+   "findings": [
+    "cfn-rds-not-materialized"
+   ],
+   "expect_apply_failure": false,
+   "apply": {
+    "ok": true,
+    "seconds": 13.2,
+    "error": null
+   },
+   "check": {
+    "status": "gap",
+    "detail": "stack CREATE_COMPLETE but no RDS cluster exists; outputs={'Arn': 'arn:aws:rds:us-east-1:000000000000:cluster:probe-cfn', 'Secret': ''}"
+   },
+   "drift": {
+    "no_changes": true,
+    "resources": [],
+    "error": null
+   },
+   "destroy": {
+    "ok": true,
+    "seconds": 13.8,
+    "error": null
+   },
+   "ran_at": "2026-11-12T17:20:21Z"
+  },
+  {
+   "name": "real-tipg-zip",
+   "title": "Real tipg (FastAPI/asyncpg/pydantic-core wheels) as a python3.12 zip Lambda",
+   "category": "Lambda runtime",
+   "aws_expected": "Imports succeed (CPython + manylinux wheels); requests reach tipg (DB errors aside).",
+   "findings": [
+    "lambda-rustpython",
+    "lambda-native-extensions"
+   ],
+   "expect_apply_failure": false,
+   "prepare": {
+    "zip_mb": 23.1
+   },
+   "apply": {
+    "ok": true,
+    "seconds": 8.8,
+    "error": null
+   },
+   "check": {
+    "status": "gap",
+    "detail": "{'statusCode': 500, 'body': '{\"import_error\": \"ModuleNotFoundError: No module named \\'pydantic_core._pydantic_core\\'\", \"impl\": \"rustpython\", \"trace\": \"Traceback (most recent call last):\\\\n  File \\\\\"/var/task/handler.py\\\\\", line 5, in handler\\\\n    import pydantic_core  # noqa: F401  (native extension)\\\\n    ^^^^^^^^^^^^^^^^^^^^\\\\n  File \\\\\"<lambda-runtime>\\\\\", line 156, in exec_module\\\\n  File \\\\\"/var/task/pydantic_core/__init__.py\\\\\", line 8, in <module>\\\\n    from ._pydantic_core import (\\\\n  "
+   },
+   "drift": {
+    "no_changes": true,
+    "resources": [],
+    "error": null
+   },
+   "destroy": {
+    "ok": true,
+    "seconds": 8.7,
+    "error": null
+   },
+   "ran_at": "2026-11-12T17:20:53Z"
+  },
+  {
+   "name": "real-titiler-image",
+   "title": "Container-image Lambda (PackageType=Image from ECR), as titiler's Lambda deployment uses",
+   "category": "Lambda runtime",
+   "aws_expected": "Image function runs its CMD handler.",
+   "findings": [
+    "lambda-container-images"
+   ],
+   "expect_apply_failure": false,
+   "apply": {
+    "ok": true,
+    "seconds": 8.8,
+    "error": null
+   },
+   "check": {
+    "status": "gap",
+    "detail": "check raised InvalidRuntimeException: An error occurred (InvalidRuntimeException) when calling the Invoke operation (reached max retries: 1): The runtime an image package is not supported by this emulator, which runs the Python and node runtimes."
+   },
+   "drift": {
+    "no_changes": true,
+    "resources": [],
+    "error": null
+   },
+   "destroy": {
+    "ok": true,
+    "seconds": 8.7,
+    "error": null
+   },
+   "ran_at": "2026-11-12T17:21:21Z"
+  },
+  {
+   "name": "route53-acm",
+   "title": "Route 53 hosted zone + ACM certificate with DNS validation",
+   "category": "DNS & certificates",
+   "aws_expected": "Validation record makes the certificate ISSUED within minutes (for a publicly delegated zone; a reserved TLD such as .example is refused); TestDNSAnswer returns the A record.",
+   "findings": [],
+   "expect_apply_failure": false,
+   "apply": {
+    "ok": false,
+    "seconds": 156.0,
+    "error": "waiting for ACM Certificate (arn:aws:acm:us-east-1:000000000000:certificate/f363cae9-71fc-48b9-8299-017709cb1355) to be issued: timeout while waiting for state to become 'ISSUED' (last state: 'PENDING_VALIDATION', timeout: 2m0s): operation error ACM: DescribeCertificate, context deadline exceeded"
+   },
+   "check": {
+    "status": "gap",
+    "detail": "waiting for ACM Certificate (arn:aws:acm:us-east-1:000000000000:certificate/f363cae9-71fc-48b9-8299-017709cb1355) to be issued: timeout while waiting for state to become 'ISSUED' (last state: 'PENDING_VALIDATION', timeout: 2m0s): operation error ACM: DescribeCertificate, context deadline exceeded"
+   },
+   "destroy": {
+    "ok": true,
+    "seconds": 33.6,
+    "error": null
+   },
+   "ran_at": "2026-11-12T17:41:10Z"
+  },
+  {
+   "name": "s3-addressing-limits",
+   "title": "S3: presigned URLs, virtual-host addressing, Range GET, object size/bucket capacity",
+   "category": "S3",
+   "aws_expected": "Presigned GET works; virtual-hosted URL works; Range GET -> 206; a 70 MiB object and a 130 MiB total upload succeed (5 TB object limit, unlimited bucket).",
+   "findings": [
+    "s3-capacity-limits",
+    "s3-virtual-host-tls"
+   ],
+   "expect_apply_failure": false,
+   "apply": {
+    "ok": true,
+    "seconds": 58.4,
+    "error": null
+   },
+   "check": {
+    "status": "partial",
+    "detail": "presigned GET: 200 hello; anonymous GET (private bucket): 403; Range GET: 206 b'ell'; virtual-host addressing: EndpointConnectionError: Could not connect to the endpoint URL: \"https://probe-s3-limits.localhost:9297/hello.txt\"; 70 MiB object: ClientError: An error occurred (413) when calling the PutObject operation: Request Entity Too Large; total stored in 10 MiB objects before error (MiB): 60 (ClientError: An error occurred (ValidationException) when calling the PutObject operation: storing \"chunk6.bin\" would leave the bucke)"
+   },
+   "drift": {
+    "no_changes": true,
+    "resources": [],
+    "attributes": [],
+    "error": null
+   },
+   "destroy": {
+    "ok": true,
+    "seconds": 4.5,
+    "error": null
+   },
+   "ran_at": "2026-11-12T17:54:41Z"
+  },
+  {
+   "name": "s3-control-tagging",
+   "title": "aws_s3_bucket with default provider settings (S3 Control tag read)",
+   "category": "OpenTofu provider x emulator",
+   "aws_expected": "Bucket created in seconds; tags read via {account}.s3-control.<region>.amazonaws.com.",
+   "findings": [
+    "tofu-s3control-host-prefix"
+   ],
+   "expect_apply_failure": true,
+   "apply": {
+    "ok": false,
+    "seconds": 90.0,
+    "error": "TIMEOUT after 90s: de_encryption_configuration (known after apply)\n\n      + versioning (known after apply)\n\n      + website (known after apply)\n    }\n\nPlan: 1 to add, 0 to change, 0 to destroy.\naws_s3_bucket.b: Creating...\naws_s3_bucket.b: Still creating... [10s elapsed]\naws_s3_bucket.b: Still creating... [20s elapsed]\naws_s3_bucket.b: Still creating... [30s elapsed]\naws_s3_bucket.b: Still creating... [40s elapsed]\naws_s3_bucket.b: Still creating... [50s elapsed]\naws_s3_bucket.b: Still creating... [1m0s elapsed]\naws_s3_bucket.b: Still creating... [1m10s elapsed]\naws_s3_bucket.b: Still creating... [1m20s elapsed]"
+   },
+   "check": {
+    "status": "gap",
+    "detail": "apply never finished (provider retries S3 Control ListTagsForResource against 000000000000.127.0.0.1:9297); bucket itself was created: True. Workaround: skip_credentials_validation + skip_requesting_account_id."
+   },
+   "destroy": {
+    "ok": null,
+    "error": "skipped (apply timed out; restart the emulator to clean up)"
+   },
+   "ran_at": "2026-11-12T17:25:28Z"
+  },
+  {
+   "name": "s3-event-lambda",
+   "title": "S3 event notification -> Lambda",
+   "category": "Event sources",
+   "aws_expected": "PutObject under incoming/ asynchronously invokes the Lambda with an ObjectCreated event.",
+   "findings": [],
+   "expect_apply_failure": false,
+   "apply": {
+    "ok": true,
+    "seconds": 8.4,
+    "error": null
+   },
+   "check": {
+    "status": "works",
+    "detail": "Lambda received ObjectCreated event"
+   },
+   "drift": {
+    "no_changes": true,
+    "resources": [],
+    "error": null
+   },
+   "destroy": {
+    "ok": true,
+    "seconds": 8.9,
+    "error": null
+   },
+   "ran_at": "2026-11-12T17:25:59Z"
+  },
+  {
+   "name": "sns-sqs",
+   "title": "SNS topic -> SQS subscription (raw delivery)",
+   "category": "Event sources",
+   "aws_expected": "Published message appears in the queue.",
+   "findings": [],
+   "expect_apply_failure": false,
+   "apply": {
+    "ok": true,
+    "seconds": 53.5,
+    "error": null
+   },
+   "check": {
+    "status": "works",
+    "detail": "message delivered"
+   },
+   "drift": {
+    "no_changes": true,
+    "resources": [],
+    "error": null
+   },
+   "destroy": {
+    "ok": true,
+    "seconds": 70.6,
+    "error": null
+   },
+   "ran_at": "2026-11-12T17:28:07Z"
+  },
+  {
+   "name": "sqs-lambda",
+   "title": "SQS queue -> Lambda event source mapping",
+   "category": "Event sources",
+   "aws_expected": "Messages are polled by the ESM and delivered to the Lambda.",
+   "findings": [],
+   "expect_apply_failure": false,
+   "apply": {
+    "ok": true,
+    "seconds": 28.9,
+    "error": null
+   },
+   "check": {
+    "status": "works",
+    "detail": "message delivered to Lambda"
+   },
+   "drift": {
+    "no_changes": true,
+    "resources": [],
+    "error": null
+   },
+   "destroy": {
+    "ok": true,
+    "seconds": 46.2,
+    "error": null
+   },
+   "ran_at": "2026-11-12T17:29:33Z"
+  },
+  {
+   "name": "stepfunctions",
+   "title": "Step Functions (Pass -> Choice -> Lambda Task)",
+   "category": "Event sources",
+   "aws_expected": "Execution SUCCEEDED with the Lambda's output.",
+   "findings": [],
+   "expect_apply_failure": false,
+   "apply": {
+    "ok": true,
+    "seconds": 8.5,
+    "error": null
+   },
+   "check": {
+    "status": "works",
+    "detail": "SUCCEEDED output={\"ok\":true} lambda_saw_input=True"
+   },
+   "drift": {
+    "no_changes": true,
+    "resources": [],
+    "error": null
+   },
+   "destroy": {
+    "ok": true,
+    "seconds": 9.0,
+    "error": null
+   },
+   "ran_at": "2026-11-12T17:30:05Z"
+  }
+ ]
+}

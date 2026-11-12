@@ -17,7 +17,7 @@
 - a COG tiler reading S3 by range requests;
 - an OGC API Features service on Aurora PostgreSQL via the RDS Data API.
 
-It was deployed to aws-emulator 1.0.322 and tested end to end. 25 more capability probes exercise
+It was deployed to aws-emulator 1.0.322 and tested end to end. 27 more capability probes exercise
 other services.
 
 > [!WARNING]
@@ -53,10 +53,11 @@ other services.
   - CloudFront Functions and response-headers policies are ignored, though WAF and caching work;
   - Cognito signs ES256, ignores pre-token-generation output, and has no `/oauth2/token`;
   - CloudFormation reports RDS clusters it never creates;
-  - ECS and EC2 are lifecycle models only;
+  - ECS is a lifecycle model only; `aws_instance` can't be managed (EC2 `DescribeTags` is a stub);
+    ACM never issues DNS-validated certificates;
   - EventBridge schedules, Step Functions, SQS/SNS, DynamoDB streams, S3 notifications,
     KMS/Secrets Manager and ALB → Lambda work.
-- **Findings.** 46 of them, each marked *emulator-only* or *also true on AWS*, are in
+- **Findings.** 54 of them, each marked *emulator-only* or *also true on AWS*, are in
   [`findings.toml`](findings.toml) and on the site's differences page.
 
 Agent-facing docs:

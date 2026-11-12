@@ -424,7 +424,7 @@ severity = "major"
 emulator_only = true
 status = "gap"
 aws = "AWS documents only a `region` filter but accepts `db-cluster-id`, which the AWS provider uses on every read of a provisioned/global cluster."
-emulator = "InvalidParameterValue: unrecognized filter name: db-cluster-id. The cluster is created, then the provider errors and taints it, so `aws_rds_cluster` (provisioned engine mode) can't be managed at all."
+emulator = "InvalidParameterValue: unrecognized filter name: db-cluster-id. The cluster is created, then the provider errors and taints it; every later refresh (plan, destroy) fails the same way, so `aws_rds_cluster` (provisioned engine mode) can't be managed at all and the cluster is orphaned."
 workaround = "Escape hatch: terraform_data runs scripts/rds_cluster.py (boto3) and the aws_rds_cluster data source (which doesn't make the call) reads it back."
 infra_switch = "infra/modules/database: via_script = var.emulator"
 evidence = ["probe:rds-cluster-native"]
@@ -455,7 +455,7 @@ severity = "major"
 emulator_only = true
 status = "gap"
 aws = "Real PostgreSQL (16.x) with PostGIS, PL/pgSQL, full SQL."
-emulator = "CREATE EXTENSION postgis fails (only a short allow-list of extensions is recorded, without functions); DO blocks fail; statements are limited to 5 s, results to 10,000 rows / 8 MiB, databases to 64 MiB. Plain CRUD, COUNT, LIMIT/OFFSET and named parameters work."
+emulator = "Over the wire, `SELECT version()` answers 'PostgreSQL 16.6' but CREATE EXTENSION postgis fails ('extension \"postgis\" is not available') and ST_* functions don't exist; via the Data API even version() is missing ('no such function: version', a SQLite error) and CREATE EXTENSION / DO blocks are syntax errors. Statements are limited to 5 s, results to 10,000 rows / 8 MiB, databases to 64 MiB. Plain CRUD, COUNT, LIMIT/OFFSET and named parameters work."
 workaround = "tipg-lite stores GeoJSON + bbox columns and does exact intersection in Python."
 evidence = ["probe:rds-postgis-wire"]
 crates = ["services/service-com-amazonaws-rds-amazonrdsv19/src/state/data_plane", "services/service-com-amazonaws-rdsdata-rdsdataservice/src"]
@@ -562,7 +562,7 @@ severity = "moderate"
 emulator_only = true
 status = "partial"
 aws = "Objects up to 5 TB, unlimited bucket size."
-emulator = "A 70 MiB object or a bucket past 64 MiB is refused; ~17 MB of COGs fit fine."
+emulator = "A 70 MiB PutObject gets 413 Request Entity Too Large; 10 MiB objects stop at 60 MiB ('storing ... would leave the bucket' over its cap). The ~17 MB of COGs used here fit fine."
 workaround = "Keep test data small (COGs subset to a few MB)."
 evidence = ["probe:s3-addressing-limits"]
 crates = ["services/service-com-amazonaws-s3-amazons3/src/state.rs"]
@@ -577,7 +577,7 @@ severity = "minor"
 emulator_only = true
 status = "partial"
 aws = "Virtual-hosted style is the default (path style is legacy)."
-emulator = "The certificate covers only localhost/127.0.0.1, so bucket.127.0.0.1 fails; path style works, as do presigned URLs and Range GETs (206)."
+emulator = "Bucket hostnames (probe-s3-limits.localhost:9297) aren't reachable (and the certificate covers only localhost/127.0.0.1); path style works, as do presigned URLs, private-bucket 403s for anonymous GETs and Range GETs (206). Note that botocore silently uses path style for IP-literal endpoints, which can mask this."
 workaround = "s3_use_path_style = true (provider), AWS_VIRTUAL_HOSTING=FALSE (GDAL)."
 infra_switch = "infra/providers.tf: s3_use_path_style"
 evidence = ["probe:s3-addressing-limits"]
@@ -625,7 +625,7 @@ severity = "major"
 emulator_only = true
 status = "partial"
 aws = "Fargate runs the container; EC2 boots the AMI and runs user_data."
-emulator = "See probes: control plane and state transitions are modelled, but no container or VM executes (no console output / exit code from the workload)."
+emulator = "ECS: RunTask follows PROVISIONING -> PENDING -> RUNNING, with a modelled image-pull reachability check against the subnet's routes (no NAT/IGW -> CannotPullContainerError ... dial tcp public.ecr.aws:443: i/o timeout), but the container never runs: a task whose command exits after 2 s stays RUNNING until StopTask (and a running task blocks `tofu destroy` of the cluster). EC2: instances can't even be managed by tofu (see ec2-describetags-stub)."
 workaround = "Use Lambda (Python/Node) for compute that must run in tests."
 evidence = ["probe:ecs-fargate", "probe:ec2-instance"]
 crates = ["services/service-com-amazonaws-ecs-amazonec2containerservicev20141113/src", "services/service-com-amazonaws-ec2-amazonec2/src/ops/run_instances.rs"]
@@ -721,5 +721,126 @@ emulator = "Restarting the emulator loses every resource while tofu state still 
 workaround = "Treat emulator + state as one unit: `mise run emulator:restart` deletes tofu state; scripts/emulator.sh env re-exports the new paths."
 evidence = ["source:scripts/emulator.sh"]
 crates = ["vendor/server/src/lib.rs", "vendor/server/src/cli.rs"]
+issues = []
+last_verified_version = "1.0.322"
+
+# ------------------------------------------------------------------------- added from probes
+[[finding]]
+id = "ec2-runinstances-empty-az"
+title = "aws_instance fails: provider's empty Placement.AvailabilityZone is rejected"
+category = "OpenTofu provider x emulator"
+severity = "moderate"
+emulator_only = true
+status = "gap"
+aws = "RunInstances ignores an empty Placement.AvailabilityZone (the provider always sends it) and uses the subnet's AZ."
+emulator = "InvalidParameterValue: Invalid value '' for availabilityZone. Region 'us-east-1' has no such Availability Zone (even though the subnet has us-east-1a)."
+workaround = "Set availability_zone on aws_instance explicitly (then the next blocker is ec2-describetags-stub)."
+evidence = ["probe:ec2-instance"]
+crates = ["services/service-com-amazonaws-ec2-amazonec2/src/ops/run_instances.rs"]
+issues = []
+last_verified_version = "1.0.322"
+
+[[finding]]
+id = "ec2-describetags-stub"
+title = "aws_instance cannot be managed: EC2 DescribeTags is not implemented"
+category = "OpenTofu provider x emulator"
+severity = "major"
+emulator_only = true
+status = "gap"
+aws = "The provider reads the instance's launch-template tag via DescribeTags after creating it."
+emulator = "DescribeTags answers 501 NotImplemented, so create, refresh and destroy of aws_instance all fail (the instance is created and orphaned)."
+workaround = "None from configuration; don't manage EC2 instances with tofu on the emulator."
+evidence = ["probe:ec2-instance"]
+crates = ["services/service-com-amazonaws-ec2-amazonec2/src/ops/describe_tags.rs"]
+issues = ["20261022T235108Z-ec2-describetags-stub.md"]
+last_verified_version = "1.0.322"
+
+[[finding]]
+id = "dynamodb-ondemand-throughput-drift"
+title = "aws_dynamodb_table drifts: on-demand throughput limits read back as -1"
+category = "OpenTofu provider x emulator"
+severity = "minor"
+emulator_only = true
+status = "partial"
+aws = "PAY_PER_REQUEST tables without on_demand_throughput return no max request units."
+emulator = "Returns max_read_request_units = -1 and max_write_request_units = -1, so every plan shows a change (-1 -> null). Table CRUD and streams -> Lambda work."
+workaround = "lifecycle { ignore_changes = [on_demand_throughput] } (or accept the diff)."
+evidence = ["probe:dynamodb-stream"]
+crates = ["services/service-com-amazonaws-dynamodb-dynamodb-20120810/src"]
+issues = []
+last_verified_version = "1.0.322"
+
+[[finding]]
+id = "cognito-custom-attr-prefix"
+title = "aws_cognito_user drifts: custom attributes come back without the custom: prefix"
+category = "Cognito"
+severity = "minor"
+emulator_only = true
+status = "partial"
+aws = "AdminGetUser returns custom attributes as custom:<name>."
+emulator = "Returns `department` instead of `custom:department`, so every plan wants to add custom:department and remove department."
+workaround = "lifecycle { ignore_changes = [attributes] } for users with custom attributes."
+evidence = ["probe:cognito-advanced"]
+crates = ["services/service-com-amazonaws-cognitoidentityprovider-awscognitoidentityproviderservice/src/state/attributes.rs"]
+issues = ["20261026T235252Z-cognito-idp-five-causes-declared-custom-attribute-constraints.md"]
+last_verified_version = "1.0.322"
+
+[[finding]]
+id = "acm-dns-validation-never-issues"
+title = "ACM DNS-validated certificates never become ISSUED"
+category = "DNS & certificates"
+severity = "moderate"
+emulator_only = true
+status = "gap"
+aws = "Once the CNAME is resolvable in public DNS (a delegated zone), the certificate is ISSUED within minutes."
+emulator = "The validation CNAME can be created in Route 53 (the record exists), but ACM waits for outside evidence until the 72 h window ends: aws_acm_certificate_validation times out in PENDING_VALIDATION. (For a domain you don't actually own this is also what AWS does.)"
+workaround = "None: custom domains for API Gateway/CloudFront can't be tested end to end."
+evidence = ["probe:route53-acm"]
+crates = ["services/service-com-amazonaws-acm-certificatemanager/src/state.rs"]
+issues = []
+last_verified_version = "1.0.322"
+
+[[finding]]
+id = "acm-reserved-tld"
+title = "ACM refuses reserved TLDs (.example, .test, ...) like AWS"
+category = "DNS & certificates"
+severity = "info"
+emulator_only = false
+status = "works"
+aws = "Names under never-delegated TLDs can't be validated; ACM fails the request."
+emulator = "Certificate for api.<name>.example goes FAILED with ADDITIONAL_VERIFICATION_REQUIRED immediately (RFC 2606/6761 list modelled)."
+workaround = "Use a registrable name in tests."
+evidence = ["probe:route53-acm"]
+crates = ["services/service-com-amazonaws-acm-certificatemanager/src/state.rs"]
+issues = []
+last_verified_version = "1.0.322"
+
+[[finding]]
+id = "event-sources-work"
+title = "Event-driven integrations deliver: S3 notifications, SQS/DynamoDB-stream mappings, SNS->SQS, EventBridge schedules, Step Functions"
+category = "Event sources"
+severity = "info"
+emulator_only = false
+status = "works"
+aws = "Each integration invokes its target."
+emulator = "All six probes delivered within seconds (EventBridge rate(1 minute) within ~70 s); Step Functions Pass -> Choice -> Lambda Task SUCCEEDED; tofu plans clean (except the DynamoDB throughput drift)."
+workaround = "none needed"
+evidence = ["probe:s3-event-lambda", "probe:sqs-lambda", "probe:sns-sqs", "probe:eventbridge-schedule", "probe:stepfunctions", "probe:dynamodb-stream"]
+crates = ["services/service-com-amazonaws-lambda-awsgirapiservice/src/state/event_source_", "services/service-com-amazonaws-sfn-awsstepfunctions/src", "services/service-com-amazonaws-eventbridge-awsevents/src"]
+issues = []
+last_verified_version = "1.0.322"
+
+[[finding]]
+id = "kms-secrets-work"
+title = "KMS keys/aliases and Secrets Manager behave like AWS"
+category = "Security services"
+severity = "info"
+emulator_only = false
+status = "works"
+aws = "Encrypt/Decrypt via alias, rotation flag, secrets encrypted with a CMK."
+emulator = "Matches in the probe."
+workaround = "none needed"
+evidence = ["probe:kms-secrets"]
+crates = ["services/service-com-amazonaws-kms-trentservice/src"]
 issues = []
 last_verified_version = "1.0.322"

@@ -6,6 +6,7 @@ Standard library only (Python >= 3.11) so the site build needs no pixi environme
 from __future__ import annotations
 
 import json
+import re
 import shutil
 import tomllib
 from collections import defaultdict
@@ -158,7 +159,7 @@ def differences(findings):
             out.append(f"| {c} | [{esc(f['title'])}](#{f['id']}) | {scope} | {f['severity']} | {badge(f['status'])} |")
     out.append("")
     for c in cats:
-        anchor = c.lower().replace(" / ", "-").replace(" ", "-").replace("(", "").replace(")", "")
+        anchor = re.sub(r"[^a-z0-9]+", "-", c.lower()).strip("-")
         out.append(f"## {c} {{#{anchor}}}\n")
         for f in sorted(by[c], key=lambda f: sev[f["severity"]]):
             scope = "emulator only" if f["emulator_only"] else "also true on real AWS"
@@ -196,7 +197,8 @@ def probes(pr, findings):
     s.append("")
     for r in rows:
         ch = r["check"]
-        links = ", ".join(f"[{i}](differences.qmd#{i})" for i in r.get("findings", []) if i in fid)
+        ids = [f["id"] for f in findings if f"probe:{r['name']}" in f.get("evidence", [])]
+        links = ", ".join(f"[{i}](differences.qmd#{i})" for i in ids)
         s.append(f"### {r['title']} {{#{r['name']}}}\n")
         s.append(f"{badge(ch['status'])} · `probes/{r['name']}/` · ran {r.get('ran_at', '?')}\n")
         s.append(f"- **Real AWS:** {r['aws_expected']}")

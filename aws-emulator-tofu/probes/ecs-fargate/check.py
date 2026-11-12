@@ -20,12 +20,15 @@ def check(outputs, row):
         d = ecs.describe_tasks(cluster=outputs["cluster"], tasks=[arn])["tasks"][0]
         seen.append(d["lastStatus"])
         return d if d["lastStatus"] == "STOPPED" else None
-    d = wait_for(stopped, timeout=90, every=2)
+    d = wait_for(stopped, timeout=60, every=2)
     statuses = list(dict.fromkeys(seen))
+    if not d:  # stop it so `tofu destroy` can delete the cluster
+        ecs.stop_task(cluster=outputs["cluster"], task=arn, reason="probe cleanup")
+        wait_for(stopped, timeout=30, every=2)
     if d:
         ec = [c.get("exitCode") for c in d.get("containers", [])]
         return result("partial", f"status sequence {statuses}, exit codes {ec}, stopCode={d.get('stopCode')!r}, "
                                  f"stopReason={d.get('stoppedReason')!r}. The lifecycle (incl. a modelled image-pull "
                                  "reachability check against the VPC's routes) is simulated; the container command never runs.")
-    return result("partial", f"status sequence {statuses} (never STOPPED within 90 s); the container command "
+    return result("partial", f"status sequence {statuses} (stayed RUNNING for 60 s until StopTask); the container command "
                              "(echo probe-ecs-ran; sleep 2) would have exited after ~2 s on AWS")

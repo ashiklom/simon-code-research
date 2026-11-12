@@ -63,9 +63,11 @@ Highlights:
 - **CloudFront** runs no Functions, drops origin `Content-Type`, but *does* enforce WAF and caching.
 - **Cognito** ignores pre-token-generation output, has no `/oauth2/token`, and signs ES256.
 - **CloudFormation** reports RDS clusters it never creates.
-- **ECS and EC2** model lifecycles without running anything.
+- **ECS** models task lifecycles (even image-pull reachability) without running containers.
+- **EC2 instances** can't be managed by OpenTofu at all (`DescribeTags` is a stub), and ACM never
+  issues DNS-validated certificates.
 - **Working on the emulator:** EventBridge schedules, Step Functions, SQS, SNS, DynamoDB
-  streams, S3 notifications, KMS/Secrets Manager, Route 53 + ACM validation and ALB → Lambda.
+  streams, S3 notifications, KMS/Secrets Manager and ALB → Lambda.
 
 [Probe results →](probes.qmd) · [aws-emulator vs AWS: every difference →](differences.qmd) ·
 [Reproduce →](reproduce.qmd)
