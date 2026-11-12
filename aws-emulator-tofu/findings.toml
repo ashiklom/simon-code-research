@@ -30,7 +30,7 @@ workaround = "Pure-Python stand-ins (titiler-lite, tipg-lite) with titiler/tipg-
 evidence = ["probe:lambda-runtimes", "probe:real-tipg-zip", "source:services/service-com-amazonaws-lambda-awsgirapiservice/src/state/execution/python.rs"]
 crates = ["services/service-com-amazonaws-lambda-awsgirapiservice/src/state/execution", "vendor/engine/src/lib.rs"]
 issues = ["20261107T091747Z-lambda-the-execution-environment-has-no-filesystem-or.md"]
-last_verified_version = "1.0.322"
+last_verified_version = "1.0.336"
 
 [[finding]]
 id = "lambda-native-extensions"
@@ -45,7 +45,7 @@ workaround = "None possible for native code; use pure-Python code only."
 evidence = ["probe:real-tipg-zip"]
 crates = ["services/service-com-amazonaws-lambda-awsgirapiservice/src/state/execution"]
 issues = []
-last_verified_version = "1.0.322"
+last_verified_version = "1.0.336"
 
 [[finding]]
 id = "lambda-runtimes-limited"
@@ -60,7 +60,7 @@ workaround = "Use Python or Node.js."
 evidence = ["probe:lambda-runtimes"]
 crates = ["services/service-com-amazonaws-lambda-awsgirapiservice/src/state/execution.rs", "services/service-com-amazonaws-lambda-awsgirapiservice/src/ops/invoke.rs"]
 issues = ["20261109T185037Z-lambda-sqs-3-net-new-causes-dotnet-go-java-ruby.md"]
-last_verified_version = "1.0.322"
+last_verified_version = "1.0.336"
 
 [[finding]]
 id = "lambda-container-images"
@@ -75,7 +75,7 @@ workaround = "None; use zip packages."
 evidence = ["probe:real-titiler-image"]
 crates = ["services/service-com-amazonaws-lambda-awsgirapiservice/src/ops/invoke.rs", "services/service-com-amazonaws-lambda-awsgirapiservice/src/state/image_source.rs", "services/service-com-amazonaws-ecr-amazonec2containerregistry-v20150921/src/service/registry_v2.rs"]
 issues = ["20261103T031416Z-ecr-lambda-createfunction-accepts-a-container-image-whose.md"]
-last_verified_version = "1.0.322"
+last_verified_version = "1.0.336"
 
 [[finding]]
 id = "lambda-python-layers"
@@ -90,7 +90,7 @@ workaround = "Vendor shared code into each zip (this stack copies lambdas/common
 evidence = ["probe:lambda-python-layer"]
 crates = ["services/service-com-amazonaws-lambda-awsgirapiservice/src/state/execution.rs"]
 issues = ["20261107T091747Z-lambda-lambda-layers-are-never-materialized-into-the.md", "20261106T151148Z-lambda-a-layer-supplied-boto3-package-does-not.md"]
-last_verified_version = "1.0.322"
+last_verified_version = "1.0.336"
 
 [[finding]]
 id = "lambda-guest-http"
@@ -100,28 +100,29 @@ severity = "moderate"
 emulator_only = true
 status = "partial"
 aws = "Functions have outbound network access (subject to VPC config) and the real boto3."
-emulator = "urllib requests are delivered in-process only to AWS-style hostnames (signed with the execution role); the in-Lambda boto3 has clients for a fixed list (s3, rds-data, secretsmanager, dynamodb, sqs, ...) but not cognito-idp. Calling Cognito InitiateAuth via urllib to cognito-idp.us-east-1.amazonaws.com works; GET of the pool's JWKS URL returns 400."
+emulator = "urllib requests are delivered in-process only to AWS-style hostnames (signed with the execution role); the in-Lambda boto3 has clients for a fixed list (s3, rds-data, secretsmanager, dynamodb, sqs, ...) but not cognito-idp. Calling Cognito InitiateAuth via urllib to cognito-idp.us-east-1.amazonaws.com works; GET of the pool's JWKS URL returns 400 (still on 1.0.336)."
 workaround = "Token service calls Cognito with urllib; the authorizer gets the JWKS at deploy time (http data source -> JWKS_JSON) when it can't fetch it."
 infra_switch = "infra/main.tf: data.http.jwks + JWKS_JSON (emulator only)"
 evidence = ["e2e:token_minting", "source:services/service-com-amazonaws-lambda-awsgirapiservice/src/state/execution/guest_http.rs"]
 crates = ["services/service-com-amazonaws-lambda-awsgirapiservice/src/state/execution/guest_http.rs", "services/service-com-amazonaws-lambda-awsgirapiservice/src/state/execution/aws_sdk_guest.rs", "services/service-com-amazonaws-cognitoidentityprovider-awscognitoidentityproviderservice/src/service.rs"]
 issues = []
-last_verified_version = "1.0.322"
+last_verified_version = "1.0.336"
 
 [[finding]]
 id = "lambda-function-url"
-title = "Function URLs use the real AWS hostname"
+title = "Function URLs: published with the real AWS hostname (fixed in 1.0.336)"
 category = "Lambda"
 severity = "minor"
 emulator_only = true
-status = "partial"
+status = "works"
 aws = "https://<id>.lambda-url.<region>.on.aws/ resolves publicly."
-emulator = "The published URL doesn't resolve; the function URL works when the request is sent to the emulator port with that Host header."
-workaround = "Send to https://127.0.0.1:9297 with Host: <id>.lambda-url.us-east-1.on.aws."
+emulator = "1.0.322: function_url was https://<id>.lambda-url.us-east-1.on.aws/ (unresolvable); it worked only when sent to the emulator port with that Host header. 1.0.336: function_url is https://127.0.0.1:9297/_aws/lambda-url/<id>/ and works directly."
+workaround = "None needed from 1.0.336 (before: send to the emulator with the Host header)."
 evidence = ["probe:lambda-function-url"]
 crates = ["services/service-com-amazonaws-lambda-awsgirapiservice/src/service/function_url.rs"]
 issues = []
-last_verified_version = "1.0.322"
+fixed_in = "1.0.336"
+last_verified_version = "1.0.336"
 
 [[finding]]
 id = "iam-enforced-in-lambda"
@@ -136,7 +137,7 @@ workaround = "none needed"
 evidence = ["probe:iam-deny-enforced"]
 crates = ["services/common/src/iam_authorization.rs"]
 issues = []
-last_verified_version = "1.0.322"
+last_verified_version = "1.0.336"
 
 # ------------------------------------------------------------------------------- API Gateway
 [[finding]]
@@ -152,7 +153,7 @@ workaround = "none needed"
 evidence = ["e2e:apigw"]
 crates = ["services/service-com-amazonaws-apigateway-backplanecontrolservice/src/service/invoke"]
 issues = []
-last_verified_version = "1.0.322"
+last_verified_version = "1.0.336"
 
 [[finding]]
 id = "apigw-path-style-invoke"
@@ -168,7 +169,7 @@ infra_switch = "infra/outputs.tf: api_base_urls"
 evidence = ["e2e:apigw"]
 crates = ["services/service-com-amazonaws-apigateway-backplanecontrolservice/src/service.rs"]
 issues = []
-last_verified_version = "1.0.322"
+last_verified_version = "1.0.336"
 
 [[finding]]
 id = "apigw-computed-attr-drift"
@@ -184,7 +185,7 @@ infra_switch = "infra/modules/authenticated_api: local.redeploy_input"
 evidence = ["deploy:plan_after_apply"]
 crates = ["services/service-com-amazonaws-apigateway-backplanecontrolservice/src/ops"]
 issues = []
-last_verified_version = "1.0.322"
+last_verified_version = "1.0.336"
 
 [[finding]]
 id = "apigwv2-jwt-no-signature-check"
@@ -194,12 +195,12 @@ severity = "major"
 emulator_only = true
 status = "gap"
 aws = "The JWT authorizer verifies the signature against the issuer's JWKS (OIDC discovery) before checking iss/aud/exp/scopes."
-emulator = "Checks shape, alg != none, iss, aud/client_id, exp/nbf and scopes, but not the signature: a token with an edited payload (username -> mallory) and a token signed by an unrelated key both get 200."
+emulator = "Checks shape, alg != none, iss, aud/client_id, exp/nbf and scopes, but not the signature: a token with an edited payload (username -> mallory) and a token signed by an unrelated key both get 200. Unchanged on 1.0.336, even though the related upstream issue file moved to things-that-now-work."
 workaround = "Not used in this design (REST API + Lambda authorizer that verifies signatures). Never treat emulator results as evidence of v2 JWT security."
 evidence = ["probe:apigwv2-jwt"]
 crates = ["services/service-com-amazonaws-apigatewayv2-apigatewayv2/src/service/jwt.rs"]
 issues = ["20261107T193731Z-apigatewayv2-cognito-idp-lambda-a-jwt-authorizer-route.md"]
-last_verified_version = "1.0.322"
+last_verified_version = "1.0.336"
 
 [[finding]]
 id = "apigwv2-no-lambda-permission-check"
@@ -214,7 +215,7 @@ workaround = "None needed for this stack (REST APIs); be aware a missing aws_lam
 evidence = ["probe:apigwv2-jwt"]
 crates = ["services/service-com-amazonaws-apigatewayv2-apigatewayv2/src/service/invoke"]
 issues = ["20261110T165732Z-apigatewayv2-cloudformation-lambda-apigatewayv2-an-http-api-aws-proxy-route-invokes.md"]
-last_verified_version = "1.0.322"
+last_verified_version = "1.0.336"
 
 [[finding]]
 id = "front-door-cross-origin"
@@ -229,7 +230,7 @@ workaround = "Test browser clients against a same-origin page or real AWS; serve
 evidence = ["probe:apigw-cors-browser"]
 crates = ["vendor/server/src/listener_guard.rs"]
 issues = ["20261110T024230Z-apigateway-lambda-apigateway-execute-api-a-sigv4-signed-cross-origin.md"]
-last_verified_version = "1.0.322"
+last_verified_version = "1.0.336"
 
 # --------------------------------------------------------------------------------- CloudFront
 [[finding]]
@@ -246,22 +247,22 @@ infra_switch = "TOKEN_HEADERS in lambdas/authorizer + X-Auth-Token in the edge c
 evidence = ["e2e:cf-authz", "e2e:cf-xauth", "probe:cloudfront-edge"]
 crates = ["services/service-com-amazonaws-cloudfront-cloudfront2020-05-31/src/service/edge.rs"]
 issues = ["20261110T092303Z-apigateway-cloudfront-s3-5-net-new-causes-at.md"]
-last_verified_version = "1.0.322"
+last_verified_version = "1.0.336"
 
 [[finding]]
 id = "cloudfront-drops-origin-headers"
-title = "CloudFront drops all origin response headers (Content-Type, Cache-Control, custom)"
+title = "CloudFront drops origin response headers (Content-Type kept since 1.0.336)"
 category = "CloudFront"
 severity = "moderate"
 emulator_only = true
-status = "gap"
+status = "partial"
 aws = "Origin response headers pass through to the viewer."
-emulator = "Only status and body are returned (plus x-cache, x-amz-cf-id, content-length, date): tiles arrive without image/png, JSON without application/json."
+emulator = "1.0.322: only status and body were returned (plus x-cache, x-amz-cf-id, content-length, date), so tiles arrived without image/png and JSON without application/json. 1.0.336: Content-Type passes through; other origin headers (e.g. X-Origin-Header, Cache-Control) are still dropped."
 workaround = "Clients sniff content; tests assert on bodies. Not fixable from configuration."
 evidence = ["e2e:extra_checks", "probe:cloudfront-edge"]
 crates = ["services/service-com-amazonaws-cloudfront-cloudfront2020-05-31/src/service/edge.rs"]
 issues = ["20261110T092303Z-apigateway-cloudfront-s3-5-net-new-causes-at.md"]
-last_verified_version = "1.0.322"
+last_verified_version = "1.0.336"
 
 [[finding]]
 id = "cloudfront-no-functions"
@@ -276,7 +277,7 @@ workaround = "None (the design avoids needing them; X-Forwarded-Host for public 
 evidence = ["probe:cloudfront-edge"]
 crates = ["services/service-com-amazonaws-cloudfront-cloudfront2020-05-31/src/service/edge.rs"]
 issues = ["20261029T175823Z-cloudfront-testfunction-stub.md"]
-last_verified_version = "1.0.322"
+last_verified_version = "1.0.336"
 
 [[finding]]
 id = "cloudfront-viewer-protocol"
@@ -291,7 +292,7 @@ workaround = "Use the listener or path form; EMULATOR_LISTENER_PORT_RANGE pins t
 evidence = ["probe:cloudfront-edge"]
 crates = ["services/service-com-amazonaws-cloudfront-cloudfront2020-05-31/src/state/edge_endpoint.rs"]
 issues = []
-last_verified_version = "1.0.322"
+last_verified_version = "1.0.336"
 
 [[finding]]
 id = "cloudfront-waf-works"
@@ -306,23 +307,24 @@ workaround = "none needed"
 evidence = ["probe:cloudfront-edge"]
 crates = ["services/service-com-amazonaws-cloudfront-cloudfront2020-05-31/src/service/edge.rs"]
 issues = []
-last_verified_version = "1.0.322"
+last_verified_version = "1.0.336"
 
 # ------------------------------------------------------------------------------------ Cognito
 [[finding]]
 id = "cognito-es256"
-title = "Cognito signs tokens with ES256 instead of RS256"
+title = "Cognito signed tokens with ES256 instead of RS256 (fixed in 1.0.336)"
 category = "Cognito"
 severity = "moderate"
 emulator_only = true
-status = "gap"
+status = "works"
 aws = "Access/ID tokens are RS256; the JWKS has RSA keys (n, e)."
-emulator = "ES256 (P-256) with EC JWKS keys (x, y). Verifiers pinned to RS256 (aws-jwt-verify, many middlewares) reject emulator tokens."
+emulator = "1.0.322: ES256 (P-256) with EC JWKS keys (x, y), which verifiers pinned to RS256 (aws-jwt-verify, many middlewares) reject. 1.0.336: RS256 with RSA JWKS keys (n, e), like AWS."
 workaround = "Authorizer verifies both ES256 and RS256."
 evidence = ["probe:cognito-advanced", "e2e:apigw"]
 crates = ["services/service-com-amazonaws-cognitoidentityprovider-awscognitoidentityproviderservice/src/state/tokens.rs"]
 issues = ["20261029T182116Z-cognito-idp-issued-tokens-diverge-es256-instead-of.md", "20261109T124858Z-cognito-idp-5-net-new-causes-tokens-are.md"]
-last_verified_version = "1.0.322"
+fixed_in = "1.0.336"
+last_verified_version = "1.0.336"
 
 [[finding]]
 id = "cognito-iss-host"
@@ -338,7 +340,7 @@ infra_switch = "infra/main.tf: local.issuers"
 evidence = ["e2e:alice(host-minted)", "probe:apigwv2-jwt"]
 crates = ["services/service-com-amazonaws-cognitoidentityprovider-awscognitoidentityproviderservice/src/state/user_pool.rs"]
 issues = []
-last_verified_version = "1.0.322"
+last_verified_version = "1.0.336"
 
 [[finding]]
 id = "cognito-pretoken-ignored"
@@ -353,7 +355,7 @@ workaround = "Design authorizes on cognito:groups (present in access tokens on b
 evidence = ["probe:cognito-advanced"]
 crates = ["services/service-com-amazonaws-cognitoidentityprovider-awscognitoidentityproviderservice/src/state/lambda_triggers.rs"]
 issues = ["20261105T111951Z-cognito-idp-lambda-the-pretokengeneration-v2-trigger-does.md"]
-last_verified_version = "1.0.322"
+last_verified_version = "1.0.336"
 
 [[finding]]
 id = "cognito-custom-attrs-missing"
@@ -368,7 +370,7 @@ workaround = "none needed here"
 evidence = ["probe:cognito-advanced"]
 crates = ["services/service-com-amazonaws-cognitoidentityprovider-awscognitoidentityproviderservice/src/state/tokens.rs"]
 issues = []
-last_verified_version = "1.0.322"
+last_verified_version = "1.0.336"
 
 [[finding]]
 id = "cognito-no-oauth-endpoints"
@@ -383,7 +385,7 @@ workaround = "Machine-to-machine tokens not covered by this demo."
 evidence = ["probe:cognito-advanced"]
 crates = ["services/service-com-amazonaws-cognitoidentityprovider-awscognitoidentityproviderservice/src/service.rs"]
 issues = []
-last_verified_version = "1.0.322"
+last_verified_version = "1.0.336"
 
 [[finding]]
 id = "cognito-no-srp"
@@ -398,7 +400,7 @@ workaround = "USER_PASSWORD_AUTH (over TLS) for the token service."
 evidence = ["probe:cognito-advanced"]
 crates = ["services/service-com-amazonaws-cognitoidentityprovider-awscognitoidentityproviderservice/src/ops/initiate_auth.rs"]
 issues = []
-last_verified_version = "1.0.322"
+last_verified_version = "1.0.336"
 
 [[finding]]
 id = "cognito-groups-in-token"
@@ -413,7 +415,7 @@ workaround = "none needed"
 evidence = ["e2e:token_minting", "e2e:extra_checks"]
 crates = ["services/service-com-amazonaws-cognitoidentityprovider-awscognitoidentityproviderservice/src/state.rs"]
 issues = []
-last_verified_version = "1.0.322"
+last_verified_version = "1.0.336"
 
 # -------------------------------------------------------------------------------- RDS / Aurora
 [[finding]]
@@ -430,7 +432,7 @@ infra_switch = "infra/modules/database: via_script = var.emulator"
 evidence = ["probe:rds-cluster-native"]
 crates = ["services/service-com-amazonaws-rds-amazonrdsv19/src/ops/describe_global_clusters.rs"]
 issues = []
-last_verified_version = "1.0.322"
+last_verified_version = "1.0.336"
 
 [[finding]]
 id = "cfn-rds-not-materialized"
@@ -445,7 +447,7 @@ workaround = "Not usable as a workaround for the provider issue above."
 evidence = ["probe:rds-via-cloudformation"]
 crates = ["services/service-com-amazonaws-cloudformation-cloudformation/src/state", "services/service-com-amazonaws-cloudcontrol-cloudapiservice/src"]
 issues = []
-last_verified_version = "1.0.322"
+last_verified_version = "1.0.336"
 
 [[finding]]
 id = "rds-sqlite-no-postgis"
@@ -460,7 +462,7 @@ workaround = "tipg-lite stores GeoJSON + bbox columns and does exact intersectio
 evidence = ["probe:rds-postgis-wire"]
 crates = ["services/service-com-amazonaws-rds-amazonrdsv19/src/state/data_plane", "services/service-com-amazonaws-rdsdata-rdsdataservice/src"]
 issues = ["20261105T224225Z-rds-5-net-new-causes-the-postgresql-endpoint.md", "20261107T233409Z-logs-rds-the-emulated-aurora-postgresql-engine-refuses.md"]
-last_verified_version = "1.0.322"
+last_verified_version = "1.0.336"
 
 [[finding]]
 id = "rds-dataapi-separate-store"
@@ -475,7 +477,7 @@ workaround = "This stack uses the Data API for both loading and serving."
 evidence = ["probe:rds-postgis-wire"]
 crates = ["services/service-com-amazonaws-rdsdata-rdsdataservice/src/state.rs"]
 issues = ["20261109T135215Z-rds-rds-data-secretsmanager-data-api-writes-to.md"]
-last_verified_version = "1.0.322"
+last_verified_version = "1.0.336"
 
 [[finding]]
 id = "rds-random-port"
@@ -490,7 +492,7 @@ workaround = "Read endpoint/port from the data source; pin the range with EMULAT
 evidence = ["probe:rds-postgis-wire"]
 crates = ["services/service-com-amazonaws-rds-amazonrdsv19/src/state/data_plane/cluster_endpoint.rs"]
 issues = ["20261108T051751Z-rds-7-net-new-causes-endpoint-port-is.md"]
-last_verified_version = "1.0.322"
+last_verified_version = "1.0.336"
 
 [[finding]]
 id = "rds-managed-secret-outlives-cluster"
@@ -505,7 +507,7 @@ workaround = "Restart the emulator for clean state."
 evidence = ["deploy:destroy.leftovers"]
 crates = ["services/service-com-amazonaws-rds-amazonrdsv19/src/state/managed_master_secret.rs"]
 issues = ["20261109T205028Z-secretsmanager-an-rds-managed-master-user-secret-outlives.md"]
-last_verified_version = "1.0.322"
+last_verified_version = "1.0.336"
 
 [[finding]]
 id = "rds-master-username-rule"
@@ -520,7 +522,7 @@ workaround = "Use letters and digits only (portable either way)."
 evidence = ["source:services/service-com-amazonaws-rds-amazonrdsv19/src/ops/create_db_cluster.rs"]
 crates = ["services/service-com-amazonaws-rds-amazonrdsv19/src/ops/create_db_cluster.rs"]
 issues = []
-last_verified_version = "1.0.322"
+last_verified_version = "1.0.336"
 
 [[finding]]
 id = "rds-dataapi-works"
@@ -535,7 +537,7 @@ workaround = "none needed"
 evidence = ["e2e:features", "unit:test_features_conformance"]
 crates = ["services/service-com-amazonaws-rdsdata-rdsdataservice/src"]
 issues = []
-last_verified_version = "1.0.322"
+last_verified_version = "1.0.336"
 
 # ------------------------------------------------------------------------------------------ S3
 [[finding]]
@@ -552,7 +554,7 @@ infra_switch = "infra/providers.tf (both flags = var.emulator)"
 evidence = ["probe:s3-control-tagging"]
 crates = ["vendor/server/src/tls_certificate_authority.rs", "services/service-com-amazonaws-s3control-awss3controlservicev20180820/src"]
 issues = ["20261103T082051Z-s3-the-https-front-door-aborts-the-handshake.md"]
-last_verified_version = "1.0.322"
+last_verified_version = "1.0.336"
 
 [[finding]]
 id = "s3-capacity-limits"
@@ -567,7 +569,7 @@ workaround = "Keep test data small (COGs subset to a few MB)."
 evidence = ["probe:s3-addressing-limits"]
 crates = ["services/service-com-amazonaws-s3-amazons3/src/state.rs"]
 issues = []
-last_verified_version = "1.0.322"
+last_verified_version = "1.0.336"
 
 [[finding]]
 id = "s3-virtual-host-tls"
@@ -583,7 +585,7 @@ infra_switch = "infra/providers.tf: s3_use_path_style"
 evidence = ["probe:s3-addressing-limits"]
 crates = ["vendor/server/src/tls_certificate_authority.rs"]
 issues = ["20261029T083133Z-s3-virtual-hosted-style-bucket-addressing-is-unreachable.md"]
-last_verified_version = "1.0.322"
+last_verified_version = "1.0.336"
 
 [[finding]]
 id = "s3-multipart-etag"
@@ -598,24 +600,24 @@ workaround = "Use source_hash = filemd5(...) instead of etag."
 evidence = ["deploy:plan_after_apply"]
 crates = []
 issues = []
-last_verified_version = "1.0.322"
+last_verified_version = "1.0.336"
 
 # ----------------------------------------------------------------------------- EC2 / compute
 [[finding]]
 id = "ec2-sg-default-egress"
-title = "aws_security_group fails: new SGs lack AWS's default egress rule"
+title = "aws_security_group fails: revoking the default egress rule with ports 0/0 answers NotFound"
 category = "OpenTofu provider x emulator"
 severity = "moderate"
 emulator_only = true
 status = "gap"
-aws = "Every new security group gets an allow-all egress rule; the provider revokes it before applying the configured rules."
-emulator = "The SG is created without it, so the provider's RevokeSecurityGroupEgress fails with InvalidPermission.NotFound."
+aws = "Every new security group gets an allow-all egress rule (protocol -1). The provider revokes it with IpProtocol=-1, FromPort=0, ToPort=0, CidrIp=0.0.0.0/0; AWS ignores ports for protocol -1 and matches the rule."
+emulator = "The default rule exists (IpProtocol -1, 0.0.0.0/0), but RevokeSecurityGroupEgress with FromPort=0/ToPort=0 answers InvalidPermission.NotFound; the same revoke without ports succeeds. So every aws_security_group create fails (1.0.322 and 1.0.336)."
 workaround = "Skip the SG on the emulator (RDS uses no VPC SG ids)."
 infra_switch = "infra/modules/database: create_security_group = !var.emulator"
 evidence = ["probe:ec2-security-group"]
 crates = ["services/service-com-amazonaws-ec2-amazonec2/src/ops/create_security_group.rs"]
 issues = []
-last_verified_version = "1.0.322"
+last_verified_version = "1.0.336"
 
 [[finding]]
 id = "no-container-or-vm-execution"
@@ -625,12 +627,12 @@ severity = "major"
 emulator_only = true
 status = "partial"
 aws = "Fargate runs the container; EC2 boots the AMI and runs user_data."
-emulator = "ECS: RunTask follows PROVISIONING -> PENDING -> RUNNING, with a modelled image-pull reachability check against the subnet's routes (no NAT/IGW -> CannotPullContainerError ... dial tcp public.ecr.aws:443: i/o timeout), but the container never runs: a task whose command exits after 2 s stays RUNNING until StopTask (and a running task blocks `tofu destroy` of the cluster). EC2: instances can't even be managed by tofu (see ec2-describetags-stub)."
+emulator = "ECS: RunTask follows PROVISIONING -> PENDING -> RUNNING with a modelled image-pull reachability check against the subnet's routes (no NAT/IGW -> CannotPullContainerError ... dial tcp public.ecr.aws:443: i/o timeout). The container command never runs: on 1.0.322 the task stayed RUNNING until StopTask (blocking `tofu destroy` of the cluster); on 1.0.336 it goes STOPPED with exitCode 0 / EssentialContainerExited on its own. EC2: instances can't even be managed by tofu (see ec2-describetags-stub)."
 workaround = "Use Lambda (Python/Node) for compute that must run in tests."
 evidence = ["probe:ecs-fargate", "probe:ec2-instance"]
 crates = ["services/service-com-amazonaws-ecs-amazonec2containerservicev20141113/src", "services/service-com-amazonaws-ec2-amazonec2/src/ops/run_instances.rs"]
 issues = []
-last_verified_version = "1.0.322"
+last_verified_version = "1.0.336"
 
 [[finding]]
 id = "elb-data-plane"
@@ -645,7 +647,7 @@ workaround = "none needed"
 evidence = ["probe:alb-lambda"]
 crates = ["services/service-com-amazonaws-elasticloadbalancingv2-elasticloadbalancing-v10"]
 issues = []
-last_verified_version = "1.0.322"
+last_verified_version = "1.0.336"
 
 # ------------------------------------------------------------------------ real-AWS design notes
 [[finding]]
@@ -661,7 +663,7 @@ workaround = "infra/modules/edge cache policy keys on Authorization + X-Auth-Tok
 evidence = ["source:infra/modules/edge/main.tf"]
 crates = []
 issues = []
-last_verified_version = "1.0.322"
+last_verified_version = "1.0.336"
 
 [[finding]]
 id = "aws-authorizer-cache-policy-scope"
@@ -676,7 +678,7 @@ workaround = "lambdas/authorizer/policy.py returns all allowed prefixes."
 evidence = ["unit:test_authorizer"]
 crates = []
 issues = []
-last_verified_version = "1.0.322"
+last_verified_version = "1.0.336"
 
 [[finding]]
 id = "aws-cognito-group-scopes"
@@ -691,7 +693,7 @@ workaround = "Authorize on cognito:groups in a Lambda authorizer."
 evidence = ["probe:cognito-advanced"]
 crates = []
 issues = []
-last_verified_version = "1.0.322"
+last_verified_version = "1.0.336"
 
 [[finding]]
 id = "aws-apigw-limits"
@@ -706,7 +708,7 @@ workaround = "Lambda timeout 29 s; tiles are ~10-600 kB."
 evidence = ["source:infra/modules/lambda_function/main.tf"]
 crates = []
 issues = []
-last_verified_version = "1.0.322"
+last_verified_version = "1.0.336"
 
 # --------------------------------------------------------------------------------- operational
 [[finding]]
@@ -722,7 +724,7 @@ workaround = "Treat emulator + state as one unit: `mise run emulator:restart` de
 evidence = ["source:scripts/emulator.sh"]
 crates = ["vendor/server/src/lib.rs", "vendor/server/src/cli.rs"]
 issues = []
-last_verified_version = "1.0.322"
+last_verified_version = "1.0.336"
 
 # ------------------------------------------------------------------------- added from probes
 [[finding]]
@@ -738,7 +740,7 @@ workaround = "Set availability_zone on aws_instance explicitly (then the next bl
 evidence = ["probe:ec2-instance"]
 crates = ["services/service-com-amazonaws-ec2-amazonec2/src/ops/run_instances.rs"]
 issues = []
-last_verified_version = "1.0.322"
+last_verified_version = "1.0.336"
 
 [[finding]]
 id = "ec2-describetags-stub"
@@ -753,7 +755,7 @@ workaround = "None from configuration; don't manage EC2 instances with tofu on t
 evidence = ["probe:ec2-instance"]
 crates = ["services/service-com-amazonaws-ec2-amazonec2/src/ops/describe_tags.rs"]
 issues = ["20261022T235108Z-ec2-describetags-stub.md"]
-last_verified_version = "1.0.322"
+last_verified_version = "1.0.336"
 
 [[finding]]
 id = "dynamodb-ondemand-throughput-drift"
@@ -768,7 +770,7 @@ workaround = "lifecycle { ignore_changes = [on_demand_throughput] } (or accept t
 evidence = ["probe:dynamodb-stream"]
 crates = ["services/service-com-amazonaws-dynamodb-dynamodb-20120810/src"]
 issues = []
-last_verified_version = "1.0.322"
+last_verified_version = "1.0.336"
 
 [[finding]]
 id = "cognito-custom-attr-prefix"
@@ -783,22 +785,23 @@ workaround = "lifecycle { ignore_changes = [attributes] } for users with custom 
 evidence = ["probe:cognito-advanced"]
 crates = ["services/service-com-amazonaws-cognitoidentityprovider-awscognitoidentityproviderservice/src/state/attributes.rs"]
 issues = ["20261026T235252Z-cognito-idp-five-causes-declared-custom-attribute-constraints.md"]
-last_verified_version = "1.0.322"
+last_verified_version = "1.0.336"
 
 [[finding]]
 id = "acm-dns-validation-never-issues"
-title = "ACM DNS-validated certificates never become ISSUED"
+title = "ACM DNS-validated certificates never became ISSUED (fixed in 1.0.336)"
 category = "DNS & certificates"
 severity = "moderate"
 emulator_only = true
-status = "gap"
+status = "works"
 aws = "Once the CNAME is resolvable in public DNS (a delegated zone), the certificate is ISSUED within minutes."
-emulator = "The validation CNAME can be created in Route 53 (the record exists), but ACM waits for outside evidence until the 72 h window ends: aws_acm_certificate_validation times out in PENDING_VALIDATION. (For a domain you don't actually own this is also what AWS does.)"
-workaround = "None: custom domains for API Gateway/CloudFront can't be tested end to end."
+emulator = "1.0.322: the validation CNAME could be created in Route 53 but ACM waited for outside evidence until the 72 h window ended (aws_acm_certificate_validation timed out in PENDING_VALIDATION). 1.0.336: the certificate is ISSUED once the Route 53 validation record exists (within the 2-minute apply)."
+workaround = "None needed from 1.0.336."
 evidence = ["probe:route53-acm"]
 crates = ["services/service-com-amazonaws-acm-certificatemanager/src/state.rs"]
 issues = []
-last_verified_version = "1.0.322"
+fixed_in = "1.0.336"
+last_verified_version = "1.0.336"
 
 [[finding]]
 id = "acm-reserved-tld"
@@ -813,7 +816,7 @@ workaround = "Use a registrable name in tests."
 evidence = ["probe:route53-acm"]
 crates = ["services/service-com-amazonaws-acm-certificatemanager/src/state.rs"]
 issues = []
-last_verified_version = "1.0.322"
+last_verified_version = "1.0.336"
 
 [[finding]]
 id = "event-sources-work"
@@ -828,7 +831,7 @@ workaround = "none needed"
 evidence = ["probe:s3-event-lambda", "probe:sqs-lambda", "probe:sns-sqs", "probe:eventbridge-schedule", "probe:stepfunctions", "probe:dynamodb-stream"]
 crates = ["services/service-com-amazonaws-lambda-awsgirapiservice/src/state/event_source_", "services/service-com-amazonaws-sfn-awsstepfunctions/src", "services/service-com-amazonaws-eventbridge-awsevents/src"]
 issues = []
-last_verified_version = "1.0.322"
+last_verified_version = "1.0.336"
 
 [[finding]]
 id = "kms-secrets-work"
@@ -843,4 +846,19 @@ workaround = "none needed"
 evidence = ["probe:kms-secrets"]
 crates = ["services/service-com-amazonaws-kms-trentservice/src"]
 issues = []
-last_verified_version = "1.0.322"
+last_verified_version = "1.0.336"
+
+[[finding]]
+id = "ecr-local-uri-lambda-mismatch"
+title = "ECR repository_url (local form since 1.0.336) is rejected by Lambda CreateFunction"
+category = "Lambda"
+severity = "moderate"
+emulator_only = true
+status = "partial"
+aws = "repository_url is <acct>.dkr.ecr.<region>.amazonaws.com/<repo>, and image_uri = \"${repository_url}:tag\" works."
+emulator = "1.0.336 reports repository_url as 127.0.0.1:9297/<repo> (pullable from the host), but Lambda's CreateFunction rejects that URI ('Source image ... is not valid'); the AWS-style URI built by hand is accepted (and Invoke then fails as before, see lambda-container-images). 1.0.322 reported the AWS-style URI."
+workaround = "Build image_uri as \"${account_id}.dkr.ecr.${region}.amazonaws.com/${repo}:tag\" instead of using repository_url."
+evidence = ["probe:real-titiler-image"]
+crates = ["services/service-com-amazonaws-ecr-amazonec2containerregistry-v20150921/src", "services/service-com-amazonaws-lambda-awsgirapiservice/src/state/image_source.rs"]
+issues = ["20261109T150104Z-ecr-publishes-real-aws-registry-hostnames-instead-of.md"]
+last_verified_version = "1.0.336"

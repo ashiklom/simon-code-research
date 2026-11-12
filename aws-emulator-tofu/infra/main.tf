@@ -103,8 +103,8 @@ module "database" {
   name       = local.name
   subnet_ids = module.network.private_subnet_ids
   vpc_id     = module.network.vpc_id
-  # aws-emulator: new security groups lack AWS's default egress rule, so the provider's
-  # "revoke default egress" step fails (InvalidPermission.NotFound). See findings.toml.
+  # aws-emulator: the provider's "revoke default egress" call (protocol -1 with ports 0/0) answers
+  # InvalidPermission.NotFound, so aws_security_group can't be created. See findings.toml.
   create_security_group = !var.emulator
   via_script            = var.emulator
 }

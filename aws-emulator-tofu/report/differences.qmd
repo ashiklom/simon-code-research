@@ -37,7 +37,7 @@ The questions raised in planning, answered:
 |---|---|
 | HTTP API v2 JWT authorizer not checking signatures: emulator or general? | **Emulator only.** On AWS the JWT authorizer verifies the signature against the issuer's JWKS. On the emulator, a payload-edited token and a token signed by an unrelated key both got 200. |
 | CloudFront not forwarding `Authorization`: all CloudFront, or the emulator? | **Mostly the emulator.** On AWS, `Authorization` *is* forwarded when it's in the **cache policy** (cache key). An origin request policy alone can't forward it, and that part is real AWS behaviour. The emulator drops it whatever the policy says. |
-| CloudFront dropping origin response headers? | **Emulator only.** AWS passes origin headers (Content-Type, Cache-Control, CORS) through. |
+| CloudFront dropping origin response headers? | **Emulator only.** AWS passes origin headers (Content-Type, Cache-Control, CORS) through. Since 1.0.336 the emulator keeps Content-Type but still drops other headers. |
 | Aurora without PostGIS? | **Emulator only.** Aurora PostgreSQL supports PostGIS; the emulator's engine is SQLite behind a PostgreSQL wire protocol. |
 | Lambda can't run titiler/tipg? | **Emulator only.** On AWS both run as container images or zip/layer packages. |
 

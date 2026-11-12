@@ -134,7 +134,8 @@ admin rule and the ability to read the token from more than one header (useful b
 ### What the authorizer checks
 
 - **Signature.** It checks the signature against the pool's JWKS, supporting **ES256 and RS256**:
-  aws-emulator's Cognito signs with ES256 while AWS signs with RS256. Verification is pure Python
+  aws-emulator's Cognito signed with ES256 until 1.0.336, while AWS (and the emulator since 1.0.336)
+  signs with RS256. Verification is pure Python
   (P-256 ECDSA with Jacobian coordinates; RSA PKCS#1 v1.5), because the emulator's runtime can't
   load `cryptography`. Unit tests cross-check it against `cryptography` and PyJWT.
 - **Claims.** `iss` must be in an allow-list, `token_use` must be `access` (ID tokens are

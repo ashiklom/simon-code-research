@@ -220,6 +220,15 @@ def probes(pr, findings):
                              f"{counts['gap']} don't.")
 
 
+VOLATILE = re.compile(r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}|RequestID: \S+|127\.0\.0\.1:\d+"
+                      r"|us-east-1_[0-9a-f]+|\b(?:sg|i|subnet|vpc)-[0-9a-f]+|[0-9a-f]{32}|probe-adv-[0-9a-f]+|\d{4}-\d\d-\d\dT\S+"
+                      r"|line \d+|\(Nov \d+ \d{4}[^)]*\)|rustc [^;]*")
+
+
+def _norm(d):
+    return VOLATILE.sub("~", d or "")
+
+
 def changes(cur_probes, cur_e2e, cur_deploy, v):
     """Compare current results with the newest snapshot in results/history/<version>/."""
     hist = sorted((RES / "history").glob("*/probes.json"), key=lambda p: [int(x) for x in p.parent.name.split(".")])
@@ -243,7 +252,7 @@ def changes(cur_probes, cur_e2e, cur_deploy, v):
         db = (b or {}).get("check", {}).get("detail", "")
         if sa != sb or (a and b and bool(a.get("apply", {}).get("ok")) != bool(b.get("apply", {}).get("ok"))):
             rows.append(f"| [{name}](probes.qmd#{name}) | {badge(sa) if a else '–'} | {badge(sb) if b else '–'} | {esc(db[:220])} |")
-        elif a and b and da != db and sa != "works":
+        elif a and b and _norm(da) != _norm(db) and sa != "works":
             rows.append(f"| [{name}](probes.qmd#{name}) | {badge(sa)} | {badge(sb)} (details changed) | {esc(db[:220])} |")
     if rows:
         out += [f"| Probe | {pv['version']} | {v['version']} | Now |", "|---|---|---|---|", *rows]

@@ -2,7 +2,8 @@
 
 How to prototype AWS infrastructure with OpenTofu against
 [aws-emulator](https://github.com/aws/aws-emulator) without losing hours to the traps below.
-Everything here was verified with **aws-emulator 1.0.322** (commit `7753983c6e`), **OpenTofu 1.13.9**
+Everything here was verified with **aws-emulator 1.0.336** (commit `f515581569`; first worked out on
+1.0.322, see `results/history/`), **OpenTofu 1.13.9**
 and **hashicorp/aws 6.73** (see `results/emulator-version.json`). Re-check it against newer emulator
 releases with [UPDATE.md](UPDATE.md). Evidence for each claim is in `findings.toml` (ids in brackets)
 and the probes under `probes/`.
@@ -138,7 +139,8 @@ locals { execution_arn = "arn:aws:execute-api:${var.region}:${data.aws_caller_id
 | HTTP API (v2) | `api_endpoint` | `api_endpoint` is already `https://127.0.0.1:9297/_aws/execute-api/<id>` |
 | CloudFront | `https://<d>.cloudfront.net` | `domain_name` = `127.0.0.1:<port>` (HTTP and HTTPS), or `https://127.0.0.1:9297/_aws/cloudfront/<dist-id>/…` |
 | CloudFront → API Gateway origin | origin `domain_name = "<id>.execute-api.<r>.amazonaws.com"` | the same value works: the edge resolves it in-process |
-| Lambda function URL | `https://<id>.lambda-url.<r>.on.aws/` | send to `https://127.0.0.1:9297/` with header `Host: <id>.lambda-url.<r>.on.aws` |
+| Lambda function URL | `https://<id>.lambda-url.<r>.on.aws/` | `function_url` = `https://127.0.0.1:9297/_aws/lambda-url/<id>/` since 1.0.336 (before: send to the emulator port with `Host: <id>.lambda-url.<r>.on.aws`) |
+| ECR image for Lambda | `image_uri = "${repository_url}:tag"` | since 1.0.336 `repository_url` is `127.0.0.1:9297/<repo>`, which Lambda rejects; use `<acct>.dkr.ecr.<r>.amazonaws.com/<repo>:tag` (image functions still don't *run*) |
 | ALB | `dns_name` | `dns_name` is a `127.0.0.1:<port>` listener (HTTP); Lambda targets work |
 | Cognito JWKS | `https://cognito-idp.<r>.amazonaws.com/<pool>/.well-known/jwks.json` | `https://127.0.0.1:9297/<pool>/.well-known/jwks.json` (anonymous GET) |
 | RDS cluster | `<cluster>.cluster-….rds.amazonaws.com:5432` | `127.0.0.1:<port from listener range>`, TLS with the emulator cert, `sslmode=require` |
@@ -162,7 +164,7 @@ locals { execution_arn = "arn:aws:execute-api:${var.region}:${data.aws_caller_id
 Consequences for design:
 
 - Talk to Aurora through the **RDS Data API**, not a driver.
-- Verify JWTs in pure Python. Cognito here signs **ES256**; AWS signs RS256, so support both.
+- Verify JWTs in pure Python. Cognito signs RS256 like AWS since 1.0.336 (ES256 before), so supporting both is cheap insurance.
 - Vendor shared code into each zip instead of using layers.
 - To test the real titiler/tipg/FastAPI app, run it outside the emulator (TestClient against local
   PostGIS works well) and keep the Lambda handler thin.
@@ -173,14 +175,14 @@ Consequences for design:
 |---|---|---|---|
 | **API Gateway REST** | Lambda proxy, REQUEST/TOKEN authorizers with policy evaluation (wildcard ARNs), `aws_lambda_permission` enforced, gateway responses, MOCK + CORS headers, binary media types | browsers on another site are refused by the front door (403) [front-door-cross-origin]; computed attrs come back `[]`/`{}`/`""` instead of null [apigw-computed-attr-drift] | hash only configured inputs in deployment `triggers` (normalise `authorizer_id` null/""); path-style URLs |
 | **API Gateway HTTP (v2)** | routing, Lambda proxy (payload 2.0), `$default` stage | **JWT authorizer doesn't verify signatures** [apigwv2-jwt-no-signature-check]; Lambda permission not checked [apigwv2-no-lambda-permission-check] | never rely on emulator results for v2 JWT security |
-| **CloudFront** | origin routing per path behaviour, cache policies and caching (`x-cache: Hit`), origin request policy header/query forwarding, **WAFv2 web ACL rules** | **`Authorization` never forwarded** [cloudfront-authorization-dropped]; **origin response headers dropped** (Content-Type) [cloudfront-drops-origin-headers]; CloudFront Functions, Lambda@Edge, response-headers policies not run [cloudfront-no-functions]; http not redirected [cloudfront-viewer-protocol] | send bearer tokens in a custom header (e.g. `X-Auth-Token`) and accept it in your authorizer |
-| **Cognito** | user pools, groups, app clients, users with permanent passwords via `aws_cognito_user.password`, USER_PASSWORD_AUTH, REFRESH_TOKEN_AUTH, `cognito:groups` in access tokens | ES256 not RS256 [cognito-es256]; `iss` = host you called [cognito-iss-host]; pre-token trigger output ignored [cognito-pretoken-ignored]; no custom attrs in ID token; no `/oauth2/*` or hosted UI [cognito-no-oauth-endpoints]; no SRP [cognito-no-srp] | allow both issuers; authorize on groups |
+| **CloudFront** | origin routing per path behaviour, cache policies and caching (`x-cache: Hit`), origin request policy header/query forwarding, **WAFv2 web ACL rules** | **`Authorization` never forwarded** [cloudfront-authorization-dropped]; **origin response headers dropped** (Content-Type kept since 1.0.336) [cloudfront-drops-origin-headers]; CloudFront Functions, Lambda@Edge, response-headers policies not run [cloudfront-no-functions]; http not redirected [cloudfront-viewer-protocol] | send bearer tokens in a custom header (e.g. `X-Auth-Token`) and accept it in your authorizer |
+| **Cognito** | user pools, groups, app clients, users with permanent passwords via `aws_cognito_user.password`, USER_PASSWORD_AUTH, REFRESH_TOKEN_AUTH, `cognito:groups` in access tokens | `iss` = host you called [cognito-iss-host]; pre-token trigger output ignored [cognito-pretoken-ignored]; no custom attrs in ID token, custom attrs read back without `custom:` (drift) [cognito-custom-attr-prefix]; no `/oauth2/*` or hosted UI [cognito-no-oauth-endpoints]; no SRP [cognito-no-srp] | allow both issuers; authorize on groups |
 | **RDS / Aurora** | cluster/instance/subnet group APIs, managed master secret, Serverless v2 config, **Data API** CRUD | `aws_rds_cluster` unusable: DescribeGlobalClusters filter rejected [rds-describeglobalclusters-filter]; engine is SQLite: **no PostGIS**, no PL/pgSQL, 5 s / 64 MiB limits [rds-sqlite-no-postgis]; Data API and wire endpoint are **separate databases** [rds-dataapi-separate-store]; secret survives deletion [rds-managed-secret-outlives-cluster] | create the cluster with `terraform_data` + boto3 script, read it with `data "aws_rds_cluster"` (see `infra/modules/database`); store geometry as GeoJSON text + bbox columns |
 | **CloudFormation / Cloud Control** | stacks apply and report outputs | **RDS clusters reported CREATE_COMPLETE but never created** [cfn-rds-not-materialized] | don't use it as an escape hatch for RDS |
 | **S3** | buckets, policies (incl. `aws:SecureTransport` deny), SSE, versioning, lifecycle, notifications → Lambda, Range GET, presigned URLs | 64 MiB/bucket and 128 MiB total [s3-capacity-limits]; virtual-host addressing fails TLS [s3-virtual-host-tls] | small test data; path style. Use `source_hash`, not `etag`, for big objects (multipart ETag; same on AWS) |
-| **EC2 / VPC** | VPCs, subnets, AZ data source, instances (lifecycle only) | `aws_security_group` fails (no default egress rule to revoke) [ec2-sg-default-egress]; instances don't boot [no-container-or-vm-execution] | skip SGs on the emulator |
+| **EC2 / VPC** | VPCs, subnets, AZ data source, instances (lifecycle only) | `aws_security_group` fails (the provider's revoke of the default egress rule, protocol -1 with ports 0/0, answers NotFound) [ec2-sg-default-egress]; `aws_instance` fails (empty Placement AZ rejected, then `DescribeTags` is a stub) [ec2-runinstances-empty-az, ec2-describetags-stub] | skip SGs and instances on the emulator |
 | **ECS** | clusters, task definitions, RunTask lifecycle | containers don't run [no-container-or-vm-execution] | use Lambda for code that must run |
-| **SQS, SNS, EventBridge, Step Functions, DynamoDB (+streams), KMS, Secrets Manager, Route 53, ACM, ELBv2, IAM** | see `results/probes.json`: event delivery, scheduled rules, executions, encryption, DNS validation and ALB→Lambda were all exercised | see the probes page for drift on individual resources | |
+| **SQS, SNS, EventBridge, Step Functions, DynamoDB (+streams), KMS, Secrets Manager, Route 53, ACM, ELBv2, IAM** | event delivery, scheduled rules, executions, encryption, ALB→Lambda; ACM DNS validation via Route 53 issues certificates since 1.0.336; reserved TLDs (`.example`) are refused as on AWS | DynamoDB on-demand tables read back `max_*_request_units = -1` (drift) [dynamodb-ondemand-throughput-drift] | `ignore_changes` |
 
 ## 7. Drift traps
 
@@ -192,8 +194,8 @@ Consequences for design:
   as in `infra/modules/authenticated_api`.
 - `aws_s3_object` with `etag = filemd5()` for files uploaded multipart (this happens on AWS too).
   Use `source_hash`.
-- Some probes show drift on individual resources (e.g. `aws_cognito_user`, `aws_dynamodb_table`).
-  See the probe table in `results/probes.json`.
+- `aws_dynamodb_table` (PAY_PER_REQUEST): `max_read/write_request_units = -1 -> null` every plan.
+- `aws_cognito_user` with custom attributes: read back as `department` not `custom:department`.
 
 ## 8. Lifecycle
 

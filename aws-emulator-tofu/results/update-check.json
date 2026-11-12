@@ -1,0 +1,14 @@
+{
+ "checked_at": "2026-11-12T18:25:37Z",
+ "tested": {
+  "version": "1.0.336",
+  "commit": "f515581569b98a9dcbd2e686c12f912fdce51bba"
+ },
+ "candidate": {
+  "version": "1.0.336",
+  "commit": "f515581569b98a9dcbd2e686c12f912fdce51bba"
+ },
+ "status": "UNCHANGED",
+ "affected_findings": [],
+ "changed_paths": []
+}

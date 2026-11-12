@@ -643,20 +643,26 @@
    ],
    "expect_apply_failure": false,
    "apply": {
-    "ok": false,
-    "seconds": 3.1,
-    "error": "creating Lambda Function (probe-titiler-image): operation error Lambda: CreateFunction, https response error StatusCode: 400, RequestID: 36797e0f-4bb2-45f9-90b7-3a24e94d7f88, InvalidParameterValueException: Source image 127.0.0.1:9297/probe/titiler:latest is not valid. Provide a valid source image."
+    "ok": true,
+    "seconds": 8.6,
+    "error": null
    },
    "check": {
     "status": "gap",
-    "detail": "creating Lambda Function (probe-titiler-image): operation error Lambda: CreateFunction, https response error StatusCode: 400, RequestID: 36797e0f-4bb2-45f9-90b7-3a24e94d7f88, InvalidParameterValueException: Source image 127.0.0.1:9297/probe/titiler:latest is not valid. Provide a valid source image."
+    "detail": "check raised InvalidRuntimeException: An error occurred (InvalidRuntimeException) when calling the Invoke operation (reached max retries: 1): The runtime an image package is not supported by this emulator, which runs the Python and node runtimes."
+   },
+   "drift": {
+    "no_changes": true,
+    "resources": [],
+    "attributes": [],
+    "error": null
    },
    "destroy": {
     "ok": true,
-    "seconds": 3.3,
+    "seconds": 8.6,
     "error": null
    },
-   "ran_at": "2026-11-12T18:14:29Z"
+   "ran_at": "2026-11-12T18:24:31Z"
   },
   {
    "name": "route53-acm",
@@ -666,20 +672,26 @@
    "findings": [],
    "expect_apply_failure": false,
    "apply": {
-    "ok": false,
-    "seconds": 156.0,
-    "error": "waiting for ACM Certificate (arn:aws:acm:us-east-1:000000000000:certificate/f363cae9-71fc-48b9-8299-017709cb1355) to be issued: timeout while waiting for state to become 'ISSUED' (last state: 'PENDING_VALIDATION', timeout: 2m0s): operation error ACM: DescribeCertificate, context deadline exceeded"
+    "ok": true,
+    "seconds": 35.9,
+    "error": null
    },
    "check": {
-    "status": "gap",
-    "detail": "waiting for ACM Certificate (arn:aws:acm:us-east-1:000000000000:certificate/f363cae9-71fc-48b9-8299-017709cb1355) to be issued: timeout while waiting for state to become 'ISSUED' (last state: 'PENDING_VALIDATION', timeout: 2m0s): operation error ACM: DescribeCertificate, context deadline exceeded"
+    "status": "works",
+    "detail": "certificate=ISSUED; TestDNSAnswer=['192.0.2.10']; (no real DNS is served)"
+   },
+   "drift": {
+    "no_changes": true,
+    "resources": [],
+    "attributes": [],
+    "error": null
    },
    "destroy": {
     "ok": true,
-    "seconds": 33.6,
+    "seconds": 33.5,
     "error": null
    },
-   "ran_at": "2026-11-12T17:41:10Z"
+   "ran_at": "2026-11-12T18:15:42Z"
   },
   {
    "name": "s3-addressing-limits",
@@ -693,7 +705,7 @@
    "expect_apply_failure": false,
    "apply": {
     "ok": true,
-    "seconds": 58.4,
+    "seconds": 58.5,
     "error": null
    },
    "check": {
@@ -708,10 +720,10 @@
    },
    "destroy": {
     "ok": true,
-    "seconds": 4.5,
+    "seconds": 4.9,
     "error": null
    },
-   "ran_at": "2026-11-12T17:54:41Z"
+   "ran_at": "2026-11-12T18:16:51Z"
   },
   {
    "name": "s3-control-tagging",
@@ -735,7 +747,7 @@
     "ok": null,
     "error": "skipped (apply timed out; restart the emulator to clean up)"
    },
-   "ran_at": "2026-11-12T17:25:28Z"
+   "ran_at": "2026-11-12T18:18:22Z"
   },
   {
    "name": "s3-event-lambda",
@@ -756,14 +768,15 @@
    "drift": {
     "no_changes": true,
     "resources": [],
+    "attributes": [],
     "error": null
    },
    "destroy": {
     "ok": true,
-    "seconds": 8.9,
+    "seconds": 8.7,
     "error": null
    },
-   "ran_at": "2026-11-12T17:25:59Z"
+   "ran_at": "2026-11-12T18:18:45Z"
   },
   {
    "name": "sns-sqs",
@@ -774,7 +787,7 @@
    "expect_apply_failure": false,
    "apply": {
     "ok": true,
-    "seconds": 53.5,
+    "seconds": 53.2,
     "error": null
    },
    "check": {
@@ -784,14 +797,15 @@
    "drift": {
     "no_changes": true,
     "resources": [],
+    "attributes": [],
     "error": null
    },
    "destroy": {
     "ok": true,
-    "seconds": 70.6,
+    "seconds": 70.8,
     "error": null
    },
-   "ran_at": "2026-11-12T17:28:07Z"
+   "ran_at": "2026-11-12T18:20:52Z"
   },
   {
    "name": "sqs-lambda",
@@ -812,14 +826,15 @@
    "drift": {
     "no_changes": true,
     "resources": [],
+    "attributes": [],
     "error": null
    },
    "destroy": {
     "ok": true,
-    "seconds": 46.2,
+    "seconds": 46.3,
     "error": null
    },
-   "ran_at": "2026-11-12T17:29:33Z"
+   "ran_at": "2026-11-12T18:22:13Z"
   },
   {
    "name": "stepfunctions",
@@ -840,14 +855,15 @@
    "drift": {
     "no_changes": true,
     "resources": [],
+    "attributes": [],
     "error": null
    },
    "destroy": {
     "ok": true,
-    "seconds": 9.0,
+    "seconds": 9.5,
     "error": null
    },
-   "ran_at": "2026-11-12T17:30:05Z"
+   "ran_at": "2026-11-12T18:22:36Z"
   }
  ]
 }

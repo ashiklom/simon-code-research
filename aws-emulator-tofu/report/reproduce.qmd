@@ -12,7 +12,7 @@ Everything runs locally on Linux x86-64 with no AWS account and no Docker. Tools
 cd aws-emulator-tofu
 mise install && pixi install
 mise run fetch                 # 2 small COGs (~17 MB) + Natural Earth vectors -> data/
-mise run emulator:install      # latest aws-emulator .deb -> .emulator/  (or: scripts/emulator.sh install --version 1.0.322)
+mise run emulator:install      # latest aws-emulator .deb -> .emulator/  (or: scripts/emulator.sh install --version 1.0.336)
 mise run all                   # unit tests, fresh emulator, deploy cycle, load, e2e matrix, probes (~30 min)
 mise run site                  # this report, from committed results (no emulator needed)
 ```

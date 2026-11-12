@@ -21,7 +21,9 @@ resource "aws_lambda_function" "f" {
   function_name = "probe-titiler-image"
   role          = aws_iam_role.r.arn
   package_type  = "Image"
-  image_uri     = "${aws_ecr_repository.r.repository_url}:latest"
+  # aws-emulator >= 1.0.336 reports repository_url as 127.0.0.1:9297/<repo>, which Lambda's
+  # CreateFunction rejects ("Source image ... is not valid"); the AWS-style URI is accepted.
+  image_uri     = "${local.account_id}.dkr.ecr.us-east-1.amazonaws.com/${aws_ecr_repository.r.name}:latest"
   memory_size   = 1024
   timeout       = 30
   depends_on    = [terraform_data.push]

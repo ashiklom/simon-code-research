@@ -60,12 +60,14 @@ tipg. Aurora PostgreSQL is SQLite underneath, with no PostGIS.
 Highlights:
 
 - **HTTP API v2 JWT authorizers accept forged signatures** on the emulator.
-- **CloudFront** runs no Functions, drops origin `Content-Type`, but *does* enforce WAF and caching.
-- **Cognito** ignores pre-token-generation output, has no `/oauth2/token`, and signs ES256.
+- **CloudFront** runs no Functions and drops origin headers (except Content-Type since 1.0.336), but *does* enforce WAF and caching.
+- **Cognito** ignores pre-token-generation output and has no `/oauth2/token` (it signed ES256 until 1.0.336).
 - **CloudFormation** reports RDS clusters it never creates.
 - **ECS** models task lifecycles (even image-pull reachability) without running containers.
-- **EC2 instances** can't be managed by OpenTofu at all (`DescribeTags` is a stub), and ACM never
-  issues DNS-validated certificates.
+- **EC2 instances** can't be managed by OpenTofu at all (`DescribeTags` is a stub).
+- **The update procedure works:** 1.0.336 appeared mid-experiment. Re-checking it found RS256 tokens,
+  ACM DNS validation, function URLs and CloudFront Content-Type fixed, and one new mismatch (ECR URI vs Lambda).
+  [What changed →](differences.qmd#changes)
 - **Working on the emulator:** EventBridge schedules, Step Functions, SQS, SNS, DynamoDB
   streams, S3 notifications, KMS/Secrets Manager and ALB → Lambda.
 

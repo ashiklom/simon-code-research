@@ -3,5 +3,11 @@
   "release_date": "2026.11.12",
   "commit": "f515581569b98a9dcbd2e686c12f912fdce51bba",
   "deb_sha256": "e2c621ec12c8a4bb46c884792d72f189378ea83ffcce180dc837b4c5e6b97f1c",
-  "source": "deb-latest"
+  "source": "deb-latest",
+  "last_checked": {
+    "at": "2026-11-12T18:25:37Z",
+    "candidate_version": "1.0.336",
+    "candidate_commit": "f515581569b98a9dcbd2e686c12f912fdce51bba",
+    "result": "UNCHANGED"
+  }
 }
