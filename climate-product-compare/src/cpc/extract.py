@@ -60,7 +60,7 @@ def run(name: str, sites: pd.DataFrame, *, t_end: pd.Timestamp | None = None, st
 
     avail = product.available_end()
     t_end = min(pd.Timestamp(t_end), avail) if t_end is not None else avail
-    repo = store.open_repo(store_url)
+    repo = store.open_repo(store.repo_name("products", name), store_url)
     path = store.group_path("products", name, product.freq)
     session = repo.writable_session("main")
     w = store.GroupWriter(session, path, product.freq, has_px=True, attrs=product.meta())

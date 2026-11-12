@@ -1,6 +1,9 @@
 """Icechunk store for extracted series.
 
-Backend is chosen by URL (``--store`` / ``CPC_STORE`` / default local path):
+The store is a ROOT location holding one Icechunk repo per product / station network
+(``<root>/products-<name>.icechunk``, ``<root>/obs-<network>.icechunk``), so extractions can
+run concurrently. Backend is chosen by the root URL (``--store`` / ``CPC_STORE`` / default
+local path):
 
     file:///abs/path            local filesystem (read/write)
     s3://bucket/prefix          S3 (read/write; standard AWS env credentials, or anonymous
@@ -93,8 +96,15 @@ def storage_from_url(url: str) -> icechunk.Storage:
     raise ValueError(f"unsupported store URL: {url}")
 
 
-def open_repo(url: str | None = None, *, create: bool = True) -> icechunk.Repository:
-    url = url or config.store_url()
+def repo_url(root: str, name: str) -> str:
+    base, _, q = root.partition("?")
+    return f"{base.rstrip('/')}/{name}.icechunk" + (f"?{q}" if q else "")
+
+
+def open_repo(name: str, root: str | None = None, *, create: bool = True) -> icechunk.Repository:
+    """Open (or create) the repo `name` (e.g. 'products-era5') under the store root."""
+    root = root or config.store_url()
+    url = repo_url(root, name)
     st = storage_from_url(url)
     if icechunk.Repository.exists(st):
         return icechunk.Repository.open(st)
@@ -103,10 +113,47 @@ def open_repo(url: str | None = None, *, create: bool = True) -> icechunk.Reposi
     return icechunk.Repository.create(st)
 
 
+def list_repos(root: str | None = None) -> list[str]:
+    """Repo names under a local root (remote roots: names from the known product/obs lists)."""
+    root = root or config.store_url()
+    u = urlsplit(root)
+    if u.scheme in ("", "file"):
+        from pathlib import Path
+
+        p = Path(u.path or root)
+        return sorted(d.name.removesuffix(".icechunk") for d in p.glob("*.icechunk")) if p.exists() else []
+    from .products import registry
+
+    names = [f"products-{n}" for n in registry.names()] + ["obs-USCRN"]
+    out = []
+    for n in names:
+        try:
+            open_repo(n, root, create=False)
+            out.append(n)
+        except Exception:
+            pass
+    return out
+
+
+def copy_store(src_root: str, dst_root: str) -> None:
+    for name in list_repos(src_root):
+        print(f"copy {name}")
+        copy_repo(repo_url(src_root, name), repo_url(dst_root, name))
+
+
+def _open_url(url: str, create: bool) -> icechunk.Repository:
+    st = storage_from_url(url)
+    if icechunk.Repository.exists(st):
+        return icechunk.Repository.open(st)
+    if not create:
+        raise FileNotFoundError(url)
+    return icechunk.Repository.create(st)
+
+
 def copy_repo(src: str, dst: str) -> None:
-    """Copy the latest snapshot of `main` from one backend to another (data, not history)."""
-    s_repo = open_repo(src, create=False)
-    d_repo = open_repo(dst, create=True)
+    """Copy the latest snapshot of `main` from one repo URL to another (data, not history)."""
+    s_repo = _open_url(src, create=False)
+    d_repo = _open_url(dst, create=True)
     s = s_repo.readonly_session("main")
     d = d_repo.writable_session("main")
     sroot = zarr.open_group(s.store, mode="r")
@@ -144,6 +191,14 @@ class VarSpec:
 
 def group_path(kind: str, name: str, freq: str) -> str:
     return f"{kind}/{name}/{freq}"
+
+
+def repo_name(kind: str, name: str) -> str:
+    return f"{kind}-{name}"
+
+
+def readonly(kind: str, name: str, root: str | None = None) -> icechunk.Session:
+    return open_repo(repo_name(kind, name), root, create=False).readonly_session("main")
 
 
 def time_axis(t0: pd.Timestamp, t1: pd.Timestamp, freq: str) -> np.ndarray:

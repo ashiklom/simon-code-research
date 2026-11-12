@@ -1,0 +1,67 @@
+site_id,network,tier,name,state,lat,lon,elev_m,code,independence,triplet,tz,d_ghcn_km,d_uscrn_km
+SURFRAD:bon,SURFRAD,2,Bondville IL,IL,40.05,-88.37,213.0,bon,"Not in GHCN-D, MADIS or PRISM inputs (radiation network).",,,0.4,0.0
+SURFRAD:tbl,SURFRAD,2,Boulder CO,CO,40.13,-105.24,1689.0,tbl,"Not in GHCN-D, MADIS or PRISM inputs (radiation network).",,,2.7,27.8
+SURFRAD:dra,SURFRAD,2,Desert Rock NV,NV,36.62,-116.02,1007.0,dra,"Not in GHCN-D, MADIS or PRISM inputs (radiation network).",,,0.5,0.0
+SURFRAD:fpk,SURFRAD,2,Fort Peck MT,MT,48.31,-105.1,634.0,fpk,"Not in GHCN-D, MADIS or PRISM inputs (radiation network).",,,0.2,1.1
+SURFRAD:gwn,SURFRAD,2,Goodwin Creek MS,MS,34.25,-89.87,98.0,gwn,"Not in GHCN-D, MADIS or PRISM inputs (radiation network).",,,5.6,75.1
+SURFRAD:psu,SURFRAD,2,Penn State PA,PA,40.72,-77.93,376.0,psu,"Not in GHCN-D, MADIS or PRISM inputs (radiation network).",,,8.0,206.4
+SURFRAD:sxf,SURFRAD,2,Sioux Falls SD,SD,43.73,-96.62,473.0,sxf,"Not in GHCN-D, MADIS or PRISM inputs (radiation network).",,,0.6,0.0
+NEON:HARV,NEON,2,Harvard Forest & Quabbin Watershed NEON,MA,42.53691,-72.17265,,HARV,"NEON towers are not in GHCN-D, MADIS or PRISM inputs.",,,10.1,118.4
+NEON:BART,NEON,2,Bartlett Experimental Forest NEON,NH,44.063889,-71.287375,,BART,"NEON towers are not in GHCN-D, MADIS or PRISM inputs.",,,1.4,103.7
+NEON:SCBI,NEON,2,Smithsonian Conservation Biology Institute NEON,VA,38.892925,-78.139494,,SCBI,"NEON towers are not in GHCN-D, MADIS or PRISM inputs.",,,2.0,104.2
+NEON:SERC,NEON,2,Smithsonian Environmental Research Center NEON,MD,38.890131,-76.560014,,SERC,"NEON towers are not in GHCN-D, MADIS or PRISM inputs.",,,3.1,126.0
+NEON:OSBS,NEON,2,Ordway-Swisher Biological Station NEON,FL,29.689282,-81.993431,,OSBS,"NEON towers are not in GHCN-D, MADIS or PRISM inputs.",,,5.3,134.1
+NEON:DSNY,NEON,2,Disney Wilderness Preserve NEON,FL,28.12505,-81.43619,,DSNY,"NEON towers are not in GHCN-D, MADIS or PRISM inputs.",,,4.4,90.8
+NEON:JERC,NEON,2,The Jones Center At Ichauway NEON,GA,31.194839,-84.468623,,JERC,"NEON towers are not in GHCN-D, MADIS or PRISM inputs.",,,2.1,2.8
+NEON:TALL,NEON,2,Talladega National Forest NEON,AL,32.95047,-87.393259,,TALL,"NEON towers are not in GHCN-D, MADIS or PRISM inputs.",,,14.3,57.5
+NEON:ORNL,NEON,2,Oak Ridge NEON,TN,35.964128,-84.282588,,ORNL,"NEON towers are not in GHCN-D, MADIS or PRISM inputs.",,,5.2,76.4
+NEON:GRSM,NEON,2,Great Smoky Mountains National Park NEON,TN,35.68896,-83.50195,,GRSM,"NEON towers are not in GHCN-D, MADIS or PRISM inputs.",,,3.2,83.6
+NEON:UNDE,NEON,2,University of Notre Dame Environmental Research Center NEON,MI,46.23391,-89.537254,,UNDE,"NEON towers are not in GHCN-D, MADIS or PRISM inputs.",,,6.1,201.4
+NEON:TREE,NEON,2,Treehaven NEON,WI,45.49369,-89.58571,,TREE,"NEON towers are not in GHCN-D, MADIS or PRISM inputs.",,,10.8,166.0
+NEON:KONZ,NEON,2,Konza Prairie Biological Station NEON,KS,39.100774,-96.563075,,KONZ,"NEON towers are not in GHCN-D, MADIS or PRISM inputs.",,,4.0,3.2
+NEON:UKFS,NEON,2,KU Field Station NEON,KS,39.040431,-95.19215,,UKFS,"NEON towers are not in GHCN-D, MADIS or PRISM inputs.",,,0.8,121.7
+NEON:WOOD,NEON,2,Chase Lake National Wildlife Refuge NEON,ND,47.1282,-99.241334,,WOOD,"NEON towers are not in GHCN-D, MADIS or PRISM inputs.",,,21.0,43.4
+NEON:NOGP,NEON,2,Northern Great Plains Research Laboratory NEON,ND,46.76972,-100.91535,,NOGP,"NEON towers are not in GHCN-D, MADIS or PRISM inputs.",,,4.8,110.1
+NEON:CPER,NEON,2,Central Plains Experimental Range NEON,CO,40.815536,-104.745591,,CPER,"NEON towers are not in GHCN-D, MADIS or PRISM inputs.",,,1.3,1.8
+NEON:NIWO,NEON,2,Niwot Ridge NEON,CO,40.05425,-105.58237,,NIWO,"NEON towers are not in GHCN-D, MADIS or PRISM inputs.",,,2.7,4.5
+NEON:YELL,NEON,2,Yellowstone National Park NEON,WY,44.95348,-110.53914,,YELL,"NEON towers are not in GHCN-D, MADIS or PRISM inputs.",,,10.2,144.5
+NEON:ONAQ,NEON,2,Onaqui NEON,UT,40.177599,-112.452452,,ONAQ,"NEON towers are not in GHCN-D, MADIS or PRISM inputs.",,,9.0,159.4
+NEON:MOAB,NEON,2,Moab NEON,UT,38.248283,-109.388273,,MOAB,"NEON towers are not in GHCN-D, MADIS or PRISM inputs.",,,10.0,135.7
+NEON:SRER,NEON,2,Santa Rita Experimental Range NEON,AZ,31.91068,-110.83549,,SRER,"NEON towers are not in GHCN-D, MADIS or PRISM inputs.",,,4.9,46.9
+NEON:JORN,NEON,2,Jornada Experimental Range NEON,NM,32.590694,-106.842542,,JORN,"NEON towers are not in GHCN-D, MADIS or PRISM inputs.",,,9.8,9.8
+NEON:CLBJ,NEON,2,Lyndon B. Johnson National Grassland NEON,TX,33.40123,-97.57,,CLBJ,"NEON towers are not in GHCN-D, MADIS or PRISM inputs.",,,7.3,250.9
+NEON:OAES,NEON,2,Marvin Klemme Range Research Station NEON,OK,35.410599,-99.058779,,OAES,"NEON towers are not in GHCN-D, MADIS or PRISM inputs.",,,1.0,193.9
+NEON:WREF,NEON,2,Wind River Experimental Forest NEON,WA,45.82049,-121.95191,,WREF,"NEON towers are not in GHCN-D, MADIS or PRISM inputs.",,,5.5,190.1
+NEON:SJER,NEON,2,San Joaquin Experimental Range NEON,CA,37.10878,-119.73228,,SJER,"NEON towers are not in GHCN-D, MADIS or PRISM inputs.",,,3.1,71.7
+NEON:TEAK,NEON,2,Lower Teakettle NEON,CA,37.00583,-119.00602,,TEAK,"NEON towers are not in GHCN-D, MADIS or PRISM inputs.",,,7.4,109.6
+AMERIFLUX:US-Ha1,AMERIFLUX,2,Harvard Forest EMS Tower (HFR1),MA,42.5378,-72.1715,340.0,US-Ha1,"AmeriFlux towers are not in GHCN-D, MADIS or PRISM inputs.",,,10.1,118.3
+AMERIFLUX:US-MMS,AMERIFLUX,2,Morgan Monroe State Forest,IN,39.3232,-86.4133,275.0,US-MMS,"AmeriFlux towers are not in GHCN-D, MADIS or PRISM inputs.",,,4.2,51.1
+AMERIFLUX:US-NR1,AMERIFLUX,2,Niwot Ridge Forest (LTER NWT1),CO,40.0329,-105.547,3050.0,US-NR1,"AmeriFlux towers are not in GHCN-D, MADIS or PRISM inputs.",,,0.6,0.7
+AMERIFLUX:US-Ne1,AMERIFLUX,2,Mead - irrigated continuous maize site,NE,41.1651,-96.4766,361.0,US-Ne1,"AmeriFlux towers are not in GHCN-D, MADIS or PRISM inputs.",,,2.5,36.8
+AMERIFLUX:US-Var,AMERIFLUX,2,Vaira Ranch- Ione,CA,38.4133,-120.9508,129.0,US-Var,"AmeriFlux towers are not in GHCN-D, MADIS or PRISM inputs.",,,9.6,123.4
+AMERIFLUX:US-Ton,AMERIFLUX,2,Tonzi Ranch,CA,38.4309,-120.966,177.0,US-Ton,"AmeriFlux towers are not in GHCN-D, MADIS or PRISM inputs.",,,10.9,125.7
+AMERIFLUX:US-Wkg,AMERIFLUX,2,Walnut Gulch Kendall Grasslands,AZ,31.7365,-109.9419,1531.0,US-Wkg,"AmeriFlux towers are not in GHCN-D, MADIS or PRISM inputs.",,,12.3,55.3
+AMERIFLUX:US-SRM,AMERIFLUX,2,Santa Rita Mesquite,AZ,31.8214,-110.8661,1120.0,US-SRM,"AmeriFlux towers are not in GHCN-D, MADIS or PRISM inputs.",,,6.8,43.1
+AMERIFLUX:US-Seg,AMERIFLUX,2,Sevilleta grassland,NM,34.3603,-106.7003,1596.0,US-Seg,"AmeriFlux towers are not in GHCN-D, MADIS or PRISM inputs.",,,13.9,16.5
+AMERIFLUX:US-Mpj,AMERIFLUX,2,Mountainair Pinyon-Juniper Woodland,NM,34.4382,-106.2385,2196.0,US-Mpj,"AmeriFlux towers are not in GHCN-D, MADIS or PRISM inputs.",,,7.6,59.7
+AMERIFLUX:US-UMB,AMERIFLUX,2,Univ. of Mich. Biological Station,MI,45.5598,-84.7138,234.0,US-UMB,"AmeriFlux towers are not in GHCN-D, MADIS or PRISM inputs.",,,5.8,73.4
+AMERIFLUX:US-Syv,AMERIFLUX,2,Sylvania Wilderness Area,MI,46.2421,-89.3459,540.0,US-Syv,"AmeriFlux towers are not in GHCN-D, MADIS or PRISM inputs.",,,5.3,186.7
+AMERIFLUX:US-ARM,AMERIFLUX,2,ARM Southern Great Plains site- Lamont,OK,36.6058,-97.4888,314.0,US-ARM,"AmeriFlux towers are not in GHCN-D, MADIS or PRISM inputs.",,,9.2,63.3
+SCAN:2057,SCAN,2,AAMU-JTG,AL,34.78534,-86.55906,243.84,,SCAN: not in GHCN-D; in MADIS (HRRR) and possibly PRISM; soil moisture not assimilated by any product.,2057:AL:SCAN,-6.0,4.1,78.5
+SCAN:2116,SCAN,2,Lovelock NNR,NV,40.09247,-118.49345,1197.864,,SCAN: not in GHCN-D; in MADIS (HRRR) and possibly PRISM; soil moisture not assimilated by any product.,2116:NV:SCAN,-8.0,7.1,216.5
+SCAN:2050,SCAN,2,Glacial Ridge,MN,47.71593,-96.26823,347.47200000000004,,SCAN: not in GHCN-D; in MADIS (HRRR) and possibly PRISM; soil moisture not assimilated by any product.,2050:MN:SCAN,-6.0,9.0,71.4
+SCAN:2069,SCAN,2,Hubbard Brook,NH,43.94852,-71.72662,451.10400000000004,,SCAN: not in GHCN-D; in MADIS (HRRR) and possibly PRISM; soil moisture not assimilated by any product.,2069:NH:SCAN,-5.0,11.1,108.3
+SCAN:2107,SCAN,2,Crossroads,NM,33.53513,-103.242,1234.44,,SCAN: not in GHCN-D; in MADIS (HRRR) and possibly PRISM; soil moisture not assimilated by any product.,2107:NM:SCAN,-7.0,12.3,63.5
+SCAN:2117,SCAN,2,Conrad Ag Rc,MT,48.30453,-111.92363,1127.76,,SCAN: not in GHCN-D; in MADIS (HRRR) and possibly PRISM; soil moisture not assimilated by any product.,2117:MT:SCAN,-7.0,14.7,121.0
+SCAN:2094,SCAN,2,Centralia Lake,KS,39.70045,-96.1629,399.288,,SCAN: not in GHCN-D; in MADIS (HRRR) and possibly PRISM; soil moisture not assimilated by any product.,2094:KS:SCAN,-6.0,4.1,76.6
+SCAN:2016,SCAN,2,Prairie View #1,TX,30.09168,-95.97695,85.34400000000001,,SCAN: not in GHCN-D; in MADIS (HRRR) and possibly PRISM; soil moisture not assimilated by any product.,2016:TX:SCAN,-6.0,13.4,188.2
+SNOTEL:301,SNOTEL,2,Adin Mtn,CA,41.23583,-120.79192,1880.616,,"SNOTEL: in GHCN-D and MADIS (dependent for PRISM/Daymet/HRRR T,P); used here for SWE/snow depth.",301:CA:SNTL,-8.0,0.5,117.8
+SNOTEL:1034,SNOTEL,2,Sierra Blanca,NM,33.40682,-105.79467,3124.2000000000003,,"SNOTEL: in GHCN-D and MADIS (dependent for PRISM/Daymet/HRRR T,P); used here for SWE/snow depth.",1034:NM:SNTL,-8.0,0.9,125.0
+SNOTEL:982,SNOTEL,2,Cole Canyon,WY,44.48632,-104.41057,1807.4640000000002,,"SNOTEL: in GHCN-D and MADIS (dependent for PRISM/Daymet/HRRR T,P); used here for SWE/snow depth.",982:WY:SNTL,-8.0,0.4,3.1
+SNOTEL:918,SNOTEL,2,Garver Creek,MT,48.97523,-115.81915,1295.4,,"SNOTEL: in GHCN-D and MADIS (dependent for PRISM/Daymet/HRRR T,P); used here for SWE/snow depth.",918:MT:SNTL,-8.0,0.5,176.7
+SNOTEL:329,SNOTEL,2,Beaver Dams,UT,39.13683,-111.55813,2432.304,,"SNOTEL: in GHCN-D and MADIS (dependent for PRISM/Daymet/HRRR T,P); used here for SWE/snow depth.",329:UT:SNTL,-8.0,0.4,95.9
+SNOTEL:424,SNOTEL,2,Crab Creek,ID,44.437,-111.99384,2093.976,,"SNOTEL: in GHCN-D and MADIS (dependent for PRISM/Daymet/HRRR T,P); used here for SWE/snow depth.",424:ID:SNTL,-8.0,0.5,112.2
+ISUSM:AEEI4,ISUSM,2,Ames - Horticulture ISU-RDF,IA,42.1067,-93.5848,301.99127,AEEI4,ISUSM: not in GHCN-D; in MADIS (HRRR).,,,4.8,66.9
+ISUSM:DONI4,ISUSM,2,Doon,IA,43.2988,-96.1875,418.74084,DONI4,ISUSM: not in GHCN-D; in MADIS (HRRR).,,,14.2,59.3
+ISUSM:WTPI4,ISUSM,2,West Point,IA,40.7641,-91.4196,228.74449,WTPI4,ISUSM: not in GHCN-D; in MADIS (HRRR).,,,4.8,177.2
+ISUSM:OKLI4,ISUSM,2,Lewis - Armstrong ISU-RDF,IA,41.3127,-95.1732,395.4868,OKLI4,ISUSM: not in GHCN-D; in MADIS (HRRR).,,,6.8,127.6

@@ -18,29 +18,11 @@ def cmd_sites(a):
 
 
 def cmd_obs(a):
-    from .obs import uscrn
+    from .obs import ingest
 
     sites = sitesmod.load(a.sites)
-    sites = sites[sites.network == "USCRN"]
-    repo = store.open_repo(a.store)
-    years = list(range(config.START.year, pd.Timestamp.now().year + 1))
-    path = store.group_path("obs", "USCRN", "1h")
-    s = repo.writable_session("main")
-    w = store.GroupWriter(s, path, "1h", has_px=False, attrs={"network": "USCRN", "source": uscrn.BASE})
-    todo = [r for r in sites.itertuples() if a.force or r.site_id not in w.g.attrs.get("site_end", {})]
-    for i in range(0, len(todo), 10):
-        batch = pd.DataFrame(todo[i:i + 10])
-        s = repo.writable_session("main")
-        w = store.GroupWriter(s, path, "1h", has_px=False)
-        uscrn.ingest(w, batch, years, wind=not a.no_wind)
-        se = dict(w.g.attrs.get("site_end", {}))
-        for sid in batch.site_id:
-            se[sid] = pd.Timestamp.now().floor("h").isoformat()
-        w.g.attrs["site_end"] = se
-        w.g.attrs["stations"] = {r.site_id: {"name": r.name, "lat": r.lat, "lon": r.lon, "elev_m": r.elev_m}
-                                 for r in sites.itertuples()}
-        s.commit(f"obs USCRN: {len(batch)} stations")
-        print(f"committed {i + len(batch)}/{len(todo)}")
+    for net in (a.network or sorted(sites.network.unique())):
+        ingest.run(net, sites, root=a.store, force=a.force)
 
 
 def cmd_extract(a):
@@ -69,8 +51,48 @@ def cmd_update(a):
     print(json.dumps(out, indent=1, default=str))
 
 
+def _site_rows(args):
+    fn, site, products = args
+    from . import diagnostics, metrics
+
+    return {"metrics": metrics.site_metrics, "lags": diagnostics.lag_table}[fn](site, products)
+
+
+def _run_sites(fn: str, a, out_name: str):
+    from .parallel import process_map
+    from .products import registry
+
+    sites = sitesmod.load(a.sites)
+    products = a.products or registry.names()
+    rows = []
+    for k, r in enumerate(process_map(_site_rows, [(fn, s, products) for _, s in sites.iterrows()], a.workers)):
+        rows.extend(r)
+        print(f"  {k + 1}/{len(sites)} sites", flush=True)
+    df = pd.DataFrame(rows)
+    out = config.DATA / "results" / f"{out_name}_{a.sites}.parquet"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    df.to_parquet(out, index=False)
+    print(f"wrote {out} ({len(df)} rows)")
+    return df
+
+
+def cmd_metrics(a):
+    _run_sites("metrics", a, "metrics")
+
+
+def cmd_lags(a):
+    df = _run_sites("lags", a, "lags")
+    keys = ["product", "var", "scale"]
+    best = (df.dropna(subset=["r"]).groupby(keys + [c for c in ("lag_h", "day_end_offset_h") if c in df])["r"].median()
+            .reset_index())
+    out = config.RESULTS / "pilot" / f"lagcheck_{a.sites}.csv"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    best.to_csv(out, index=False, float_format="%.4f")
+    print(f"wrote {out}")
+
+
 def cmd_store_copy(a):
-    store.copy_repo(a.src, a.dst)
+    store.copy_store(a.src, a.dst)
 
 
 def main(argv=None):
@@ -83,7 +105,7 @@ def main(argv=None):
 
     s = sub.add_parser("obs", help="ingest station observations")
     s.add_argument("--sites", default="uscrn")
-    s.add_argument("--no-wind", action="store_true")
+    s.add_argument("--network", action="append", help="limit to these networks")
     s.add_argument("--force", action="store_true")
     s.set_defaults(fn=cmd_obs)
 
@@ -100,6 +122,13 @@ def main(argv=None):
     s.add_argument("--dry-run", action="store_true")
     s.add_argument("--refresh-revisions", action="store_true", help="re-fetch provisional spans even if current")
     s.set_defaults(fn=cmd_update)
+
+    for name, fn in (("metrics", cmd_metrics), ("lags", cmd_lags)):
+        s = sub.add_parser(name)
+        s.add_argument("products", nargs="*")
+        s.add_argument("--sites", default="pilot")
+        s.add_argument("--workers", type=int, default=4)
+        s.set_defaults(fn=fn)
 
     s = sub.add_parser("store-copy", help="copy the store between backends")
     s.add_argument("src")

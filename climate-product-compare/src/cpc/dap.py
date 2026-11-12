@@ -22,8 +22,21 @@ def constraint(var: str, slices: list[tuple[int, int]]) -> str:
 
 def ascii_array(url: str, var: str, slices: list[tuple[int, int]], *, headers=None, timeout=300) -> np.ndarray:
     """Fetch var[slices] (inclusive) via DAP2 ASCII and return a float64 array (raw, unscaled)."""
-    r = http.get(f"{url}.ascii?{constraint(var, slices)}", headers=headers or {}, timeout=timeout)
-    return parse_ascii(r.text, var, [b - a + 1 for a, b in slices])
+    import time
+
+    import requests
+
+    for attempt in range(6):
+        try:
+            r = http.get(f"{url}.ascii?{constraint(var, slices)}", headers=headers or {}, timeout=timeout)
+            return parse_ascii(r.text, var, [b - a + 1 for a, b in slices])
+        except requests.HTTPError as e:
+            # Earthdata Cloud OPeNDAP returns sporadic 401/403 under load: back off and retry
+            code = e.response.status_code if e.response is not None else 0
+            if code not in (401, 403, 429) or attempt == 5:
+                raise
+            time.sleep(5 * 2 ** attempt)
+    raise RuntimeError("unreachable")
 
 
 def parse_ascii(text: str, var: str, shape: list[int]) -> np.ndarray:

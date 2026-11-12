@@ -20,7 +20,7 @@ W_RECENT = (pd.Timestamp("2025-11-01"), pd.Timestamp("2026-10-31 23:59"))
 
 CCR_CA_BUNDLE = os.environ.get("REQUESTS_CA_BUNDLE") or os.environ.get("SSL_CERT_FILE") or "/root/.ccr/ca-bundle.crt"
 
-DEFAULT_STORE = f"file://{DATA / 'extract.icechunk'}"
+DEFAULT_STORE = f"file://{DATA / 'store'}"
 
 
 def store_url() -> str:

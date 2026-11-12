@@ -150,7 +150,7 @@ def wind_year(stub: str, year: int) -> pd.Series | None:
     return mean.where(n >= 10).rename("wind")
 
 
-def fetch_site(stub: str, years: list[int], wind: bool = True) -> pd.DataFrame:
+def fetch_stub(stub: str, years: list[int], wind: bool = True) -> pd.DataFrame:
     parts = []
     for y in years:
         h = hourly_year(stub, y)
@@ -165,6 +165,10 @@ def fetch_site(stub: str, years: list[int], wind: bool = True) -> pd.DataFrame:
     return pd.concat(parts).sort_index()
 
 
+def fetch_site(row, years) -> pd.DataFrame:
+    return fetch_stub(row.file_stub, years, wind=True)
+
+
 def ingest(writer, sites: pd.DataFrame, years: list[int], *, wind: bool = True, workers: int = 6, log=print):
     """Fetch hourly series for `sites` and write them through a store.GroupWriter."""
     from ..store import VarSpec
@@ -173,7 +177,7 @@ def ingest(writer, sites: pd.DataFrame, years: list[int], *, wind: bool = True, 
     tax = pd.date_range(pd.Timestamp(f"{min(years)}-01-01 01:00"), pd.Timestamp(f"{max(years) + 1}-01-01 00:00"), freq="h")
 
     def one(row):
-        df = fetch_site(row.file_stub, years, wind=wind)
+        df = fetch_stub(row.file_stub, years, wind=wind)
         return row.site_id, df
 
     with ThreadPoolExecutor(workers) as ex:

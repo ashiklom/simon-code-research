@@ -5,7 +5,7 @@ from cpc import store
 
 
 def test_roundtrip(tmp_path):
-    repo = store.open_repo(f"file://{tmp_path}/r.icechunk")
+    repo = store.open_repo("products-x", f"file://{tmp_path}")
     s = repo.writable_session("main")
     w = store.GroupWriter(s, "products/x/1h", "1h", has_px=True, attrs={"product": "x"})
     t = pd.date_range("2020-01-01 01:00", periods=48, freq="h")
@@ -26,3 +26,16 @@ def test_roundtrip(tmp_path):
     assert np.isnan(ds.tair.isel(site=2, time=0)).all()
     assert (ds.tair.isel(site=2, time=slice(36, 60)) == 1).all()
     assert ds.attrs["extracted_end"].startswith("2020-01-03")
+
+
+def test_copy_store(tmp_path):
+    src, dst = f"file://{tmp_path}/a", f"file://{tmp_path}/b"
+    repo = store.open_repo("products-x", src)
+    s = repo.writable_session("main")
+    w = store.GroupWriter(s, "products/x/1d", "1d", has_px=False)
+    w.write(["a"], pd.date_range("2020-01-01", periods=5, freq="D"), {"pr": np.arange(5.0)[None]},
+            {"pr": store.VarSpec("pr", "precip", "mm", {})})
+    s.commit("x")
+    store.copy_store(src, dst)
+    ds = store.read_group(store.readonly("products", "x", dst), "products/x/1d")
+    np.testing.assert_allclose(ds.pr.values[0], np.arange(5.0))

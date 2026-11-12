@@ -1,0 +1,31 @@
+[tools]
+python = "3.13"
+uv = "0.11"
+node = "22"
+
+[env]
+ICECHUNK_LOG = "error"
+UV_PYTHON_DOWNLOADS = "automatic"
+
+[tasks.sites]
+description = "Build site tables (results/sites/*.csv)"
+run = "uv run cpc sites"
+
+[tasks.obs]
+description = "Ingest station observations into the store"
+run = "uv run cpc obs --sites uscrn"
+
+[tasks.extract]
+description = "Extract products at sites: mise run extract -- <product...> --sites pilot|uscrn|tier2|remote|all"
+run = "uv run cpc extract"
+
+[tasks.update]
+description = "Bring every product (and USCRN) up to its latest available time; --dry-run to preview"
+run = "uv run cpc update"
+
+[tasks.store-copy]
+description = "Copy the store between backends: mise run store-copy -- <src-root> <dst-root>"
+run = "uv run cpc store-copy"
+
+[tasks.test]
+run = "uv run pytest -q"
