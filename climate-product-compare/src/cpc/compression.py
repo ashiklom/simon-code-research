@@ -96,7 +96,9 @@ def run(log=print):
         rows_q += metrics.site_metrics(s, PRODUCTS)
         rows_l += metrics.site_metrics(s, PRODUCTS, root=LOSSLESS_ROOT)
     keys = ["site", "product", "var", "obs_var", "scale", "window", "method"]
-    q, l = pd.DataFrame(rows_q).set_index(keys), pd.DataFrame(rows_l).set_index(keys)
+    # compare on the common window only: the two stores may end at slightly different times
+    q, l = pd.DataFrame(rows_q), pd.DataFrame(rows_l)
+    q, l = q[q.window == "common"].set_index(keys), l[l.window == "common"].set_index(keys)
     common = q.index.intersection(l.index)
     cols = [c for c in ("bias", "rmse", "r", "kge", "anom_r", "ratio", "csi_1.0") if c in q]
     d = (q.loc[common, cols] - l.loc[common, cols]).abs()
