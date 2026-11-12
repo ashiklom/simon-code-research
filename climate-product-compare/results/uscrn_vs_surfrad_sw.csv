@@ -1,0 +1,77 @@
+surfrad,uscrn,km,year,days,uscrn_minus_surfrad_Wm2,ratio_median,r
+Bondville IL,IL Champaign 9 SW,0.0,2008,361,0.376,1.001,0.999
+Bondville IL,IL Champaign 9 SW,0.0,2009,363,15.834,1.026,0.978
+Bondville IL,IL Champaign 9 SW,0.0,2010,363,21.105,1.141,0.981
+Bondville IL,IL Champaign 9 SW,0.0,2011,363,-15.918,0.881,0.994
+Bondville IL,IL Champaign 9 SW,0.0,2012,364,-7.504,0.968,0.997
+Bondville IL,IL Champaign 9 SW,0.0,2013,360,-2.071,0.984,0.999
+Bondville IL,IL Champaign 9 SW,0.0,2014,361,-3.199,0.98,0.999
+Bondville IL,IL Champaign 9 SW,0.0,2015,362,-5.435,0.973,0.999
+Bondville IL,IL Champaign 9 SW,0.0,2016,359,-10.125,0.945,0.999
+Bondville IL,IL Champaign 9 SW,0.0,2017,359,-10.386,0.929,0.997
+Bondville IL,IL Champaign 9 SW,0.0,2018,357,-9.006,0.955,0.989
+Bondville IL,IL Champaign 9 SW,0.0,2019,356,-11.126,0.933,0.999
+Bondville IL,IL Champaign 9 SW,0.0,2020,331,-5.969,0.966,0.999
+Bondville IL,IL Champaign 9 SW,0.0,2021,357,-3.767,0.977,0.999
+Bondville IL,IL Champaign 9 SW,0.0,2022,357,-7.25,0.959,0.999
+Bondville IL,IL Champaign 9 SW,0.0,2023,360,-9.589,0.946,0.999
+Bondville IL,IL Champaign 9 SW,0.0,2024,336,-14.251,0.924,0.998
+Bondville IL,IL Champaign 9 SW,0.0,2025,357,-18.173,0.898,0.999
+Bondville IL,IL Champaign 9 SW,0.0,2026,300,-19.821,0.895,0.999
+Desert Rock NV,NV Mercury 3 SSW,0.0,2008,355,-2.422,0.992,1.0
+Desert Rock NV,NV Mercury 3 SSW,0.0,2009,355,-7.446,0.969,0.999
+Desert Rock NV,NV Mercury 3 SSW,0.0,2010,349,-6.223,0.976,1.0
+Desert Rock NV,NV Mercury 3 SSW,0.0,2011,363,-7.656,0.969,0.999
+Desert Rock NV,NV Mercury 3 SSW,0.0,2012,364,-38.551,0.833,0.996
+Desert Rock NV,NV Mercury 3 SSW,0.0,2013,362,-11.805,0.956,0.996
+Desert Rock NV,NV Mercury 3 SSW,0.0,2014,362,-13.265,0.94,0.999
+Desert Rock NV,NV Mercury 3 SSW,0.0,2015,362,-2.88,0.987,0.998
+Desert Rock NV,NV Mercury 3 SSW,0.0,2016,363,-14.848,0.931,0.997
+Desert Rock NV,NV Mercury 3 SSW,0.0,2017,359,-8.603,0.965,0.999
+Desert Rock NV,NV Mercury 3 SSW,0.0,2018,362,-13.136,0.947,0.999
+Desert Rock NV,NV Mercury 3 SSW,0.0,2019,362,-12.403,0.948,0.999
+Desert Rock NV,NV Mercury 3 SSW,0.0,2020,358,-9.796,0.962,0.999
+Desert Rock NV,NV Mercury 3 SSW,0.0,2021,364,-10.576,0.956,1.0
+Desert Rock NV,NV Mercury 3 SSW,0.0,2022,352,-7.84,0.965,0.997
+Desert Rock NV,NV Mercury 3 SSW,0.0,2023,359,-10.574,0.955,0.997
+Desert Rock NV,NV Mercury 3 SSW,0.0,2024,365,-15.202,0.938,0.998
+Desert Rock NV,NV Mercury 3 SSW,0.0,2025,362,-10.126,0.952,0.998
+Desert Rock NV,NV Mercury 3 SSW,0.0,2026,311,-8.993,0.962,0.999
+Fort Peck MT,MT Wolf Point 29 ENE,1.1,2008,362,2.011,1.009,0.999
+Fort Peck MT,MT Wolf Point 29 ENE,1.1,2009,362,1.75,1.01,1.0
+Fort Peck MT,MT Wolf Point 29 ENE,1.1,2010,361,1.507,1.01,0.998
+Fort Peck MT,MT Wolf Point 29 ENE,1.1,2011,362,1.571,1.016,0.999
+Fort Peck MT,MT Wolf Point 29 ENE,1.1,2012,362,-2.251,0.981,0.999
+Fort Peck MT,MT Wolf Point 29 ENE,1.1,2013,362,-4.779,0.964,0.998
+Fort Peck MT,MT Wolf Point 29 ENE,1.1,2014,360,-3.152,0.98,1.0
+Fort Peck MT,MT Wolf Point 29 ENE,1.1,2015,348,4.047,1.028,0.998
+Fort Peck MT,MT Wolf Point 29 ENE,1.1,2016,351,-9.579,0.94,0.999
+Fort Peck MT,MT Wolf Point 29 ENE,1.1,2017,352,-9.039,0.945,0.999
+Fort Peck MT,MT Wolf Point 29 ENE,1.1,2018,343,-8.162,0.951,0.999
+Fort Peck MT,MT Wolf Point 29 ENE,1.1,2019,324,-7.747,0.948,0.999
+Fort Peck MT,MT Wolf Point 29 ENE,1.1,2020,336,-12.356,0.927,1.0
+Fort Peck MT,MT Wolf Point 29 ENE,1.1,2021,347,-12.475,0.922,1.0
+Fort Peck MT,MT Wolf Point 29 ENE,1.1,2022,342,-9.437,0.939,0.999
+Fort Peck MT,MT Wolf Point 29 ENE,1.1,2023,323,-42.147,0.724,0.867
+Fort Peck MT,MT Wolf Point 29 ENE,1.1,2024,355,-37.124,0.74,0.897
+Fort Peck MT,MT Wolf Point 29 ENE,1.1,2025,358,-9.65,0.941,0.999
+Fort Peck MT,MT Wolf Point 29 ENE,1.1,2026,305,-10.468,0.945,0.999
+Sioux Falls SD,SD Sioux Falls 14 NNE,0.0,2008,364,2.219,1.014,0.999
+Sioux Falls SD,SD Sioux Falls 14 NNE,0.0,2009,361,6.41,1.04,1.0
+Sioux Falls SD,SD Sioux Falls 14 NNE,0.0,2010,359,-1.48,0.99,1.0
+Sioux Falls SD,SD Sioux Falls 14 NNE,0.0,2011,362,-0.347,0.997,0.999
+Sioux Falls SD,SD Sioux Falls 14 NNE,0.0,2012,357,-2.044,0.989,0.999
+Sioux Falls SD,SD Sioux Falls 14 NNE,0.0,2013,363,2.065,1.013,0.999
+Sioux Falls SD,SD Sioux Falls 14 NNE,0.0,2014,354,-0.05,1.002,0.999
+Sioux Falls SD,SD Sioux Falls 14 NNE,0.0,2015,360,-0.534,0.995,0.999
+Sioux Falls SD,SD Sioux Falls 14 NNE,0.0,2016,362,-8.008,0.947,0.998
+Sioux Falls SD,SD Sioux Falls 14 NNE,0.0,2017,353,-8.977,0.946,0.999
+Sioux Falls SD,SD Sioux Falls 14 NNE,0.0,2018,357,-1.03,0.998,0.998
+Sioux Falls SD,SD Sioux Falls 14 NNE,0.0,2019,347,-1.365,0.988,0.998
+Sioux Falls SD,SD Sioux Falls 14 NNE,0.0,2020,343,-5.403,0.968,0.999
+Sioux Falls SD,SD Sioux Falls 14 NNE,0.0,2021,353,-6.287,0.963,0.999
+Sioux Falls SD,SD Sioux Falls 14 NNE,0.0,2022,352,-7.948,0.955,0.999
+Sioux Falls SD,SD Sioux Falls 14 NNE,0.0,2023,346,-11.793,0.932,0.999
+Sioux Falls SD,SD Sioux Falls 14 NNE,0.0,2024,359,-14.103,0.915,0.999
+Sioux Falls SD,SD Sioux Falls 14 NNE,0.0,2025,359,-15.882,0.911,0.998
+Sioux Falls SD,SD Sioux Falls 14 NNE,0.0,2026,302,-13.898,0.924,0.999

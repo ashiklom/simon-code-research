@@ -69,3 +69,27 @@ def overrides_from(lags: pd.DataFrame) -> pd.DataFrame:
         rows.append({"product": p, "var": v, "documented_h": nom, "best_h": best, "r_documented": g[near], "r_best": g[best],
                      "use_h": best if g[best] - g[near] > OVERRIDE_GAIN else nom})
     return pd.DataFrame(rows)
+
+
+def colocated_sw(max_km: float = 2.0) -> pd.DataFrame:
+    """Daily-mean shortwave at SURFRAD sites that host a USCRN station (UTC days), by year."""
+    from . import sites as S
+    from .sites import nearest_km
+
+    us, t2 = S.load("uscrn"), S.load("tier2")
+    rows = []
+    for r in t2[t2.network == "SURFRAD"].itertuples():
+        d = np.array([nearest_km([r.lat], [r.lon], [la], [lo])[0] for la, lo in zip(us.lat, us.lon)])
+        i = int(d.argmin())
+        if d[i] > max_km:
+            continue
+        u = us.iloc[i]
+        a, b = A.obs_series("USCRN", u.site_id), A.obs_series("SURFRAD", r.site_id)
+        j = pd.concat([a.sw.rename("uscrn"), b.sw.rename("surfrad")], axis=1, sort=True).dropna()
+        dd = A.daily(j, 24, 24).dropna()
+        for y, x in dd.groupby(dd.index.year):
+            if len(x) >= 100:
+                rows.append({"surfrad": r.name, "uscrn": u["name"], "km": round(d[i], 1), "year": y, "days": len(x),
+                             "uscrn_minus_surfrad_Wm2": (x.uscrn - x.surfrad).mean(),
+                             "ratio_median": (x.uscrn / x.surfrad).median(), "r": x.corr().iloc[0, 1]})
+    return pd.DataFrame(rows)
