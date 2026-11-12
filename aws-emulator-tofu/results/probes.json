@@ -1,9 +1,9 @@
 {
  "emulator": {
-  "version": "1.0.322",
-  "release_date": "2026.11.10",
-  "commit": "7753983c6e495ec3612695b1336bf4936fc7b7fd",
-  "deb_sha256": "ef3c75e5d4196bf2c0170b55b75b01e340e0ef497e636b700a1efe68d68a60d7",
+  "version": "1.0.336",
+  "release_date": "2026.11.12",
+  "commit": "f515581569b98a9dcbd2e686c12f912fdce51bba",
+  "deb_sha256": "e2c621ec12c8a4bb46c884792d72f189378ea83ffcce180dc837b4c5e6b97f1c",
   "source": "deb-latest"
  },
  "probes": [
@@ -18,24 +18,25 @@
    "expect_apply_failure": false,
    "apply": {
     "ok": true,
-    "seconds": 64.3,
+    "seconds": 63.3,
     "error": null
    },
    "check": {
     "status": "works",
-    "detail": "http://127.0.0.1:19302/x -> alb-ok /x"
+    "detail": "http://127.0.0.1:19304/x -> alb-ok /x"
    },
    "drift": {
     "no_changes": true,
     "resources": [],
+    "attributes": [],
     "error": null
    },
    "destroy": {
     "ok": true,
-    "seconds": 8.7,
+    "seconds": 8.4,
     "error": null
    },
-   "ran_at": "2026-11-12T17:11:11Z"
+   "ran_at": "2026-11-12T18:06:26Z"
   },
   {
    "name": "apigw-cors-browser",
@@ -48,7 +49,7 @@
    "expect_apply_failure": false,
    "apply": {
     "ok": true,
-    "seconds": 3.0,
+    "seconds": 3.3,
     "error": null
    },
    "check": {
@@ -58,6 +59,7 @@
    "drift": {
     "no_changes": true,
     "resources": [],
+    "attributes": [],
     "error": null
    },
    "destroy": {
@@ -65,7 +67,7 @@
     "seconds": 3.4,
     "error": null
    },
-   "ran_at": "2026-11-12T17:11:27Z"
+   "ran_at": "2026-11-12T18:06:37Z"
   },
   {
    "name": "apigwv2-jwt",
@@ -94,14 +96,15 @@
    "drift": {
     "no_changes": true,
     "resources": [],
+    "attributes": [],
     "error": null
    },
    "destroy": {
     "ok": true,
-    "seconds": 8.8,
+    "seconds": 8.3,
     "error": null
    },
-   "ran_at": "2026-11-12T17:11:53Z"
+   "ran_at": "2026-11-12T18:07:02Z"
   },
   {
    "name": "cloudfront-edge",
@@ -118,17 +121,17 @@
    "expect_apply_failure": false,
    "apply": {
     "ok": true,
-    "seconds": 36.2,
+    "seconds": 35.1,
     "error": null
    },
    "check": {
     "status": "partial",
-    "detail": "OK: ['origin reachable', 'X-Custom forwarded (origin request policy)', 'query string forwarded', '2nd request cache hit (same nonce)', 'x-cache header present', 'WAF blocks /blocked (403)'] | NOT: ['CloudFront Function ran (x-cf-function seen by origin)', 'response-headers policy header (X-Probe-RHP)', 'origin Content-Type kept (text/x-probe)', 'origin custom header kept (X-Origin-Header)', 'http:// redirected to https (301)'] | http:// -> 200 | x-cache=Hit from cloudfront",
+    "detail": "OK: ['origin reachable', 'origin Content-Type kept (text/x-probe)', 'X-Custom forwarded (origin request policy)', 'query string forwarded', '2nd request cache hit (same nonce)', 'x-cache header present', 'WAF blocks /blocked (403)'] | NOT: ['CloudFront Function ran (x-cf-function seen by origin)', 'response-headers policy header (X-Probe-RHP)', 'origin custom header kept (X-Origin-Header)', 'http:// redirected to https (301)'] | http:// -> 200 | x-cache=Hit from cloudfront",
     "checks": {
      "origin reachable": true,
      "CloudFront Function ran (x-cf-function seen by origin)": false,
      "response-headers policy header (X-Probe-RHP)": false,
-     "origin Content-Type kept (text/x-probe)": false,
+     "origin Content-Type kept (text/x-probe)": true,
      "origin custom header kept (X-Origin-Header)": false,
      "X-Custom forwarded (origin request policy)": true,
      "query string forwarded": true,
@@ -141,14 +144,15 @@
    "drift": {
     "no_changes": true,
     "resources": [],
+    "attributes": [],
     "error": null
    },
    "destroy": {
     "ok": true,
-    "seconds": 50.6,
+    "seconds": 51.0,
     "error": null
    },
-   "ran_at": "2026-11-12T17:13:25Z"
+   "ran_at": "2026-11-12T18:08:34Z"
   },
   {
    "name": "cognito-advanced",
@@ -166,14 +170,14 @@
    "expect_apply_failure": false,
    "apply": {
     "ok": true,
-    "seconds": 8.6,
+    "seconds": 8.1,
     "error": null
    },
    "check": {
-    "status": "gap",
-    "detail": "alg: ES256; iss: https://127.0.0.1:9297/us-east-1_ae24e29f5; pretoken claim in access token: None; pretoken scope added: False; custom:department in id token: None; USER_SRP_AUTH: ClientError: An error occurred (NotImplemented) when calling the InitiateAuth operation: oper; POST <emulator>/oauth2/token: 404 {\"__type\":\"UnknownService\",\"message\":\"could not resolve a ta; POST /oauth2/token Host:probe-adv-d6f78115.auth.us-east-1.amazoncognito.com: 404 {\"__type\":\"UnknownService\",\"message\":\"no emulated service is",
+    "status": "partial",
+    "detail": "alg: RS256; iss: https://127.0.0.1:9297/us-east-1_97613c7db; pretoken claim in access token: None; pretoken scope added: False; custom:department in id token: None; USER_SRP_AUTH: ClientError: An error occurred (NotImplemented) when calling the InitiateAuth operation: oper; POST <emulator>/oauth2/token: 404 {\"__type\":\"UnknownService\",\"message\":\"could not resolve a ta; POST /oauth2/token Host:probe-adv-dd6e0237.auth.us-east-1.amazoncognito.com: 404 {\"__type\":\"UnknownService\",\"message\":\"no emulated service is",
     "checks": {
-     "alg": false,
+     "alg": true,
      "pretoken": false,
      "scope": false,
      "attr": false,
@@ -193,10 +197,10 @@
    },
    "destroy": {
     "ok": true,
-    "seconds": 8.9,
+    "seconds": 8.4,
     "error": null
    },
-   "ran_at": "2026-11-12T17:30:39Z"
+   "ran_at": "2026-11-12T18:08:54Z"
   },
   {
    "name": "dynamodb-stream",
@@ -207,7 +211,7 @@
    "expect_apply_failure": false,
    "apply": {
     "ok": true,
-    "seconds": 10.0,
+    "seconds": 9.6,
     "error": null
    },
    "check": {
@@ -227,10 +231,10 @@
    },
    "destroy": {
     "ok": true,
-    "seconds": 9.4,
+    "seconds": 9.3,
     "error": null
    },
-   "ran_at": "2026-11-12T17:31:04Z"
+   "ran_at": "2026-11-12T18:09:18Z"
   },
   {
    "name": "ec2-instance",
@@ -244,19 +248,19 @@
    "expect_apply_failure": false,
    "apply": {
     "ok": false,
-    "seconds": 14.2,
-    "error": "reading EC2 Instance (i-00000000000000001) launch template: reading EC2 Instance (i-00000000000000001) launch template ID tag: operation error EC2: DescribeTags, https response error StatusCode: 501, RequestID: 00000000-0000-0000-0000-000000000018, api error NotImplemented: operation DescribeTags is scaffolded but not implemented in this emulator"
+    "seconds": 13.2,
+    "error": "reading EC2 Instance (i-00000000000000001) launch template: reading EC2 Instance (i-00000000000000001) launch template ID tag: operation error EC2: DescribeTags, https response error StatusCode: 501, RequestID: 00000000-0000-0000-0000-000000000003, api error NotImplemented: operation DescribeTags is scaffolded but not implemented in this emulator"
    },
    "check": {
     "status": "gap",
-    "detail": "reading EC2 Instance (i-00000000000000001) launch template: reading EC2 Instance (i-00000000000000001) launch template ID tag: operation error EC2: DescribeTags, https response error StatusCode: 501, RequestID: 00000000-0000-0000-0000-000000000018, api error NotImplemented: operation DescribeTags is scaffolded but not implemented in this emulator | subnet created without availability_zone has AZ='us-east-1a'"
+    "detail": "reading EC2 Instance (i-00000000000000001) launch template: reading EC2 Instance (i-00000000000000001) launch template ID tag: operation error EC2: DescribeTags, https response error StatusCode: 501, RequestID: 00000000-0000-0000-0000-000000000003, api error NotImplemented: operation DescribeTags is scaffolded but not implemented in this emulator | subnet created without availability_zone has AZ='us-east-1a'"
    },
    "destroy": {
     "ok": false,
-    "seconds": 3.0,
-    "error": "reading EC2 Instance (i-00000000000000001) launch template: reading EC2 Instance (i-00000000000000001) launch template ID tag: operation error EC2: DescribeTags, https response error StatusCode: 501, RequestID: 00000000-0000-0000-0000-000000000019, api error NotImplemented: operation DescribeTags is scaffolded but not implemented in this emulator"
+    "seconds": 2.7,
+    "error": "reading EC2 Instance (i-00000000000000001) launch template: reading EC2 Instance (i-00000000000000001) launch template ID tag: operation error EC2: DescribeTags, https response error StatusCode: 501, RequestID: 00000000-0000-0000-0000-000000000004, api error NotImplemented: operation DescribeTags is scaffolded but not implemented in this emulator"
    },
-   "ran_at": "2026-11-12T17:50:41Z"
+   "ran_at": "2026-11-12T18:09:35Z"
   },
   {
    "name": "ec2-security-group",
@@ -269,19 +273,19 @@
    "expect_apply_failure": true,
    "apply": {
     "ok": false,
-    "seconds": 4.1,
-    "error": "revoking default IPv4 egress rule for Security Group (sg-000000000000000ae): operation error EC2: RevokeSecurityGroupEgress, https response error StatusCode: 400, RequestID: 00000000-0000-0000-0000-000000000003, api error InvalidPermission.NotFound: The specified rule does not exist in this security group."
+    "seconds": 3.3,
+    "error": "revoking default IPv4 egress rule for Security Group (sg-000000000000000be): operation error EC2: RevokeSecurityGroupEgress, https response error StatusCode: 400, RequestID: 00000000-0000-0000-0000-000000000005, api error InvalidPermission.NotFound: The specified rule does not exist in this security group."
    },
    "check": {
     "status": "gap",
-    "detail": "revoking default IPv4 egress rule for Security Group (sg-000000000000000ae): operation error EC2: RevokeSecurityGroupEgress, https response error StatusCode: 400, RequestID: 00000000-0000-0000-0000-000000000003, api error InvalidPermission.NotFound:  | new SG egress rules as created by the emulator: [{'IpProtocol': '-1', 'UserIdGroupPairs': [], 'IpRanges': [{'CidrIp': '0.0.0.0/0'}], 'Ipv6Ranges': [], 'PrefixListIds': []}]"
+    "detail": "revoking default IPv4 egress rule for Security Group (sg-000000000000000be): operation error EC2: RevokeSecurityGroupEgress, https response error StatusCode: 400, RequestID: 00000000-0000-0000-0000-000000000005, api error InvalidPermission.NotFound:  | new SG egress rules as created by the emulator: [{'IpProtocol': '-1', 'UserIdGroupPairs': [], 'IpRanges': [{'CidrIp': '0.0.0.0/0'}], 'Ipv6Ranges': [], 'PrefixListIds': []}]"
    },
    "destroy": {
     "ok": true,
-    "seconds": 3.8,
+    "seconds": 3.5,
     "error": null
    },
-   "ran_at": "2026-11-12T17:15:03Z"
+   "ran_at": "2026-11-12T18:09:42Z"
   },
   {
    "name": "ecs-fargate",
@@ -294,12 +298,12 @@
    "expect_apply_failure": false,
    "apply": {
     "ok": true,
-    "seconds": 13.4,
+    "seconds": 13.0,
     "error": null
    },
    "check": {
     "status": "partial",
-    "detail": "status sequence ['PROVISIONING', 'PENDING', 'RUNNING'] (stayed RUNNING for 60 s until StopTask); the container command (echo probe-ecs-ran; sleep 2) would have exited after ~2 s on AWS"
+    "detail": "status sequence ['PROVISIONING', 'PENDING', 'RUNNING', 'STOPPED'], exit codes [0], stopCode='EssentialContainerExited', stopReason='Essential container in task exited'. The lifecycle (incl. a modelled image-pull reachability check against the VPC's routes) is simulated; the container command never runs."
    },
    "drift": {
     "no_changes": true,
@@ -309,10 +313,10 @@
    },
    "destroy": {
     "ok": true,
-    "seconds": 3.3,
+    "seconds": 3.4,
     "error": null
    },
-   "ran_at": "2026-11-12T17:52:03Z"
+   "ran_at": "2026-11-12T18:10:20Z"
   },
   {
    "name": "eventbridge-schedule",
@@ -323,7 +327,7 @@
    "expect_apply_failure": false,
    "apply": {
     "ok": true,
-    "seconds": 8.4,
+    "seconds": 8.3,
     "error": null
    },
    "check": {
@@ -333,14 +337,15 @@
    "drift": {
     "no_changes": true,
     "resources": [],
+    "attributes": [],
     "error": null
    },
    "destroy": {
     "ok": true,
-    "seconds": 8.4,
+    "seconds": 8.7,
     "error": null
    },
-   "ran_at": "2026-11-12T17:16:14Z"
+   "ran_at": "2026-11-12T18:10:44Z"
   },
   {
    "name": "iam-deny-enforced",
@@ -353,7 +358,7 @@
    "expect_apply_failure": false,
    "apply": {
     "ok": true,
-    "seconds": 8.6,
+    "seconds": 8.3,
     "error": null
    },
    "check": {
@@ -363,14 +368,15 @@
    "drift": {
     "no_changes": true,
     "resources": [],
+    "attributes": [],
     "error": null
    },
    "destroy": {
     "ok": true,
-    "seconds": 8.6,
+    "seconds": 8.4,
     "error": null
    },
-   "ran_at": "2026-11-12T17:16:35Z"
+   "ran_at": "2026-11-12T18:11:05Z"
   },
   {
    "name": "kms-secrets",
@@ -381,7 +387,7 @@
    "expect_apply_failure": false,
    "apply": {
     "ok": true,
-    "seconds": 7.3,
+    "seconds": 6.8,
     "error": null
    },
    "check": {
@@ -391,14 +397,15 @@
    "drift": {
     "no_changes": true,
     "resources": [],
+    "attributes": [],
     "error": null
    },
    "destroy": {
     "ok": true,
-    "seconds": 3.3,
+    "seconds": 3.2,
     "error": null
    },
-   "ran_at": "2026-11-12T17:16:49Z"
+   "ran_at": "2026-11-12T18:11:18Z"
   },
   {
    "name": "lambda-function-url",
@@ -411,24 +418,25 @@
    "expect_apply_failure": false,
    "apply": {
     "ok": true,
-    "seconds": 8.1,
+    "seconds": 7.9,
     "error": null
    },
    "check": {
-    "status": "partial",
-    "detail": "published URL https://a32a868a2e6c4a928f218c5c36bdd5f2.lambda-url.us-east-1.on.aws/ is unreachable (real AWS hostname, no DNS); works when sent to https://127.0.0.1:9297 with Host: a32a868a2e6c4a928f218c5c36bdd5f2.lambda-url.us-east-1.on.aws -> 200 {\"hello\": \"url\", \"path\": \"/probe\"}"
+    "status": "works",
+    "detail": "https://127.0.0.1:9297/_aws/lambda-url/35594529bd6f4606b2845f0a316158cb/ -> 200 {\"hello\": \"url\", \"path\": \"/probe\"}"
    },
    "drift": {
     "no_changes": true,
     "resources": [],
+    "attributes": [],
     "error": null
    },
    "destroy": {
     "ok": true,
-    "seconds": 8.9,
+    "seconds": 8.3,
     "error": null
    },
-   "ran_at": "2026-11-12T17:17:21Z"
+   "ran_at": "2026-11-12T18:11:37Z"
   },
   {
    "name": "lambda-python-layer",
@@ -441,24 +449,25 @@
    "expect_apply_failure": false,
    "apply": {
     "ok": true,
-    "seconds": 8.5,
+    "seconds": 7.9,
     "error": null
    },
    "check": {
     "status": "gap",
-    "detail": "invoke error: {'errorMessage': \"No module named 'probe_layer_mod'\", 'errorType': 'ModuleNotFoundError', 'requestId': '3c1de2a0-f02c-4752-a759-bd46fab63e9e', 'stackTrace': ['  File \"/var/task/app.py\", line 2, in handler\\n    import probe_layer_mod\\n']}"
+    "detail": "invoke error: {'errorMessage': \"No module named 'probe_layer_mod'\", 'errorType': 'ModuleNotFoundError', 'requestId': '8c77ed89-51f0-4619-b103-61595cdd3eed', 'stackTrace': ['  File \"/var/task/app.py\", line 2, in handler\\n    import probe_layer_mod\\n']}"
    },
    "drift": {
     "no_changes": true,
     "resources": [],
+    "attributes": [],
     "error": null
    },
    "destroy": {
     "ok": true,
-    "seconds": 8.9,
+    "seconds": 8.2,
     "error": null
    },
-   "ran_at": "2026-11-12T17:17:42Z"
+   "ran_at": "2026-11-12T18:11:57Z"
   },
   {
    "name": "lambda-runtimes",
@@ -472,17 +481,17 @@
    "expect_apply_failure": false,
    "apply": {
     "ok": true,
-    "seconds": 33.6,
+    "seconds": 33.0,
     "error": null
    },
    "check": {
     "status": "partial",
-    "detail": "java21: ERROR InvalidRuntimeException: he Invoke operation (reached max retries: 1): The runtime java21 is not supported by this emulator, which runs the Python and node runtimes.; nodejs22: {'ok': True, 'node': 'v22.0.0'}; provided: ERROR InvalidRuntimeException:  operation (reached max retries: 1): The runtime provided.al2023 is not supported by this emulator, which runs the Python and node runtimes.; python3-12: {'ok': True, 'impl': 'rustpython', 'version': '3.14.0.alpha (heads/unknown-branch:0000000, Nov 10 2026, 20:51:54)\\n[RustPython 0.6.0 with rustc 1.99.1 (58cf8f9c; python3-13: {'ok': True, 'impl': 'rustpython'}; ruby33: ERROR InvalidRuntimeException: e Invoke operation (reached max retries: 1): The runtime ruby3.3 is not supported by this emulator, which runs the Python and node runtimes.",
+    "detail": "java21: ERROR InvalidRuntimeException: he Invoke operation (reached max retries: 1): The runtime java21 is not supported by this emulator, which runs the Python and node runtimes.; nodejs22: {'ok': True, 'node': 'v22.0.0'}; provided: ERROR InvalidRuntimeException:  operation (reached max retries: 1): The runtime provided.al2023 is not supported by this emulator, which runs the Python and node runtimes.; python3-12: {'ok': True, 'impl': 'rustpython', 'version': '3.14.0.alpha (heads/unknown-branch:0000000, Nov 12 2026, 12:35:41)\\n[RustPython 0.6.0 with rustc 1.99.1 (58cf8f9c; python3-13: {'ok': True, 'impl': 'rustpython'}; ruby33: ERROR InvalidRuntimeException: e Invoke operation (reached max retries: 1): The runtime ruby3.3 is not supported by this emulator, which runs the Python and node runtimes.",
     "per_runtime": {
      "java21": "ERROR InvalidRuntimeException: he Invoke operation (reached max retries: 1): The runtime java21 is not supported by this emulator, which runs the Python and node runtimes.",
      "nodejs22": "{'ok': True, 'node': 'v22.0.0'}",
      "provided": "ERROR InvalidRuntimeException:  operation (reached max retries: 1): The runtime provided.al2023 is not supported by this emulator, which runs the Python and node runtimes.",
-     "python3-12": "{'ok': True, 'impl': 'rustpython', 'version': '3.14.0.alpha (heads/unknown-branch:0000000, Nov 10 2026, 20:51:54)\\n[RustPython 0.6.0 with rustc 1.99.1 (58cf8f9c",
+     "python3-12": "{'ok': True, 'impl': 'rustpython', 'version': '3.14.0.alpha (heads/unknown-branch:0000000, Nov 12 2026, 12:35:41)\\n[RustPython 0.6.0 with rustc 1.99.1 (58cf8f9c",
      "python3-13": "{'ok': True, 'impl': 'rustpython'}",
      "ruby33": "ERROR InvalidRuntimeException: e Invoke operation (reached max retries: 1): The runtime ruby3.3 is not supported by this emulator, which runs the Python and node runtimes."
     }
@@ -490,14 +499,15 @@
    "drift": {
     "no_changes": true,
     "resources": [],
+    "attributes": [],
     "error": null
    },
    "destroy": {
     "ok": true,
-    "seconds": 8.7,
+    "seconds": 8.2,
     "error": null
    },
-   "ran_at": "2026-11-12T17:18:29Z"
+   "ran_at": "2026-11-12T18:12:43Z"
   },
   {
    "name": "rds-cluster-native",
@@ -510,19 +520,19 @@
    "expect_apply_failure": true,
    "apply": {
     "ok": false,
-    "seconds": 34.0,
-    "error": "reading RDS Global Cluster for RDS Cluster (probe-native): operation error RDS: DescribeGlobalClusters, https response error StatusCode: 400, RequestID: 2c395fb4-c327-41b4-bea0-8ae95774613f, api error InvalidParameterValue: unrecognized filter name: db-cluster-id; the only supported filter is region"
+    "seconds": 32.9,
+    "error": "reading RDS Global Cluster for RDS Cluster (probe-native): operation error RDS: DescribeGlobalClusters, https response error StatusCode: 400, RequestID: c01872b0-a28e-41cf-a71a-7fad29a2eb3d, api error InvalidParameterValue: unrecognized filter name: db-cluster-id; the only supported filter is region"
    },
    "check": {
     "status": "gap",
-    "detail": "apply failed: reading RDS Global Cluster for RDS Cluster (probe-native): operation error RDS: DescribeGlobalClusters, https response error StatusCode: 400, RequestID: 2c395fb4-c327-41b4-bea0-8ae95774613f, api error InvalidParameterValue: unrecognized filter name: db-cluster-id; the only supported filter is region | cluster exists in emulator anyway: True (tofu marks it tainted)"
+    "detail": "apply failed: reading RDS Global Cluster for RDS Cluster (probe-native): operation error RDS: DescribeGlobalClusters, https response error StatusCode: 400, RequestID: c01872b0-a28e-41cf-a71a-7fad29a2eb3d, api error InvalidParameterValue: unrecognized filter name: db-cluster-id; the only supported filter is region | cluster exists in emulator anyway: True (tofu marks it tainted)"
    },
    "destroy": {
     "ok": false,
-    "seconds": 2.9,
-    "error": "reading RDS Global Cluster for RDS Cluster (probe-native): operation error RDS: DescribeGlobalClusters, https response error StatusCode: 400, RequestID: 319f2063-de49-4a33-bccd-723574e3e516, api error InvalidParameterValue: unrecognized filter name: db-cluster-id; the only supported filter is region"
+    "seconds": 2.4,
+    "error": "reading RDS Global Cluster for RDS Cluster (probe-native): operation error RDS: DescribeGlobalClusters, https response error StatusCode: 400, RequestID: fc2283a8-33bc-49ac-a628-ca1106ef7c38, api error InvalidParameterValue: unrecognized filter name: db-cluster-id; the only supported filter is region"
    },
-   "ran_at": "2026-11-12T17:19:17Z"
+   "ran_at": "2026-11-12T18:13:19Z"
   },
   {
    "name": "rds-postgis-wire",
@@ -537,24 +547,25 @@
    "expect_apply_failure": false,
    "apply": {
     "ok": true,
-    "seconds": 5.3,
+    "seconds": 4.1,
     "error": null
    },
    "check": {
     "status": "partial",
-    "detail": "dataapi CREATE EXTENSION postgis: ERR ecuteStatement operation: near \"EXTENSION\": syntax error in CREATE EXTENSION IF NOT EXISTS postgis at offset 7; dataapi version(): ERR eption) when calling the ExecuteStatement operation: no such function: version in SELECT version() at offset 7; dataapi create+insert: ['ok', 'ok']; dataapi DO block: ERR when calling the ExecuteStatement operation: ERROR: syntax error at or near \"DO\"; Position: 1; SQLState: 42601; endpoint: 127.0.0.1:19303; wire version(): [('PostgreSQL 16.6',)]; wire sees Data API row: ERR no such table: t; wire CREATE EXTENSION postgis: ERR extension \"postgis\" is not available; wire ST_AsText(ST_Point(1,2)): ERR syntax error at or near \"ST_Point\""
+    "detail": "dataapi CREATE EXTENSION postgis: ERR ecuteStatement operation: near \"EXTENSION\": syntax error in CREATE EXTENSION IF NOT EXISTS postgis at offset 7; dataapi version(): ERR eption) when calling the ExecuteStatement operation: no such function: version in SELECT version() at offset 7; dataapi create+insert: ['ok', 'ok']; dataapi DO block: ERR when calling the ExecuteStatement operation: ERROR: syntax error at or near \"DO\"; Position: 1; SQLState: 42601; endpoint: 127.0.0.1:19306; wire version(): [('PostgreSQL 16.6',)]; wire sees Data API row: ERR no such table: t; wire CREATE EXTENSION postgis: ERR extension \"postgis\" is not available; wire ST_AsText(ST_Point(1,2)): ERR syntax error at or near \"ST_Point\""
    },
    "drift": {
     "no_changes": true,
     "resources": [],
+    "attributes": [],
     "error": null
    },
    "destroy": {
     "ok": true,
-    "seconds": 5.4,
+    "seconds": 5.2,
     "error": null
    },
-   "ran_at": "2026-11-12T17:19:40Z"
+   "ran_at": "2026-11-12T18:13:32Z"
   },
   {
    "name": "rds-via-cloudformation",
@@ -567,7 +578,7 @@
    "expect_apply_failure": false,
    "apply": {
     "ok": true,
-    "seconds": 13.2,
+    "seconds": 12.8,
     "error": null
    },
    "check": {
@@ -577,14 +588,15 @@
    "drift": {
     "no_changes": true,
     "resources": [],
+    "attributes": [],
     "error": null
    },
    "destroy": {
     "ok": true,
-    "seconds": 13.8,
+    "seconds": 13.2,
     "error": null
    },
-   "ran_at": "2026-11-12T17:20:21Z"
+   "ran_at": "2026-11-12T18:14:01Z"
   },
   {
    "name": "real-tipg-zip",
@@ -601,24 +613,25 @@
    },
    "apply": {
     "ok": true,
-    "seconds": 8.8,
+    "seconds": 8.3,
     "error": null
    },
    "check": {
     "status": "gap",
-    "detail": "{'statusCode': 500, 'body': '{\"import_error\": \"ModuleNotFoundError: No module named \\'pydantic_core._pydantic_core\\'\", \"impl\": \"rustpython\", \"trace\": \"Traceback (most recent call last):\\\\n  File \\\\\"/var/task/handler.py\\\\\", line 5, in handler\\\\n    import pydantic_core  # noqa: F401  (native extension)\\\\n    ^^^^^^^^^^^^^^^^^^^^\\\\n  File \\\\\"<lambda-runtime>\\\\\", line 156, in exec_module\\\\n  File \\\\\"/var/task/pydantic_core/__init__.py\\\\\", line 8, in <module>\\\\n    from ._pydantic_core import (\\\\n  "
+    "detail": "{'statusCode': 500, 'body': '{\"import_error\": \"ModuleNotFoundError: No module named \\'pydantic_core._pydantic_core\\'\", \"impl\": \"rustpython\", \"trace\": \"Traceback (most recent call last):\\\\n  File \\\\\"/var/task/handler.py\\\\\", line 5, in handler\\\\n    import pydantic_core  # noqa: F401  (native extension)\\\\n    ^^^^^^^^^^^^^^^^^^^^\\\\n  File \\\\\"<lambda-runtime>\\\\\", line 160, in exec_module\\\\n  File \\\\\"/var/task/pydantic_core/__init__.py\\\\\", line 8, in <module>\\\\n    from ._pydantic_core import (\\\\n  "
    },
    "drift": {
     "no_changes": true,
     "resources": [],
+    "attributes": [],
     "error": null
    },
    "destroy": {
     "ok": true,
-    "seconds": 8.7,
+    "seconds": 8.5,
     "error": null
    },
-   "ran_at": "2026-11-12T17:20:53Z"
+   "ran_at": "2026-11-12T18:14:22Z"
   },
   {
    "name": "real-titiler-image",
@@ -630,25 +643,20 @@
    ],
    "expect_apply_failure": false,
    "apply": {
-    "ok": true,
-    "seconds": 8.8,
-    "error": null
+    "ok": false,
+    "seconds": 3.1,
+    "error": "creating Lambda Function (probe-titiler-image): operation error Lambda: CreateFunction, https response error StatusCode: 400, RequestID: 36797e0f-4bb2-45f9-90b7-3a24e94d7f88, InvalidParameterValueException: Source image 127.0.0.1:9297/probe/titiler:latest is not valid. Provide a valid source image."
    },
    "check": {
     "status": "gap",
-    "detail": "check raised InvalidRuntimeException: An error occurred (InvalidRuntimeException) when calling the Invoke operation (reached max retries: 1): The runtime an image package is not supported by this emulator, which runs the Python and node runtimes."
-   },
-   "drift": {
-    "no_changes": true,
-    "resources": [],
-    "error": null
+    "detail": "creating Lambda Function (probe-titiler-image): operation error Lambda: CreateFunction, https response error StatusCode: 400, RequestID: 36797e0f-4bb2-45f9-90b7-3a24e94d7f88, InvalidParameterValueException: Source image 127.0.0.1:9297/probe/titiler:latest is not valid. Provide a valid source image."
    },
    "destroy": {
     "ok": true,
-    "seconds": 8.7,
+    "seconds": 3.3,
     "error": null
    },
-   "ran_at": "2026-11-12T17:21:21Z"
+   "ran_at": "2026-11-12T18:14:29Z"
   },
   {
    "name": "route53-acm",

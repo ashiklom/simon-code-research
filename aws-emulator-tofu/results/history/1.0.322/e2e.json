@@ -1,0 +1,2093 @@
+{
+ "generated": "2026-11-12T16:52:13Z",
+ "emulator": {
+  "version": "1.0.322",
+  "release_date": "2026.11.10",
+  "commit": "7753983c6e495ec3612695b1336bf4936fc7b7fd",
+  "deb_sha256": "ef3c75e5d4196bf2c0170b55b75b01e340e0ef497e636b700a1efe68d68a60d7",
+  "source": "deb-latest"
+ },
+ "token_minting": {
+  "alice": {
+   "status": 200,
+   "seconds": 0.524,
+   "groups": [
+    "tiler"
+   ]
+  },
+  "bob": {
+   "status": 200,
+   "seconds": 0.389,
+   "groups": [
+    "features"
+   ]
+  },
+  "carol": {
+   "status": 200,
+   "seconds": 0.471,
+   "groups": [
+    "admin"
+   ]
+  },
+  "dave": {
+   "status": 200,
+   "seconds": 0.42,
+   "groups": []
+  }
+ },
+ "rows": [
+  {
+   "route": "apigw",
+   "caller": "alice",
+   "endpoint": "auth/me",
+   "expected": 200,
+   "observed": 200,
+   "match": true,
+   "seconds": 0.88,
+   "content_type": "application/json",
+   "bytes": 118
+  },
+  {
+   "route": "apigw",
+   "caller": "alice",
+   "endpoint": "tiler/info",
+   "expected": 200,
+   "observed": 200,
+   "match": true,
+   "seconds": 0.782,
+   "content_type": "application/json",
+   "bytes": 466
+  },
+  {
+   "route": "apigw",
+   "caller": "alice",
+   "endpoint": "tiler/tile",
+   "expected": 200,
+   "observed": 200,
+   "match": true,
+   "seconds": 0.829,
+   "content_type": "image/png",
+   "bytes": 137222
+  },
+  {
+   "route": "apigw",
+   "caller": "alice",
+   "endpoint": "features/collections",
+   "expected": 403,
+   "observed": 403,
+   "match": true,
+   "seconds": 0.425,
+   "content_type": "application/json",
+   "bytes": 56
+  },
+  {
+   "route": "apigw",
+   "caller": "alice",
+   "endpoint": "features/items",
+   "expected": 403,
+   "observed": 403,
+   "match": true,
+   "seconds": 0.438,
+   "content_type": "application/json",
+   "bytes": 56
+  },
+  {
+   "route": "apigw",
+   "caller": "alice",
+   "endpoint": "reports (future API)",
+   "expected": 403,
+   "observed": 403,
+   "match": true,
+   "seconds": 0.511,
+   "content_type": "application/json",
+   "bytes": 56
+  },
+  {
+   "route": "apigw",
+   "caller": "bob",
+   "endpoint": "auth/me",
+   "expected": 200,
+   "observed": 200,
+   "match": true,
+   "seconds": 0.81,
+   "content_type": "application/json",
+   "bytes": 122
+  },
+  {
+   "route": "apigw",
+   "caller": "bob",
+   "endpoint": "tiler/info",
+   "expected": 403,
+   "observed": 403,
+   "match": true,
+   "seconds": 0.419,
+   "content_type": "application/json",
+   "bytes": 56
+  },
+  {
+   "route": "apigw",
+   "caller": "bob",
+   "endpoint": "tiler/tile",
+   "expected": 403,
+   "observed": 403,
+   "match": true,
+   "seconds": 0.421,
+   "content_type": "application/json",
+   "bytes": 56
+  },
+  {
+   "route": "apigw",
+   "caller": "bob",
+   "endpoint": "features/collections",
+   "expected": 200,
+   "observed": 200,
+   "match": true,
+   "seconds": 0.718,
+   "content_type": "application/json",
+   "bytes": 2241
+  },
+  {
+   "route": "apigw",
+   "caller": "bob",
+   "endpoint": "features/items",
+   "expected": 200,
+   "observed": 200,
+   "match": true,
+   "seconds": 0.888,
+   "content_type": "application/geo+json",
+   "bytes": 7389
+  },
+  {
+   "route": "apigw",
+   "caller": "bob",
+   "endpoint": "reports (future API)",
+   "expected": 403,
+   "observed": 403,
+   "match": true,
+   "seconds": 0.393,
+   "content_type": "application/json",
+   "bytes": 56
+  },
+  {
+   "route": "apigw",
+   "caller": "carol",
+   "endpoint": "auth/me",
+   "expected": 200,
+   "observed": 200,
+   "match": true,
+   "seconds": 0.753,
+   "content_type": "application/json",
+   "bytes": 114
+  },
+  {
+   "route": "apigw",
+   "caller": "carol",
+   "endpoint": "tiler/info",
+   "expected": 200,
+   "observed": 200,
+   "match": true,
+   "seconds": 0.754,
+   "content_type": "application/json",
+   "bytes": 466
+  },
+  {
+   "route": "apigw",
+   "caller": "carol",
+   "endpoint": "tiler/tile",
+   "expected": 200,
+   "observed": 200,
+   "match": true,
+   "seconds": 0.746,
+   "content_type": "image/png",
+   "bytes": 137222
+  },
+  {
+   "route": "apigw",
+   "caller": "carol",
+   "endpoint": "features/collections",
+   "expected": 200,
+   "observed": 200,
+   "match": true,
+   "seconds": 0.807,
+   "content_type": "application/json",
+   "bytes": 2241
+  },
+  {
+   "route": "apigw",
+   "caller": "carol",
+   "endpoint": "features/items",
+   "expected": 200,
+   "observed": 200,
+   "match": true,
+   "seconds": 1.093,
+   "content_type": "application/geo+json",
+   "bytes": 7389
+  },
+  {
+   "route": "apigw",
+   "caller": "carol",
+   "endpoint": "reports (future API)",
+   "expected": 200,
+   "observed": 200,
+   "match": true,
+   "seconds": 0.659,
+   "content_type": "application/json",
+   "bytes": 135
+  },
+  {
+   "route": "apigw",
+   "caller": "dave",
+   "endpoint": "auth/me",
+   "expected": 200,
+   "observed": 200,
+   "match": true,
+   "seconds": 0.828,
+   "content_type": "application/json",
+   "bytes": 102
+  },
+  {
+   "route": "apigw",
+   "caller": "dave",
+   "endpoint": "tiler/info",
+   "expected": 403,
+   "observed": 403,
+   "match": true,
+   "seconds": 0.446,
+   "content_type": "application/json",
+   "bytes": 56
+  },
+  {
+   "route": "apigw",
+   "caller": "dave",
+   "endpoint": "tiler/tile",
+   "expected": 403,
+   "observed": 403,
+   "match": true,
+   "seconds": 0.488,
+   "content_type": "application/json",
+   "bytes": 56
+  },
+  {
+   "route": "apigw",
+   "caller": "dave",
+   "endpoint": "features/collections",
+   "expected": 403,
+   "observed": 403,
+   "match": true,
+   "seconds": 0.517,
+   "content_type": "application/json",
+   "bytes": 56
+  },
+  {
+   "route": "apigw",
+   "caller": "dave",
+   "endpoint": "features/items",
+   "expected": 403,
+   "observed": 403,
+   "match": true,
+   "seconds": 0.473,
+   "content_type": "application/json",
+   "bytes": 56
+  },
+  {
+   "route": "apigw",
+   "caller": "dave",
+   "endpoint": "reports (future API)",
+   "expected": 403,
+   "observed": 403,
+   "match": true,
+   "seconds": 0.461,
+   "content_type": "application/json",
+   "bytes": 56
+  },
+  {
+   "route": "apigw",
+   "caller": "alice(host-minted)",
+   "endpoint": "auth/me",
+   "expected": 200,
+   "observed": 200,
+   "match": true,
+   "seconds": 0.828,
+   "content_type": "application/json",
+   "bytes": 118
+  },
+  {
+   "route": "apigw",
+   "caller": "alice(host-minted)",
+   "endpoint": "tiler/info",
+   "expected": 200,
+   "observed": 200,
+   "match": true,
+   "seconds": 0.804,
+   "content_type": "application/json",
+   "bytes": 466
+  },
+  {
+   "route": "apigw",
+   "caller": "alice(host-minted)",
+   "endpoint": "tiler/tile",
+   "expected": 200,
+   "observed": 200,
+   "match": true,
+   "seconds": 0.791,
+   "content_type": "image/png",
+   "bytes": 137222
+  },
+  {
+   "route": "apigw",
+   "caller": "alice(host-minted)",
+   "endpoint": "features/collections",
+   "expected": 403,
+   "observed": 403,
+   "match": true,
+   "seconds": 0.442,
+   "content_type": "application/json",
+   "bytes": 56
+  },
+  {
+   "route": "apigw",
+   "caller": "alice(host-minted)",
+   "endpoint": "features/items",
+   "expected": 403,
+   "observed": 403,
+   "match": true,
+   "seconds": 0.494,
+   "content_type": "application/json",
+   "bytes": 56
+  },
+  {
+   "route": "apigw",
+   "caller": "alice(host-minted)",
+   "endpoint": "reports (future API)",
+   "expected": 403,
+   "observed": 403,
+   "match": true,
+   "seconds": 0.48,
+   "content_type": "application/json",
+   "bytes": 56
+  },
+  {
+   "route": "apigw",
+   "caller": "anonymous",
+   "endpoint": "auth/me",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.412,
+   "content_type": "application/json",
+   "bytes": 58
+  },
+  {
+   "route": "apigw",
+   "caller": "anonymous",
+   "endpoint": "tiler/info",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.443,
+   "content_type": "application/json",
+   "bytes": 58
+  },
+  {
+   "route": "apigw",
+   "caller": "anonymous",
+   "endpoint": "tiler/tile",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.423,
+   "content_type": "application/json",
+   "bytes": 58
+  },
+  {
+   "route": "apigw",
+   "caller": "anonymous",
+   "endpoint": "features/collections",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.47,
+   "content_type": "application/json",
+   "bytes": 58
+  },
+  {
+   "route": "apigw",
+   "caller": "anonymous",
+   "endpoint": "features/items",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.463,
+   "content_type": "application/json",
+   "bytes": 58
+  },
+  {
+   "route": "apigw",
+   "caller": "anonymous",
+   "endpoint": "reports (future API)",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.465,
+   "content_type": "application/json",
+   "bytes": 58
+  },
+  {
+   "route": "apigw",
+   "caller": "tampered(alice->admin)",
+   "endpoint": "auth/me",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.511,
+   "content_type": "application/json",
+   "bytes": 58
+  },
+  {
+   "route": "apigw",
+   "caller": "tampered(alice->admin)",
+   "endpoint": "tiler/info",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.603,
+   "content_type": "application/json",
+   "bytes": 58
+  },
+  {
+   "route": "apigw",
+   "caller": "tampered(alice->admin)",
+   "endpoint": "tiler/tile",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.56,
+   "content_type": "application/json",
+   "bytes": 58
+  },
+  {
+   "route": "apigw",
+   "caller": "tampered(alice->admin)",
+   "endpoint": "features/collections",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.622,
+   "content_type": "application/json",
+   "bytes": 58
+  },
+  {
+   "route": "apigw",
+   "caller": "tampered(alice->admin)",
+   "endpoint": "features/items",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.595,
+   "content_type": "application/json",
+   "bytes": 58
+  },
+  {
+   "route": "apigw",
+   "caller": "tampered(alice->admin)",
+   "endpoint": "reports (future API)",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.548,
+   "content_type": "application/json",
+   "bytes": 58
+  },
+  {
+   "route": "apigw",
+   "caller": "id-token(carol)",
+   "endpoint": "auth/me",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.594,
+   "content_type": "application/json",
+   "bytes": 58
+  },
+  {
+   "route": "apigw",
+   "caller": "id-token(carol)",
+   "endpoint": "tiler/info",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.629,
+   "content_type": "application/json",
+   "bytes": 58
+  },
+  {
+   "route": "apigw",
+   "caller": "id-token(carol)",
+   "endpoint": "tiler/tile",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.707,
+   "content_type": "application/json",
+   "bytes": 58
+  },
+  {
+   "route": "apigw",
+   "caller": "id-token(carol)",
+   "endpoint": "features/collections",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.606,
+   "content_type": "application/json",
+   "bytes": 58
+  },
+  {
+   "route": "apigw",
+   "caller": "id-token(carol)",
+   "endpoint": "features/items",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.571,
+   "content_type": "application/json",
+   "bytes": 58
+  },
+  {
+   "route": "apigw",
+   "caller": "id-token(carol)",
+   "endpoint": "reports (future API)",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.643,
+   "content_type": "application/json",
+   "bytes": 58
+  },
+  {
+   "route": "apigw",
+   "caller": "alg-none(admin)",
+   "endpoint": "auth/me",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.556,
+   "content_type": "application/json",
+   "bytes": 58
+  },
+  {
+   "route": "apigw",
+   "caller": "alg-none(admin)",
+   "endpoint": "tiler/info",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.55,
+   "content_type": "application/json",
+   "bytes": 58
+  },
+  {
+   "route": "apigw",
+   "caller": "alg-none(admin)",
+   "endpoint": "tiler/tile",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.569,
+   "content_type": "application/json",
+   "bytes": 58
+  },
+  {
+   "route": "apigw",
+   "caller": "alg-none(admin)",
+   "endpoint": "features/collections",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.62,
+   "content_type": "application/json",
+   "bytes": 58
+  },
+  {
+   "route": "apigw",
+   "caller": "alg-none(admin)",
+   "endpoint": "features/items",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.629,
+   "content_type": "application/json",
+   "bytes": 58
+  },
+  {
+   "route": "apigw",
+   "caller": "alg-none(admin)",
+   "endpoint": "reports (future API)",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.63,
+   "content_type": "application/json",
+   "bytes": 58
+  },
+  {
+   "route": "apigw",
+   "caller": "garbage",
+   "endpoint": "auth/me",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.609,
+   "content_type": "application/json",
+   "bytes": 58
+  },
+  {
+   "route": "apigw",
+   "caller": "garbage",
+   "endpoint": "tiler/info",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.588,
+   "content_type": "application/json",
+   "bytes": 58
+  },
+  {
+   "route": "apigw",
+   "caller": "garbage",
+   "endpoint": "tiler/tile",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.629,
+   "content_type": "application/json",
+   "bytes": 58
+  },
+  {
+   "route": "apigw",
+   "caller": "garbage",
+   "endpoint": "features/collections",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.649,
+   "content_type": "application/json",
+   "bytes": 58
+  },
+  {
+   "route": "apigw",
+   "caller": "garbage",
+   "endpoint": "features/items",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.611,
+   "content_type": "application/json",
+   "bytes": 58
+  },
+  {
+   "route": "apigw",
+   "caller": "garbage",
+   "endpoint": "reports (future API)",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.538,
+   "content_type": "application/json",
+   "bytes": 58
+  },
+  {
+   "route": "cf-authz",
+   "caller": "alice",
+   "endpoint": "auth/me",
+   "expected": 200,
+   "observed": 401,
+   "match": false,
+   "seconds": 0.542,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-authz",
+   "caller": "alice",
+   "endpoint": "tiler/info",
+   "expected": 200,
+   "observed": 401,
+   "match": false,
+   "seconds": 0.505,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-authz",
+   "caller": "alice",
+   "endpoint": "tiler/tile",
+   "expected": 200,
+   "observed": 401,
+   "match": false,
+   "seconds": 0.537,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-authz",
+   "caller": "alice",
+   "endpoint": "features/collections",
+   "expected": 403,
+   "observed": 401,
+   "match": false,
+   "seconds": 0.481,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-authz",
+   "caller": "alice",
+   "endpoint": "features/items",
+   "expected": 403,
+   "observed": 401,
+   "match": false,
+   "seconds": 0.551,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-authz",
+   "caller": "alice",
+   "endpoint": "reports (future API)",
+   "expected": 403,
+   "observed": 401,
+   "match": false,
+   "seconds": 0.439,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-authz",
+   "caller": "bob",
+   "endpoint": "auth/me",
+   "expected": 200,
+   "observed": 401,
+   "match": false,
+   "seconds": 0.386,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-authz",
+   "caller": "bob",
+   "endpoint": "tiler/info",
+   "expected": 403,
+   "observed": 401,
+   "match": false,
+   "seconds": 0.495,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-authz",
+   "caller": "bob",
+   "endpoint": "tiler/tile",
+   "expected": 403,
+   "observed": 401,
+   "match": false,
+   "seconds": 0.482,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-authz",
+   "caller": "bob",
+   "endpoint": "features/collections",
+   "expected": 200,
+   "observed": 401,
+   "match": false,
+   "seconds": 0.503,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-authz",
+   "caller": "bob",
+   "endpoint": "features/items",
+   "expected": 200,
+   "observed": 401,
+   "match": false,
+   "seconds": 0.461,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-authz",
+   "caller": "bob",
+   "endpoint": "reports (future API)",
+   "expected": 403,
+   "observed": 401,
+   "match": false,
+   "seconds": 0.539,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-authz",
+   "caller": "carol",
+   "endpoint": "auth/me",
+   "expected": 200,
+   "observed": 401,
+   "match": false,
+   "seconds": 0.514,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-authz",
+   "caller": "carol",
+   "endpoint": "tiler/info",
+   "expected": 200,
+   "observed": 401,
+   "match": false,
+   "seconds": 0.545,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-authz",
+   "caller": "carol",
+   "endpoint": "tiler/tile",
+   "expected": 200,
+   "observed": 401,
+   "match": false,
+   "seconds": 0.559,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-authz",
+   "caller": "carol",
+   "endpoint": "features/collections",
+   "expected": 200,
+   "observed": 401,
+   "match": false,
+   "seconds": 0.528,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-authz",
+   "caller": "carol",
+   "endpoint": "features/items",
+   "expected": 200,
+   "observed": 401,
+   "match": false,
+   "seconds": 0.559,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-authz",
+   "caller": "carol",
+   "endpoint": "reports (future API)",
+   "expected": 200,
+   "observed": 401,
+   "match": false,
+   "seconds": 0.609,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-authz",
+   "caller": "dave",
+   "endpoint": "auth/me",
+   "expected": 200,
+   "observed": 401,
+   "match": false,
+   "seconds": 0.654,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-authz",
+   "caller": "dave",
+   "endpoint": "tiler/info",
+   "expected": 403,
+   "observed": 401,
+   "match": false,
+   "seconds": 0.569,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-authz",
+   "caller": "dave",
+   "endpoint": "tiler/tile",
+   "expected": 403,
+   "observed": 401,
+   "match": false,
+   "seconds": 0.54,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-authz",
+   "caller": "dave",
+   "endpoint": "features/collections",
+   "expected": 403,
+   "observed": 401,
+   "match": false,
+   "seconds": 0.574,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-authz",
+   "caller": "dave",
+   "endpoint": "features/items",
+   "expected": 403,
+   "observed": 401,
+   "match": false,
+   "seconds": 0.597,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-authz",
+   "caller": "dave",
+   "endpoint": "reports (future API)",
+   "expected": 403,
+   "observed": 401,
+   "match": false,
+   "seconds": 0.603,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-authz",
+   "caller": "alice(host-minted)",
+   "endpoint": "auth/me",
+   "expected": 200,
+   "observed": 401,
+   "match": false,
+   "seconds": 0.614,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-authz",
+   "caller": "alice(host-minted)",
+   "endpoint": "tiler/info",
+   "expected": 200,
+   "observed": 401,
+   "match": false,
+   "seconds": 0.598,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-authz",
+   "caller": "alice(host-minted)",
+   "endpoint": "tiler/tile",
+   "expected": 200,
+   "observed": 401,
+   "match": false,
+   "seconds": 0.593,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-authz",
+   "caller": "alice(host-minted)",
+   "endpoint": "features/collections",
+   "expected": 403,
+   "observed": 401,
+   "match": false,
+   "seconds": 0.601,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-authz",
+   "caller": "alice(host-minted)",
+   "endpoint": "features/items",
+   "expected": 403,
+   "observed": 401,
+   "match": false,
+   "seconds": 0.603,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-authz",
+   "caller": "alice(host-minted)",
+   "endpoint": "reports (future API)",
+   "expected": 403,
+   "observed": 401,
+   "match": false,
+   "seconds": 0.531,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-authz",
+   "caller": "anonymous",
+   "endpoint": "auth/me",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.554,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-authz",
+   "caller": "anonymous",
+   "endpoint": "tiler/info",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.584,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-authz",
+   "caller": "anonymous",
+   "endpoint": "tiler/tile",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.541,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-authz",
+   "caller": "anonymous",
+   "endpoint": "features/collections",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.557,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-authz",
+   "caller": "anonymous",
+   "endpoint": "features/items",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.557,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-authz",
+   "caller": "anonymous",
+   "endpoint": "reports (future API)",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.583,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-authz",
+   "caller": "tampered(alice->admin)",
+   "endpoint": "auth/me",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.619,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-authz",
+   "caller": "tampered(alice->admin)",
+   "endpoint": "tiler/info",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.629,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-authz",
+   "caller": "tampered(alice->admin)",
+   "endpoint": "tiler/tile",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.635,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-authz",
+   "caller": "tampered(alice->admin)",
+   "endpoint": "features/collections",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.659,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-authz",
+   "caller": "tampered(alice->admin)",
+   "endpoint": "features/items",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.598,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-authz",
+   "caller": "tampered(alice->admin)",
+   "endpoint": "reports (future API)",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.581,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-authz",
+   "caller": "id-token(carol)",
+   "endpoint": "auth/me",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.639,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-authz",
+   "caller": "id-token(carol)",
+   "endpoint": "tiler/info",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.689,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-authz",
+   "caller": "id-token(carol)",
+   "endpoint": "tiler/tile",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.69,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-authz",
+   "caller": "id-token(carol)",
+   "endpoint": "features/collections",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.576,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-authz",
+   "caller": "id-token(carol)",
+   "endpoint": "features/items",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.697,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-authz",
+   "caller": "id-token(carol)",
+   "endpoint": "reports (future API)",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.524,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-authz",
+   "caller": "alg-none(admin)",
+   "endpoint": "auth/me",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.634,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-authz",
+   "caller": "alg-none(admin)",
+   "endpoint": "tiler/info",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.755,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-authz",
+   "caller": "alg-none(admin)",
+   "endpoint": "tiler/tile",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.621,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-authz",
+   "caller": "alg-none(admin)",
+   "endpoint": "features/collections",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.607,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-authz",
+   "caller": "alg-none(admin)",
+   "endpoint": "features/items",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.548,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-authz",
+   "caller": "alg-none(admin)",
+   "endpoint": "reports (future API)",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.535,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-authz",
+   "caller": "garbage",
+   "endpoint": "auth/me",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.543,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-authz",
+   "caller": "garbage",
+   "endpoint": "tiler/info",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.562,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-authz",
+   "caller": "garbage",
+   "endpoint": "tiler/tile",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.62,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-authz",
+   "caller": "garbage",
+   "endpoint": "features/collections",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.606,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-authz",
+   "caller": "garbage",
+   "endpoint": "features/items",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.591,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-authz",
+   "caller": "garbage",
+   "endpoint": "reports (future API)",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.581,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-xauth",
+   "caller": "alice",
+   "endpoint": "auth/me",
+   "expected": 200,
+   "observed": 200,
+   "match": true,
+   "seconds": 1.364,
+   "content_type": null,
+   "bytes": 118
+  },
+  {
+   "route": "cf-xauth",
+   "caller": "alice",
+   "endpoint": "tiler/info",
+   "expected": 200,
+   "observed": 200,
+   "match": true,
+   "seconds": 1.238,
+   "content_type": null,
+   "bytes": 466
+  },
+  {
+   "route": "cf-xauth",
+   "caller": "alice",
+   "endpoint": "tiler/tile",
+   "expected": 200,
+   "observed": 200,
+   "match": true,
+   "seconds": 1.36,
+   "content_type": null,
+   "bytes": 137222
+  },
+  {
+   "route": "cf-xauth",
+   "caller": "alice",
+   "endpoint": "features/collections",
+   "expected": 403,
+   "observed": 403,
+   "match": true,
+   "seconds": 0.781,
+   "content_type": null,
+   "bytes": 56
+  },
+  {
+   "route": "cf-xauth",
+   "caller": "alice",
+   "endpoint": "features/items",
+   "expected": 403,
+   "observed": 403,
+   "match": true,
+   "seconds": 0.817,
+   "content_type": null,
+   "bytes": 56
+  },
+  {
+   "route": "cf-xauth",
+   "caller": "alice",
+   "endpoint": "reports (future API)",
+   "expected": 403,
+   "observed": 403,
+   "match": true,
+   "seconds": 0.903,
+   "content_type": null,
+   "bytes": 56
+  },
+  {
+   "route": "cf-xauth",
+   "caller": "bob",
+   "endpoint": "auth/me",
+   "expected": 200,
+   "observed": 200,
+   "match": true,
+   "seconds": 1.581,
+   "content_type": null,
+   "bytes": 122
+  },
+  {
+   "route": "cf-xauth",
+   "caller": "bob",
+   "endpoint": "tiler/info",
+   "expected": 403,
+   "observed": 403,
+   "match": true,
+   "seconds": 0.784,
+   "content_type": null,
+   "bytes": 56
+  },
+  {
+   "route": "cf-xauth",
+   "caller": "bob",
+   "endpoint": "tiler/tile",
+   "expected": 403,
+   "observed": 403,
+   "match": true,
+   "seconds": 0.784,
+   "content_type": null,
+   "bytes": 56
+  },
+  {
+   "route": "cf-xauth",
+   "caller": "bob",
+   "endpoint": "features/collections",
+   "expected": 200,
+   "observed": 200,
+   "match": true,
+   "seconds": 1.142,
+   "content_type": null,
+   "bytes": 2561
+  },
+  {
+   "route": "cf-xauth",
+   "caller": "bob",
+   "endpoint": "features/items",
+   "expected": 200,
+   "observed": 200,
+   "match": true,
+   "seconds": 1.6,
+   "content_type": null,
+   "bytes": 7805
+  },
+  {
+   "route": "cf-xauth",
+   "caller": "bob",
+   "endpoint": "reports (future API)",
+   "expected": 403,
+   "observed": 403,
+   "match": true,
+   "seconds": 0.731,
+   "content_type": null,
+   "bytes": 56
+  },
+  {
+   "route": "cf-xauth",
+   "caller": "carol",
+   "endpoint": "auth/me",
+   "expected": 200,
+   "observed": 200,
+   "match": true,
+   "seconds": 1.315,
+   "content_type": null,
+   "bytes": 114
+  },
+  {
+   "route": "cf-xauth",
+   "caller": "carol",
+   "endpoint": "tiler/info",
+   "expected": 200,
+   "observed": 200,
+   "match": true,
+   "seconds": 1.283,
+   "content_type": null,
+   "bytes": 466
+  },
+  {
+   "route": "cf-xauth",
+   "caller": "carol",
+   "endpoint": "tiler/tile",
+   "expected": 200,
+   "observed": 200,
+   "match": true,
+   "seconds": 1.335,
+   "content_type": null,
+   "bytes": 137222
+  },
+  {
+   "route": "cf-xauth",
+   "caller": "carol",
+   "endpoint": "features/collections",
+   "expected": 200,
+   "observed": 200,
+   "match": true,
+   "seconds": 1.283,
+   "content_type": null,
+   "bytes": 2561
+  },
+  {
+   "route": "cf-xauth",
+   "caller": "carol",
+   "endpoint": "features/items",
+   "expected": 200,
+   "observed": 200,
+   "match": true,
+   "seconds": 1.951,
+   "content_type": null,
+   "bytes": 7805
+  },
+  {
+   "route": "cf-xauth",
+   "caller": "carol",
+   "endpoint": "reports (future API)",
+   "expected": 200,
+   "observed": 200,
+   "match": true,
+   "seconds": 1.057,
+   "content_type": null,
+   "bytes": 135
+  },
+  {
+   "route": "cf-xauth",
+   "caller": "dave",
+   "endpoint": "auth/me",
+   "expected": 200,
+   "observed": 200,
+   "match": true,
+   "seconds": 1.489,
+   "content_type": null,
+   "bytes": 102
+  },
+  {
+   "route": "cf-xauth",
+   "caller": "dave",
+   "endpoint": "tiler/info",
+   "expected": 403,
+   "observed": 403,
+   "match": true,
+   "seconds": 0.816,
+   "content_type": null,
+   "bytes": 56
+  },
+  {
+   "route": "cf-xauth",
+   "caller": "dave",
+   "endpoint": "tiler/tile",
+   "expected": 403,
+   "observed": 403,
+   "match": true,
+   "seconds": 0.707,
+   "content_type": null,
+   "bytes": 56
+  },
+  {
+   "route": "cf-xauth",
+   "caller": "dave",
+   "endpoint": "features/collections",
+   "expected": 403,
+   "observed": 403,
+   "match": true,
+   "seconds": 0.693,
+   "content_type": null,
+   "bytes": 56
+  },
+  {
+   "route": "cf-xauth",
+   "caller": "dave",
+   "endpoint": "features/items",
+   "expected": 403,
+   "observed": 403,
+   "match": true,
+   "seconds": 0.805,
+   "content_type": null,
+   "bytes": 56
+  },
+  {
+   "route": "cf-xauth",
+   "caller": "dave",
+   "endpoint": "reports (future API)",
+   "expected": 403,
+   "observed": 403,
+   "match": true,
+   "seconds": 0.757,
+   "content_type": null,
+   "bytes": 56
+  },
+  {
+   "route": "cf-xauth",
+   "caller": "alice(host-minted)",
+   "endpoint": "auth/me",
+   "expected": 200,
+   "observed": 200,
+   "match": true,
+   "seconds": 1.229,
+   "content_type": null,
+   "bytes": 118
+  },
+  {
+   "route": "cf-xauth",
+   "caller": "alice(host-minted)",
+   "endpoint": "tiler/info",
+   "expected": 200,
+   "observed": 200,
+   "match": true,
+   "seconds": 1.027,
+   "content_type": null,
+   "bytes": 466
+  },
+  {
+   "route": "cf-xauth",
+   "caller": "alice(host-minted)",
+   "endpoint": "tiler/tile",
+   "expected": 200,
+   "observed": 200,
+   "match": true,
+   "seconds": 1.132,
+   "content_type": null,
+   "bytes": 137222
+  },
+  {
+   "route": "cf-xauth",
+   "caller": "alice(host-minted)",
+   "endpoint": "features/collections",
+   "expected": 403,
+   "observed": 403,
+   "match": true,
+   "seconds": 0.673,
+   "content_type": null,
+   "bytes": 56
+  },
+  {
+   "route": "cf-xauth",
+   "caller": "alice(host-minted)",
+   "endpoint": "features/items",
+   "expected": 403,
+   "observed": 403,
+   "match": true,
+   "seconds": 0.678,
+   "content_type": null,
+   "bytes": 56
+  },
+  {
+   "route": "cf-xauth",
+   "caller": "alice(host-minted)",
+   "endpoint": "reports (future API)",
+   "expected": 403,
+   "observed": 403,
+   "match": true,
+   "seconds": 0.657,
+   "content_type": null,
+   "bytes": 56
+  },
+  {
+   "route": "cf-xauth",
+   "caller": "anonymous",
+   "endpoint": "auth/me",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.541,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-xauth",
+   "caller": "anonymous",
+   "endpoint": "tiler/info",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.524,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-xauth",
+   "caller": "anonymous",
+   "endpoint": "tiler/tile",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.54,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-xauth",
+   "caller": "anonymous",
+   "endpoint": "features/collections",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.561,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-xauth",
+   "caller": "anonymous",
+   "endpoint": "features/items",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.61,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-xauth",
+   "caller": "anonymous",
+   "endpoint": "reports (future API)",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.562,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-xauth",
+   "caller": "tampered(alice->admin)",
+   "endpoint": "auth/me",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.648,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-xauth",
+   "caller": "tampered(alice->admin)",
+   "endpoint": "tiler/info",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.67,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-xauth",
+   "caller": "tampered(alice->admin)",
+   "endpoint": "tiler/tile",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.622,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-xauth",
+   "caller": "tampered(alice->admin)",
+   "endpoint": "features/collections",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.643,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-xauth",
+   "caller": "tampered(alice->admin)",
+   "endpoint": "features/items",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.65,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-xauth",
+   "caller": "tampered(alice->admin)",
+   "endpoint": "reports (future API)",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.652,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-xauth",
+   "caller": "id-token(carol)",
+   "endpoint": "auth/me",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.705,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-xauth",
+   "caller": "id-token(carol)",
+   "endpoint": "tiler/info",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.637,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-xauth",
+   "caller": "id-token(carol)",
+   "endpoint": "tiler/tile",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.634,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-xauth",
+   "caller": "id-token(carol)",
+   "endpoint": "features/collections",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.656,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-xauth",
+   "caller": "id-token(carol)",
+   "endpoint": "features/items",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.716,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-xauth",
+   "caller": "id-token(carol)",
+   "endpoint": "reports (future API)",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.612,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-xauth",
+   "caller": "alg-none(admin)",
+   "endpoint": "auth/me",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.573,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-xauth",
+   "caller": "alg-none(admin)",
+   "endpoint": "tiler/info",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.666,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-xauth",
+   "caller": "alg-none(admin)",
+   "endpoint": "tiler/tile",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.7,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-xauth",
+   "caller": "alg-none(admin)",
+   "endpoint": "features/collections",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.669,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-xauth",
+   "caller": "alg-none(admin)",
+   "endpoint": "features/items",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.612,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-xauth",
+   "caller": "alg-none(admin)",
+   "endpoint": "reports (future API)",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.644,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-xauth",
+   "caller": "garbage",
+   "endpoint": "auth/me",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.633,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-xauth",
+   "caller": "garbage",
+   "endpoint": "tiler/info",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.596,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-xauth",
+   "caller": "garbage",
+   "endpoint": "tiler/tile",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.621,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-xauth",
+   "caller": "garbage",
+   "endpoint": "features/collections",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.62,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-xauth",
+   "caller": "garbage",
+   "endpoint": "features/items",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.643,
+   "content_type": null,
+   "bytes": 58
+  },
+  {
+   "route": "cf-xauth",
+   "caller": "garbage",
+   "endpoint": "reports (future API)",
+   "expected": 401,
+   "observed": 401,
+   "match": true,
+   "seconds": 0.635,
+   "content_type": null,
+   "bytes": 58
+  }
+ ],
+ "extra_checks": [
+  {
+   "check": "wrong password -> 401",
+   "observed": 401,
+   "match": true
+  },
+  {
+   "check": "POST /auth/token through CloudFront -> 200",
+   "observed": 200,
+   "match": true
+  },
+  {
+   "check": "refresh_token -> new access token",
+   "observed": 200,
+   "match": true
+  },
+  {
+   "check": "CloudFront keeps origin Content-Type (application/json)",
+   "observed": null,
+   "match": false
+  },
+  {
+   "check": "tiler refuses buckets outside ALLOWED_BUCKETS -> 403",
+   "observed": 403,
+   "match": true
+  }
+ ],
+ "latency": {
+  "auth/me": {
+   "n": 5,
+   "median_s": 0.828,
+   "max_s": 0.88
+  },
+  "tiler/info": {
+   "n": 3,
+   "median_s": 0.782,
+   "max_s": 0.804
+  },
+  "tiler/tile": {
+   "n": 3,
+   "median_s": 0.791,
+   "max_s": 0.829
+  },
+  "features/collections": {
+   "n": 2,
+   "median_s": 0.762,
+   "max_s": 0.807
+  },
+  "features/items": {
+   "n": 2,
+   "median_s": 0.99,
+   "max_s": 1.093
+  },
+  "reports (future API)": {
+   "n": 1,
+   "median_s": 0.659,
+   "max_s": 0.659
+  }
+ },
+ "summary": {
+  "apigw": {
+   "n": 60,
+   "match": 60
+  },
+  "cf-authz": {
+   "n": 60,
+   "match": 30
+  },
+  "cf-xauth": {
+   "n": 60,
+   "match": 60
+  }
+ }
+}

@@ -1,15 +1,15 @@
 {
- "generated": "2026-11-12T16:49:45Z",
+ "generated": "2026-11-12T18:00:44Z",
  "emulator": {
-  "version": "1.0.322",
-  "release_date": "2026.11.10",
-  "commit": "7753983c6e495ec3612695b1336bf4936fc7b7fd",
-  "deb_sha256": "ef3c75e5d4196bf2c0170b55b75b01e340e0ef497e636b700a1efe68d68a60d7",
+  "version": "1.0.336",
+  "release_date": "2026.11.12",
+  "commit": "f515581569b98a9dcbd2e686c12f912fdce51bba",
+  "deb_sha256": "e2c621ec12c8a4bb46c884792d72f189378ea83ffcce180dc837b4c5e6b97f1c",
   "source": "deb-latest"
  },
  "tofu_version": "1.13.9",
  "apply": {
-  "seconds": 61.7,
+  "seconds": 62.7,
   "added": 108,
   "managed_resources": 125,
   "resource_types": {
@@ -42,13 +42,13 @@
   }
  },
  "plan_after_apply": {
-  "seconds": 4.8,
+  "seconds": 5.5,
   "exit_code": 0,
   "no_changes": true,
   "drifting_resources": []
  },
  "destroy": {
-  "seconds": 60.8,
+  "seconds": 61.4,
   "ok": true,
   "destroyed": 108,
   "leftovers": {
@@ -59,6 +59,6 @@
   "error_tail": null
  },
  "reapply": {
-  "seconds": 61.7
+  "seconds": 62.7
  }
 }
