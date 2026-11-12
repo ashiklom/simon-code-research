@@ -261,7 +261,10 @@ def remote_metrics(site: pd.Series, products: list[str], root: str | None = None
         for name in D.columns:
             others = D.drop(columns=name)
             ref = others.median(axis=1).where(others.notna().sum(axis=1) >= min_products - 1)
-            for sc, (pp, oo) in (("daily", (D[name], ref)), ("monthly", (A.monthly(D[[name]])[name], A.monthly(ref.to_frame("x"))["x"]))):
+            # label both series by the variable so monthly() sums precipitation (and averages the rest)
+            mp = A.monthly(D[[name]].rename(columns={name: v}))[v]
+            mo = A.monthly(ref.to_frame(v))[v]
+            for sc, (pp, oo) in (("daily", (D[name], ref)), ("monthly", (mp, mo))):
                 for w in WINDOWS:
                     m = compute(_window(oo, w), _window(pp, w), kind, sc, MIN_N[sc])
                     if m is None:
