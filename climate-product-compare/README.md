@@ -22,7 +22,86 @@ and compared with station observations at hourly, daily and monthly scales:
 
 Site: https://ashiklom.github.io/simon-code-research/climate-product-compare/
 
-<!-- RESULTS -->
+## Key results
+
+Numbers are medians across USCRN stations: daily values, common window (2018-09..2025-08),
+bilinear interpolation. All metrics are in `site-data.tar` (`summary.json`, per-site
+`metrics.json`) and can be regenerated with `mise run metrics`.
+
+![Median daily r at USCRN](results/figures/heatmap_r_USCRN_common.png)
+
+| Product | Tmax RMSE (°C) | Tmin bias (°C) | Precip r | Precip CSI ≥1 mm | Hourly T r |
+|---|---|---|---|---|---|
+| PRISM 4 km | **0.47** | +0.3 | **0.98** | **0.86** | – |
+| Daymet V4R1 | 0.97 | +0.3 | 0.91 | 0.73 | – |
+| gridMET | 1.30 | +0.2 | 0.97 | 0.84 | – |
+| HRRR analysis | 1.16 | +1.0 | 0.75 | 0.68 | **0.99** |
+| ERA5 | 1.65 | +1.6 | 0.73 | 0.59 | 0.98 |
+| ERA5-Land | 1.79 | +1.8 | 0.73 | 0.59 | 0.98 |
+| MERRA-2 | 2.12 | +1.1 | 0.78 | 0.57 | 0.97 |
+| NLDAS-2 forcing | 2.35 | +2.0 | 0.90 | 0.72 | 0.97 |
+| CHELSA-daily | – | +2.0 | 0.70 | – | – |
+| IMERG Final (daily) | – | – | 0.76 | 0.53 | – |
+| IMERG Late | – | – | 0.74 | 0.53 | – |
+| CHIRPS v3 | – | – | 0.74 | 0.51 | – |
+
+- **Station-interpolated products (PRISM, gridMET, Daymet) look best at USCRN, but USCRN is
+  one of their inputs.**
+  - At SCAN and Iowa ISUSM stations, which they do not ingest, PRISM's daily precipitation r
+    drops from 0.98 to 0.77–0.86. gridMET drops from 0.97 to 0.74–0.85.
+  - Every product scores lower at those gauges (ERA5: 0.73 → 0.58), so part of the gap is
+    gauge quality, not only dependence.
+  - Station-based products still rank first for daily precipitation everywhere, by a
+    smaller margin.
+- **Every reanalysis has warm nights.**
+  - Daily-minimum temperature bias is +1.0 to +2.0 °C for HRRR, ERA5, ERA5-Land, MERRA-2,
+    NLDAS-2 and CHELSA. Daily maxima are slightly cool (−0.3 to −0.8 °C).
+  - Station-interpolated products have Tmin bias ≤ 0.3 °C.
+  - See `results/figures/bias_USCRN_common.png`.
+- **HRRR is the best model-based product** for temperature, dewpoint and RH: hourly
+  temperature r 0.99, daily Tmax RMSE 1.2 °C. Its precipitation (0–1 h forecast) is 20 % low
+  overall: total ratio 0.80.
+- **Precipitation from satellites and reanalyses is weak day to day but fine in aggregate.**
+  - Daily r is 0.70–0.78 for ERA5, ERA5-Land, MERRA-2, CHELSA, IMERG and CHIRPS, against
+    0.90–0.98 for gauge-based products.
+  - At monthly scale ERA5 reaches 0.84, IMERG Final 0.87, CHIRPS 0.91, NLDAS-2 0.93 and
+    PRISM 0.99.
+  - Totals are within −5 %/+7 % for all but HRRR (and the short half-hourly IMERG Final sample, +10 %).
+  - NLDAS-2 forcing has the best hourly precipitation timing (r 0.76 vs 0.36–0.52 for
+    ERA5/HRRR/IMERG), thanks to its radar-based disaggregation.
+- **Solar radiation: USCRN reads low.**
+  - Products look about +20 W m⁻² too high against USCRN, but only about +8 W m⁻² against
+    SURFRAD's research-grade radiometers (ERA5 +7.7, HRRR +6.7).
+  - At the four SURFRAD sites that host a USCRN station, USCRN reads 5–11 W m⁻² (3–5 %)
+    below SURFRAD on average.
+  - The gap grows over time, to −10 to −20 W m⁻² in the latest year
+    (`results/uscrn_vs_surfrad_sw.csv`), which looks like sensor drift.
+- **Day definitions matter, and two products don't match their documentation.**
+  - Daymet and gridMET daily precipitation line up best with station days ending 12 UTC of
+    the *next* day. r is 0.90 for both, against 0.87 (Daymet) and 0.83 (gridMET) on their
+    documented days. That is the morning-observation convention of the COOP gauges behind them.
+  - PRISM's documented 12–12 UTC day, and the UTC day for CHIRPS and IMERG, are confirmed.
+  - All hourly products line up at lag 0 once their stamps are converted to end-of-interval.
+- **Nearest-pixel vs bilinear barely matters.** Bilinear interpolation of the 4 surrounding
+  pixels beats the nearest pixel at 51–60 % of sites for temperature and 70 % for
+  precipitation, by a few hundredths in RMSE.
+- **Soil moisture.**
+  - Daily anomaly correlations are ≈ 0.6–0.7 near the surface (ERA5-Land 0.68, ERA5 0.66,
+    NLDAS-2 Noah 0.63) and ≈ 0.5 at 50–100 cm.
+  - Absolute values are not comparable across models.
+  - Soil temperature is well reproduced (r ≈ 0.96–0.98), but NLDAS-2 Noah/Mosaic are
+    about 2.4–2.5 °C cold at 5 cm.
+- **Snow (6 SNOTEL sites).**
+  - SWE r: ERA5 0.84, Daymet 0.76, NLDAS-2 Noah 0.66, HRRR 0.50.
+  - Snow depth r: ERA5-Land 0.71, MERRA-2 0.58, HRRR 0.49.
+- **Wind** is the weakest variable everywhere: daily r 0.76–0.86, CHELSA 0.45. Raw 10 m
+  products are 1–2 m s⁻¹ faster than the 1.5 m USCRN anemometers. A log-law height
+  adjustment is in the metrics (`wind_adj`).
+- **Storage.** Quantizing to fixed absolute steps before pcodec shrinks the store 2.5× vs
+  lossless pcodec and 3.6× vs zstd (ERA5 0.81 vs 2.08 vs 2.89 bytes/value). Metrics move by at
+  most 0.0004 in r (`results/pilot/compression_*.csv`).
+
+
 
 ## Data sources (what was read, and why)
 
