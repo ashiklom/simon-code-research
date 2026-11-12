@@ -57,6 +57,8 @@ def fetch_cog(name: str, spec: dict) -> None:
         "-co", "TILING_SCHEME=GoogleMapsCompatible", "-co", "BLOCKSIZE=256",
         "-co", "COMPRESS=DEFLATE", "-co", "PREDICTOR=NO", "-co", f"RESAMPLING={spec['resampling']}",
         "-co", "ADD_ALPHA=NO", "-co", "OVERVIEWS=IGNORE_EXISTING",
+        # Align every level (not just full res) to the tile grid -> each tile is one block read.
+        "-co", "ALIGNED_LEVELS=6",
         str(tmp), str(out))
     tmp.unlink()
 
@@ -80,7 +82,7 @@ def main() -> None:
         fetch_cog(name, spec)
     for name, (url, keep) in VECTORS.items():
         fetch_vector(name, url, keep)
-    for p in sorted(DATA.rglob("*.*")):
+    for p in sorted([*DATA.glob("cogs/*.tif"), *DATA.glob("vectors/*.geojson")]):
         print(f"{p.relative_to(DATA)}: {p.stat().st_size / 1e6:.2f} MB")
 
 

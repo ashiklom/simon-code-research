@@ -17,7 +17,11 @@ pyjwt = "*"
 matplotlib = "*"
 pillow = "*"
 shapely = "*"
+postgresql = "*"
+postgis = "*"
+psycopg = "*"
 
 [pypi-dependencies]
 titiler-core = "*"
 httpx = "*"
+tipg = "*"
