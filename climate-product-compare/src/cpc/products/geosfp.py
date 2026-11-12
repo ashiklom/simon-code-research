@@ -116,7 +116,7 @@ def _read_hour(args) -> dict[str, np.ndarray]:
     for c, names in COLLECTIONS.items():
         url = FILE.format(base=BASE, t=tc, c=c)
         for attempt in range(6):
-            signal.alarm(150)
+            signal.alarm(300)
             try:
                 with http.fsspec_open(url) as f, h5py.File(f, "r") as h:
                     for n in names:

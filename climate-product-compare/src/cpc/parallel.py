@@ -51,10 +51,19 @@ def process_map(fn, items, workers: int, ahead: int | None = None, timeout: floa
     q: deque = deque()  # [item, future, tries]
 
     def resubmit_all():
+        """New pool; resubmit only tasks that did not finish successfully."""
+        import sys
+
         _POOLS.pop(workers, None)
         ex = _pool(workers)
+        n = 0
         for entry in q:
-            entry[1] = ex.submit(fn, entry[0])
+            f = entry[1]
+            ok = f.done() and not f.cancelled() and f.exception() is None
+            if not ok:
+                entry[1] = ex.submit(fn, entry[0])
+                n += 1
+        print(f"process_map: worker died; pool rebuilt, {n} task(s) resubmitted", file=sys.stderr, flush=True)
 
     def get_head():
         while True:
