@@ -91,16 +91,31 @@ class GEOSFP(Product):
             yield Block(list(sites.site_id), th, self.convert_all(raw))
 
 
+class _Deadline(Exception):
+    pass
+
+
+def _alarm(signum, frame):
+    raise _Deadline()
+
+
 def _read_hour(args) -> dict[str, np.ndarray]:
-    """Read the needed variables of the 4 collections for the hour ending at t_end."""
+    """Read the needed variables of the 4 collections for the hour ending at t_end.
+
+    Runs in a worker process: a hard SIGALRM deadline per file guards against HTTP reads that
+    hang inside fsspec despite socket timeouts (seen repeatedly on the NCCS portal).
+    """
+    import signal
     import time
 
     t_end, iy, ix = args
     tc = t_end - pd.Timedelta(hours=1)  # file hour (centre HH:30)
     out = {}
+    signal.signal(signal.SIGALRM, _alarm)
     for c, names in COLLECTIONS.items():
         url = FILE.format(base=BASE, t=tc, c=c)
-        for attempt in range(5):
+        for attempt in range(6):
+            signal.alarm(150)
             try:
                 with http.fsspec_open(url) as f, h5py.File(f, "r") as h:
                     for n in names:
@@ -110,8 +125,10 @@ def _read_hour(args) -> dict[str, np.ndarray]:
                 break
             except FileNotFoundError:
                 break
-            except Exception:
-                if attempt == 4:
+            except Exception:  # includes _Deadline
+                if attempt == 5:
                     raise
                 time.sleep(3 * (attempt + 1))
+            finally:
+                signal.alarm(0)
     return out
