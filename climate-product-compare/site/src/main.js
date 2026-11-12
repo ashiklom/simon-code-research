@@ -296,7 +296,9 @@ function drawMetrics(v, srcs) {
   const kind = m[0].kind
   const heads = kind === 'precip' ? ['n', 'bias', 'rmse', 'r', 'ratio', 'csi_1.0'] : (kind === 'anom' ? ['n', 'r', 'anom_r'] : ['n', 'bias', 'rmse', 'r', 'kge', ...(kind === 'sm' ? ['anom_r'] : [])])
   const rows = m.sort((a, b) => scales.indexOf(a.scale) - scales.indexOf(b.scale) || PRODUCTS.indexOf(a.product) - PRODUCTS.indexOf(b.product))
-  el.innerHTML = `<p class="note">Full overlap period, bilinear. Bias = product − station. ${kind === 'precip' ? 'ratio = product total / station total; CSI at 1 mm/day.' : ''}</p>
+  const remote = state.site.network === 'REMOTE'
+  const ref = remote ? 'the median of the other products (no station here)' : 'station'
+  el.innerHTML = `<p class="note">Full overlap period, bilinear. Bias = product − ${ref}. ${kind === 'precip' ? `ratio = product total / ${remote ? 'median-of-others' : 'station'} total; CSI at 1 mm/day.` : ''}</p>
     <table><tr><th>Product</th><th>Product var</th><th>Station var</th><th>Scale</th>${heads.map((h) => `<th>${h}</th>`).join('')}</tr>
     ${rows.map((r) => `<tr><td>${PRODMETA[r.product]?.title || r.product}</td><td>${r.var}</td><td>${r.obs_var}</td><td>${r.scale}</td>${heads.map((h) => `<td>${h === 'n' ? r.n : fmt(r[h])}</td>`).join('')}</tr>`).join('')}</table>`
 }
@@ -335,12 +337,12 @@ function renderSummary() {
       Windows: full = each product's whole overlap; common = 2018-09-01..2025-08-31 (all products except GEOS-FP, IMERG Late, half-hourly IMERG Final);
       recent = 2025-11..2026-10 (includes GEOS-FP). Bias = product − station. Color is a reading aid; values are printed.
       ${sum.network === 'REMOTE' ? '<br><b>REMOTE</b>: no observations; each product is compared with the median of the <i>other</i> products (leave-one-out). Daily values mix day definitions, so use the monthly scale for clean comparisons.' : ''}</p>
-    <table class="heat"><tr><th>Product</th>${cols.map((c) => `<th>${c}</th>`).join('')}</tr>
+    <div style="overflow-x:auto"><table class="heat"><tr><th>Product</th>${cols.map((c) => `<th>${c}</th>`).join('')}</tr>
     ${prods.map((p) => `<tr><td>${PRODMETA[p]?.title || p}</td>${cols.map((c) => {
       const r = cell[`${p}|${c}`]
       const val = r ? r[sum.metric] : null
       return `<td class="cell" style="background:${heatColor(val, sum.metric, colMax[c])}" title="${r ? r.n_sites + ' sites; product var ' + r.var : ''}">${fmt(val)}</td>`
-    }).join('')}</tr>`).join('')}</table>`
+    }).join('')}</tr>`).join('')}</table></div>`
   el.querySelectorAll('select').forEach((s) => (s.onchange = (e) => { sum[e.target.dataset.k] = e.target.value; renderSummary() }))
 }
 
