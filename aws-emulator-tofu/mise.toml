@@ -1,0 +1,4 @@
+[tools]
+opentofu = "1.13.9"
+pixi = "0.84.2"
+"aqua:quarto-dev/quarto-cli" = "1.11.9"

@@ -1,0 +1,11 @@
+.emulator/
+data/
+.terraform/
+*.tfstate
+*.tfstate.*
+.pixi/
+build/
+report/_site/
+report/.quarto/
+__pycache__/
+*.tfplan

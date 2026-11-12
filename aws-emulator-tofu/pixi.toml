@@ -1,0 +1,23 @@
+[workspace]
+name = "aws-emulator-tofu"
+channels = ["conda-forge"]
+platforms = ["linux-64"]
+
+[dependencies]
+python = "3.12.*"
+gdal = ">=3.10"
+libgdal-core = "*"
+rasterio = "*"
+numpy = "*"
+boto3 = "*"
+requests = "*"
+pytest = "*"
+cryptography = "*"
+pyjwt = "*"
+matplotlib = "*"
+pillow = "*"
+shapely = "*"
+
+[pypi-dependencies]
+titiler-core = "*"
+httpx = "*"
