@@ -14,15 +14,15 @@ PRODUCTS = {
     "nldas2_mosaic": "nldas2:NLDAS2Mosaic",
     "nldas3_beta": "nldas3:NLDAS3Beta",
     "geosfp": "geosfp:GEOSFP",
-    "hrrr": "hrrr:HRRR",
+    "hrrr": "dynamical:HRRR",
     "prism": "prism:PRISM",
     "gridmet": "gridmet:GridMET",
     "daymet": "daymet:Daymet",
     "chelsa": "chelsa:CHELSA",
-    "chirps3": "chirps:CHIRPS3",
+    "chirps3": "dynamical:CHIRPS3",
     "imerg_final_hh": "imerg:IMERGFinalHH",
     "imerg_final_daily": "imerg:IMERGFinalDaily",
-    "imerg_late": "imerg:IMERGLate",
+    "imerg_late": "dynamical:IMERGLate",
 }
 
 _cache = {}
