@@ -36,7 +36,7 @@ run = "uv run cpc lags --sites uscrn"
 
 [tasks.metrics]
 description = "Skill metrics for all sites with observations"
-run = "uv run cpc metrics --sites all"
+run = ["uv run cpc metrics --sites all", "uv run cpc merge-metrics"]
 
 [tasks.figures]
 run = "uv run cpc figures"

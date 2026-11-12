@@ -136,6 +136,17 @@ def cmd_status(a):
     print(pd.DataFrame(rows).to_string(index=False))
 
 
+def cmd_merge_metrics(a):
+    """Combine partial metric runs (metrics_<sites>[_tag].parquet) into metrics_all.parquet."""
+    files = sorted(f for n in ("uscrn", "tier2", "remote") for f in (config.DATA / "results").glob(f"metrics_{n}*.parquet"))
+    df = pd.concat([pd.read_parquet(f) for f in files], ignore_index=True)
+    keys = ["site", "product", "var", "obs_var", "scale", "window", "method"]
+    df = df.drop_duplicates(keys, keep="last")
+    out = config.DATA / "results" / "metrics_all.parquet"
+    df.to_parquet(out, index=False)
+    print(f"{len(files)} files -> {out} ({len(df)} rows, {df.site.nunique()} sites, {df['product'].nunique()} products)")
+
+
 def cmd_figures(a):
     from . import figures
 
@@ -211,6 +222,9 @@ def main(argv=None):
 
     s = sub.add_parser("status", help="extraction progress per repo")
     s.set_defaults(fn=cmd_status)
+
+    s = sub.add_parser("merge-metrics", help="combine partial metric runs into metrics_all.parquet")
+    s.set_defaults(fn=cmd_merge_metrics)
 
     s = sub.add_parser("figures", help="README figures (results/figures)")
     s.add_argument("--metrics", default="all")

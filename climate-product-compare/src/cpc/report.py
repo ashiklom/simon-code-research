@@ -26,12 +26,24 @@ def extraction_costs(log_dir: Path = config.DATA / "logs") -> pd.DataFrame:
     sizes = {}
     for d in (config.DATA / "store").glob("products-*.icechunk"):
         sizes[d.name.removeprefix("products-").removesuffix(".icechunk")] = sum(p.stat().st_size for p in d.rglob("*") if p.is_file()) / 1e6
-    df["store_MB"] = df["product"].map(sizes)
+    # final store size per product (after compaction) and the number of sites it holds
+    from . import store
+
+    n_sites = {}
+    for name in sizes:
+        try:
+            from .products import registry
+
+            at = store.group_attrs(store.readonly("products", name), store.group_path("products", name, registry.get(name).freq))
+            n_sites[name] = len(at.get("site_end", {}))
+        except Exception:
+            pass
     df["s_per_site"] = df.seconds / df.sites
-    df["MB_per_site"] = df.store_MB / df.sites
     df["est_hours_all_sites"] = df.apply(lambda r: r.s_per_site * N_ALL / 3600 if r["product"] in PER_SITE else float("nan"), axis=1)
-    df["est_store_MB_all_sites"] = df.MB_per_site * N_ALL
-    return df
+    final = pd.DataFrame({"product": list(sizes), "final_store_MB": [sizes[k] for k in sizes],
+                          "final_sites": [n_sites.get(k) for k in sizes]})
+    final["MB_per_site"] = final.final_store_MB / final.final_sites
+    return df.drop(columns=["store_MB"], errors="ignore").merge(final, on="product", how="outer")
 
 
 def write_pilot_report():
@@ -44,8 +56,10 @@ def write_pilot_report():
              "## Extraction cost (pilot sites, full period)\n",
              "Per-site products scale with the number of sites; file-based products (PRISM, CHELSA, GEOS-FP, IMERG Final) "
              "read whole files and were run once for all 305 sites (their cost does not depend on site count).\n",
-             cost[["product", "sites", "seconds", "s_per_site", "store_MB", "MB_per_site", "est_hours_all_sites",
-                   "est_store_MB_all_sites"]].round(2).to_markdown(index=False), "\n"]
+             "Columns: pilot extraction (`sites`, `seconds`, `s_per_site`, extrapolated `est_hours_all_sites` for per-site "
+             "products) and the FINAL store after extracting all sites (`final_store_MB`, `final_sites`, `MB_per_site`).\n",
+             cost[["product", "sites", "seconds", "s_per_site", "est_hours_all_sites", "final_store_MB", "final_sites",
+                   "MB_per_site"]].round(2).to_markdown(index=False), "\n"]
     for name, title in (("compression_sizes.csv", "Compression study: encoded bytes per value"),
                         ("compression_metric_maxabsdiff.csv", "Compression study: max |metric difference| quantized vs lossless"),
                         ("day_window_overrides_pilot.csv", "Daily windows: documented vs best-aligned (median r over sites)")):
