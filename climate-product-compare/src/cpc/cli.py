@@ -79,7 +79,8 @@ def _run_sites(fn: str, a, out_name: str):
         rows.extend(r)
         print(f"  {k + 1}/{len(sites)} sites", flush=True)
     df = pd.DataFrame(rows)
-    out = config.DATA / "results" / f"{out_name}_{a.sites}.parquet"
+    tag = f"_{a.tag}" if getattr(a, "tag", "") else ""
+    out = config.DATA / "results" / f"{out_name}_{a.sites}{tag}.parquet"
     out.parent.mkdir(parents=True, exist_ok=True)
     df.to_parquet(out, index=False)
     print(f"wrote {out} ({len(df)} rows)")
@@ -199,6 +200,7 @@ def main(argv=None):
         s.add_argument("products", nargs="*")
         s.add_argument("--sites", default="pilot")
         s.add_argument("--workers", type=int, default=4)
+        s.add_argument("--tag", default="", help="suffix for the output file (partial runs)")
         s.set_defaults(fn=fn)
 
     s = sub.add_parser("sitedata", help="export website data to site/public/data")
