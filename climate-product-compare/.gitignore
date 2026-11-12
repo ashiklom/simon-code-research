@@ -7,3 +7,4 @@ site/public/data/
 __pycache__/
 *.pyc
 site/node_modules/
+site/site-data.tar

@@ -63,7 +63,8 @@ def run(name: str, sites: pd.DataFrame, *, t_end: pd.Timestamp | None = None, st
     repo = store.open_repo(store.repo_name("products", name), store_url)
     path = store.group_path("products", name, product.freq)
     session = repo.writable_session("main")
-    w = store.GroupWriter(session, path, product.freq, has_px=True, attrs=product.meta())
+    origin = max(config.START, product.start)
+    w = store.GroupWriter(session, path, product.freq, has_px=True, attrs=product.meta(), t_origin=origin)
     work = plan(product, sites, dict(w.g.attrs), t_end, refresh_revisions)
     n_sites = sum(len(v) for v in work.values())
     summary = {"product": name, "available_end": str(avail), "t_end": str(t_end), "sites_to_fetch": n_sites,
@@ -89,7 +90,7 @@ def run(name: str, sites: pd.DataFrame, *, t_end: pd.Timestamp | None = None, st
         sub_st = grid.stencil(sub.lat.values, sub.lon.values)
         log(f"[{name}] fetching {len(sub)} site(s) {t0} .. {t_end}")
         session = repo.writable_session("main")
-        w = store.GroupWriter(session, path, product.freq, has_px=True)
+        w = store.GroupWriter(session, path, product.freq, has_px=True, t_origin=origin)
         finished: dict[str, str] = {}
         for blk in product.fetch(sub, sub_st, t0, t_end):
             w.write(blk.site_ids, blk.times, blk.data, specs)
@@ -102,7 +103,7 @@ def run(name: str, sites: pd.DataFrame, *, t_end: pd.Timestamp | None = None, st
                 _record(w, finished)
                 session.commit(f"{name}: {len(finished)} site(s)")
                 session = repo.writable_session("main")
-                w = store.GroupWriter(session, path, product.freq, has_px=True)
+                w = store.GroupWriter(session, path, product.freq, has_px=True, t_origin=origin)
                 finished, done_since_commit = {}, 0
         # sites with no data in range still count as done up to t_end
         for s in sids:

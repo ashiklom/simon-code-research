@@ -114,7 +114,9 @@ def hourly_year(stub: str, year: int) -> pd.DataFrame | None:
     if url is None:
         return None
     d = _read(url, H_COLS)
-    d = d.replace([-9999.0, -99.0, -99.000], np.nan)
+    num = d.select_dtypes("number").columns
+    d[num] = d[num].mask(d[num] <= -9999)  # -9999 and -99999 sentinels
+    d = d.replace([-99.0], np.nan)
     good = lambda f: d[f] == 0  # noqa: E731
     out = pd.DataFrame(index=_utc(d))
     out["tair"] = d.T_HR_AVG.values

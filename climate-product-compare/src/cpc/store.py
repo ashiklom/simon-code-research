@@ -212,12 +212,14 @@ def _to_seconds(t) -> np.ndarray:
 class GroupWriter:
     """Write (site, [px,] time) series into one product/obs group of an open session."""
 
-    def __init__(self, session: icechunk.Session, path: str, freq: str, *, has_px: bool, attrs: dict | None = None):
+    def __init__(self, session: icechunk.Session, path: str, freq: str, *, has_px: bool, attrs: dict | None = None,
+                 t_origin: pd.Timestamp | None = None):
         self.root = zarr.open_group(session.store, mode="a")
         self.g = self.root.require_group(path)
         self.freq = freq
         self.dt = FREQ_SECONDS[freq]
         self.has_px = has_px
+        self.t_origin = None if t_origin is None else pd.Timestamp(t_origin)
         if attrs:
             self.g.attrs.update(attrs)
         self.g.attrs.setdefault("sites", [])
@@ -233,7 +235,12 @@ class GroupWriter:
         """Make sure the time axis covers [t_start, t_end] (only extends at the end)."""
         t_end_s = int(pd.Timestamp(t_end).value // 10**9)
         if "time" not in self.g:
-            t0 = int(pd.Timestamp(t_start).value // 10**9)
+            ts = pd.Timestamp(t_start)
+            if self.t_origin is not None and self.t_origin < ts:
+                # keep the axis aligned to the grid of t_start, starting at (or just before) the origin
+                n_back = int((ts - self.t_origin) // pd.Timedelta(seconds=self.dt))
+                ts = ts - pd.Timedelta(seconds=self.dt) * n_back
+            t0 = int(ts.value // 10**9)
             n = (t_end_s - t0) // self.dt + 1
             arr = self.g.create_array("time", shape=(n,), dtype="i8", chunks=(1 << 20,), serializer=_serializer(),
                                       fill_value=0, dimension_names=["time"])

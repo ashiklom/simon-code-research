@@ -42,6 +42,12 @@ def cmd_update(a):
     sites = sitesmod.load("all")
     names = a.products or registry.names()
     out = []
+    if not a.products and not a.dry_run:
+        from .obs import ingest
+
+        for net in sorted(sites.network.unique()):
+            if net != "REMOTE":
+                ingest.run(net, sites, root=a.store, update=True)
     for name in names:
         try:
             out.append(extract.run(name, sites, store_url=a.store, dry_run=a.dry_run, refresh_revisions=a.refresh_revisions))
@@ -83,11 +89,16 @@ def cmd_metrics(a):
 def cmd_lags(a):
     df = _run_sites("lags", a, "lags")
     keys = ["product", "var", "scale"]
-    best = (df.dropna(subset=["r"]).groupby(keys + [c for c in ("lag_h", "day_end_offset_h") if c in df])["r"].median()
+    best = (df.dropna(subset=["r"]).groupby(keys + [c for c in ("lag_h", "day_end_offset_h") if c in df], dropna=False)["r"].median()
             .reset_index())
     out = config.RESULTS / "pilot" / f"lagcheck_{a.sites}.csv"
     out.parent.mkdir(parents=True, exist_ok=True)
     best.to_csv(out, index=False, float_format="%.4f")
+    from .diagnostics import overrides_from
+
+    ov = overrides_from(df)
+    ov.to_csv(config.RESULTS / f"day_window_overrides_{a.sites}.csv", index=False, float_format="%.4f")
+    print(ov.to_string(index=False))
     print(f"wrote {out}")
 
 
@@ -118,6 +129,19 @@ def cmd_status(a):
         rows.append({"repo": name, "sites": len(at.get("sites", [])), "done": len(se),
                      "end_min": se.min(), "end_max": se.max()})
     print(pd.DataFrame(rows).to_string(index=False))
+
+
+def cmd_figures(a):
+    from . import figures
+
+    for f in figures.run(a.metrics):
+        print(f)
+
+
+def cmd_report(a):
+    from . import report
+
+    print(report.write_pilot_report())
 
 
 def cmd_compression(a):
@@ -173,6 +197,13 @@ def main(argv=None):
 
     s = sub.add_parser("status", help="extraction progress per repo")
     s.set_defaults(fn=cmd_status)
+
+    s = sub.add_parser("figures", help="README figures (results/figures)")
+    s.add_argument("--metrics", default="all")
+    s.set_defaults(fn=cmd_figures)
+
+    s = sub.add_parser("report", help="write results/pilot/pilot_report.md")
+    s.set_defaults(fn=cmd_report)
 
     s = sub.add_parser("compression", help="compression study on pilot sites")
     s.set_defaults(fn=cmd_compression)

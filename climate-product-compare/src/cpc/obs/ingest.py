@@ -16,7 +16,9 @@ def module(network: str):
     return importlib.import_module(f"cpc.obs.{NETWORKS[network]}")
 
 
-def run(network: str, sites: pd.DataFrame, *, root=None, force=False, workers=4, batch=8, log=print):
+def run(network: str, sites: pd.DataFrame, *, root=None, force=False, update=False, workers=4, batch=8, log=print):
+    """Ingest a network. update=True re-fetches each known station from the year of its last
+    update onward (incremental refresh) and still ingests stations not yet in the store."""
     mod = module(network)
     sites = sites[sites.network == network]
     if sites.empty:
@@ -26,19 +28,28 @@ def run(network: str, sites: pd.DataFrame, *, root=None, force=False, workers=4,
     repo = store.open_repo(store.repo_name("obs", network), root)
     path = store.group_path("obs", network, "1h")
     s = repo.writable_session("main")
-    w = store.GroupWriter(s, path, "1h", has_px=False, attrs={"network": network})
-    done = set(w.g.attrs.get("site_end", {}))
-    todo = [r for r in sites.itertuples() if force or r.site_id not in done]
+    origin = pd.Timestamp(f"{years[0]}-01-01 01:00")
+    w = store.GroupWriter(s, path, "1h", has_px=False, attrs={"network": network}, t_origin=origin)
+    site_end = dict(w.g.attrs.get("site_end", {}))
+    done = set(site_end)
+    todo = [r for r in sites.itertuples() if force or update or r.site_id not in done]
+    if update and site_end:
+        first = min(pd.Timestamp(v).year for k, v in site_end.items() if k in set(sites.site_id)) if done & set(sites.site_id) else years[0]
+        years_upd = list(range(first, years[-1] + 1))
+    else:
+        years_upd = years
     tax = pd.date_range(f"{min(years)}-01-01 01:00", f"{max(years) + 1}-01-01 00:00", freq="h")
     for i in range(0, len(todo), batch):
         chunk = todo[i:i + batch]
         with ThreadPoolExecutor(workers) as ex:
-            res = list(ex.map(lambda r: (r, _safe(mod.fetch_site, r, years, log)), chunk))
+            res = list(ex.map(lambda r: (r, _safe(mod.fetch_site, r, years_upd if r.site_id in done else years, log)), chunk))
         s = repo.writable_session("main")
-        w = store.GroupWriter(s, path, "1h", has_px=False)
+        w = store.GroupWriter(s, path, "1h", has_px=False, t_origin=origin)
         se = dict(w.g.attrs.get("site_end", {}))
         for r, df in res:
-            if df is None or df.empty:
+            if df is None:  # failed (e.g. missing credentials): leave unmarked so a later run retries
+                continue
+            if df.empty:
                 log(f"  {r.site_id}: no data")
                 se[r.site_id] = pd.Timestamp.now().floor("h").isoformat()
                 continue
@@ -52,7 +63,8 @@ def run(network: str, sites: pd.DataFrame, *, root=None, force=False, workers=4,
         w.g.attrs["site_end"] = se
         st = dict(w.g.attrs.get("stations", {}))
         for r, _ in res:
-            st[r.site_id] = {"name": r.name, "lat": r.lat, "lon": r.lon, "elev_m": r.elev_m}
+            st[r.site_id] = {"name": r.name, "lat": float(r.lat), "lon": float(r.lon),
+                             "elev_m": None if pd.isna(r.elev_m) else float(r.elev_m)}
         w.g.attrs["stations"] = st
         s.commit(f"obs {network}: {len(chunk)} sites")
         log(f"[{network}] committed {i + len(chunk)}/{len(todo)}")

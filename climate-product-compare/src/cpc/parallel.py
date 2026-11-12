@@ -25,7 +25,8 @@ def _pool(workers: int) -> ProcessPoolExecutor:
             except Exception:
                 pass
         ctx = mp.get_context("forkserver")
-        ctx.set_forkserver_preload(["numpy", "h5py", "pandas", "fsspec", "aiohttp", "cpc.http"])
+        # never preload cpc/icechunk here: its runtime threads do not survive fork
+        ctx.set_forkserver_preload(["numpy", "h5py", "pandas", "fsspec", "aiohttp"])
         _POOLS[workers] = ProcessPoolExecutor(workers, mp_context=ctx)
     return _POOLS[workers]
 

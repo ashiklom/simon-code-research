@@ -134,6 +134,17 @@ def _window(s: pd.Series, w) -> pd.Series:
 # --- per-site driver -----------------------------------------------------------------
 
 
+def day_overrides() -> dict[tuple[str, str], float]:
+    """(product, var) -> day_end_offset_h from the lag check (USCRN-wide if available, else pilot)."""
+    for name in ("uscrn", "pilot"):
+        f = config.RESULTS / f"day_window_overrides_{name}.csv"
+        if f.exists():
+            d = pd.read_csv(f)
+            d = d[d.use_h != d.documented_h]
+            return {(r.product, r.var): float(r.use_h) for r in d.itertuples()}
+    return {}
+
+
 def site_metrics(site: pd.Series, products: list[str], network: str = "USCRN", root: str | None = None) -> list[dict]:
     obs_h = A.obs_series(network, site.site_id, root)
     if obs_h is None or obs_h.empty:
@@ -148,6 +159,7 @@ def site_metrics(site: pd.Series, products: list[str], network: str = "USCRN", r
         return obs_daily_cache[E]
 
     rows = []
+    overrides = day_overrides()
     for name in products:
         for method in ("nearest", "bilinear"):
             df = A.product_series(name, site.site_id, root, method)
@@ -180,6 +192,7 @@ def site_metrics(site: pd.Series, products: list[str], network: str = "USCRN", r
                 for v in df.columns:
                     a = vattrs.get(v, {})
                     E = a.get("day_end_offset_h", 24 - lst if a.get("day_def") == "LST" else 24)
+                    E = overrides.get((name, v), E)  # empirically aligned window (see diagnostics.overrides_from)
                     scales.append(("daily", df[[v]], obs_daily(E), E))
             for scale, pdf, odf, E in scales:
                 for v in pdf.columns:

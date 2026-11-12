@@ -29,3 +29,44 @@ run = "uv run cpc store-copy"
 
 [tasks.test]
 run = "uv run pytest -q"
+
+[tasks.lags]
+description = "Timestamp/day-window lag check (writes results/day_window_overrides_<sites>.csv)"
+run = "uv run cpc lags --sites uscrn"
+
+[tasks.metrics]
+description = "Skill metrics for all sites with observations"
+run = ["uv run cpc metrics --sites uscrn", "uv run cpc metrics --sites tier2", "uv run cpc metrics --sites remote"]
+
+[tasks.figures]
+run = "uv run cpc figures"
+
+[tasks.sitedata]
+description = "Export per-site website data to site/public/data"
+run = "uv run cpc sitedata --sites all --metrics all"
+
+[tasks.pack-site]
+description = "Pack site/public/data into site/site-data.tar (the release asset)"
+run = "tar -cf site/site-data.tar -C site/public data"
+
+[tasks.site]
+description = "Build the static site into _site (from site/site-data.tar if present, else site/public/data)"
+dir = "site"
+run = [
+  "if [ -f site-data.tar ]; then rm -rf public/data && mkdir -p public && tar -xf site-data.tar -C public; fi",
+  "npm ci --no-audit --no-fund",
+  "npx vite build",
+]
+
+[tasks.all]
+description = "Everything after the one-off site tables: obs, extraction, metrics, figures, site data, site"
+run = [
+  "uv run cpc obs --sites all",
+  "uv run cpc update",
+  "mise run lags",
+  "mise run metrics",
+  "mise run figures",
+  "mise run sitedata",
+  "mise run pack-site",
+  "mise run site",
+]
