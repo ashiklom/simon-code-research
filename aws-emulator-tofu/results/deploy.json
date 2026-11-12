@@ -1,0 +1,64 @@
+{
+ "generated": "2026-11-12T16:49:45Z",
+ "emulator": {
+  "version": "1.0.322",
+  "release_date": "2026.11.10",
+  "commit": "7753983c6e495ec3612695b1336bf4936fc7b7fd",
+  "deb_sha256": "ef3c75e5d4196bf2c0170b55b75b01e340e0ef497e636b700a1efe68d68a60d7",
+  "source": "deb-latest"
+ },
+ "tofu_version": "1.13.9",
+ "apply": {
+  "seconds": 61.7,
+  "added": 108,
+  "managed_resources": 125,
+  "resource_types": {
+   "archive_file": 5,
+   "aws_availability_zones": 1,
+   "aws_cloudfront_cache_policy": 1,
+   "aws_cloudfront_distribution": 1,
+   "aws_cloudwatch_log_group": 5,
+   "aws_cognito_user": 4,
+   "aws_cognito_user_group": 3,
+   "aws_cognito_user_in_group": 3,
+   "aws_cognito_user_pool": 1,
+   "aws_cognito_user_pool_client": 1,
+   "aws_db_subnet_group": 1,
+   "aws_iam_policy_document": 10,
+   "aws_iam_role": 5,
+   "aws_iam_role_policy": 5,
+   "aws_lambda_function": 5,
+   "aws_rds_cluster": 1,
+   "aws_s3_bucket": 1,
+   "aws_s3_bucket_policy": 1,
+   "aws_s3_bucket_public_access_block": 1,
+   "aws_s3_bucket_server_side_encryption_configuration": 1,
+   "aws_s3_object": 2,
+   "aws_subnet": 2,
+   "aws_vpc": 1,
+   "module": 59,
+   "random_password": 4,
+   "terraform_data": 1
+  }
+ },
+ "plan_after_apply": {
+  "seconds": 4.8,
+  "exit_code": 0,
+  "no_changes": true,
+  "drifting_resources": []
+ },
+ "destroy": {
+  "seconds": 60.8,
+  "ok": true,
+  "destroyed": 108,
+  "leftovers": {
+   "secrets": [
+    "rds!cluster-cluster-00000000000000000000000001"
+   ]
+  },
+  "error_tail": null
+ },
+ "reapply": {
+  "seconds": 61.7
+ }
+}

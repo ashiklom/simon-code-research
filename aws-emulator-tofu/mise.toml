@@ -2,3 +2,67 @@
 opentofu = "1.13.9"
 pixi = "0.84.2"
 "aqua:quarto-dev/quarto-cli" = "1.11.9"
+
+[env]
+EMULATOR_LISTENER_PORT_RANGE = "19300-19499"
+
+[tasks.fetch]
+description = "Download small public COGs + Natural Earth vectors into data/ (git-ignored)"
+run = "pixi run python scripts/fetch_data.py"
+
+[tasks."emulator:install"]
+description = "Install the latest aws-emulator .deb into .emulator/ (pass --version X or --from-source [--ref R])"
+run = "scripts/emulator.sh install"
+
+[tasks."emulator:start"]
+run = "scripts/emulator.sh start && scripts/emulator.sh version-json > results/emulator-version.json"
+
+[tasks."emulator:stop"]
+run = "scripts/emulator.sh stop"
+
+[tasks."emulator:restart"]
+description = "Fresh emulator (all emulated state is lost; delete tofu state too)"
+run = "scripts/emulator.sh restart && scripts/emulator.sh version-json > results/emulator-version.json && rm -f infra/terraform.tfstate* probes/*/terraform.tfstate*"
+
+[tasks.unit]
+description = "CPython unit + conformance tests (titiler/tipg references, authorizer, token service)"
+run = "pixi run pytest -q tests"
+
+[tasks.deploy]
+description = "tofu apply against the running emulator"
+run = 'eval "$(scripts/emulator.sh env)" && tofu -chdir=infra init -input=false && tofu -chdir=infra apply -auto-approve -input=false'
+
+[tasks.measure]
+description = "Fresh apply -> drift plan -> destroy -> leftover scan -> re-apply  (results/deploy.json)"
+run = 'eval "$(scripts/emulator.sh env)" && tofu -chdir=infra init -input=false >/dev/null && pixi run python scripts/measure_deploy.py'
+
+[tasks.load]
+description = "Load vectors into Aurora through the RDS Data API"
+run = "scripts/load.sh"
+
+[tasks.e2e]
+description = "Role x endpoint x route matrix + sample figures (results/e2e.json, figures/)"
+run = 'eval "$(scripts/emulator.sh env)" && pixi run python tests/e2e.py'
+
+[tasks.probes]
+description = "Capability probes (results/probes.json)"
+run = 'eval "$(scripts/emulator.sh env)" && pixi run python probes/run.py'
+
+[tasks."update-check"]
+description = "Has aws-emulator changed since the recorded version? Which findings may be affected? (see UPDATE.md)"
+run = "pixi run python scripts/update_check.py"
+
+[tasks.site]
+description = "Render the Quarto report from committed results (no emulator needed)"
+run = ["pixi run python scripts/make_report_assets.py", "quarto render report"]
+
+[tasks.all]
+description = "Everything after `mise run fetch` + `mise run emulator:install`"
+run = [
+  "mise run unit",
+  "mise run emulator:restart",
+  "mise run measure",
+  "mise run load",
+  "mise run e2e",
+  "mise run probes",
+]

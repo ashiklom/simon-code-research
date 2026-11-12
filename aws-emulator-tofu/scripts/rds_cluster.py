@@ -60,6 +60,12 @@ def delete(spec):
         rds.delete_db_cluster(DBClusterIdentifier=cid, SkipFinalSnapshot=True)
     except rds.exceptions.DBClusterNotFoundFault:
         pass
+    for _ in range(120):  # the subnet group can only be deleted once the cluster is gone
+        try:
+            rds.describe_db_clusters(DBClusterIdentifier=cid)
+            time.sleep(1)
+        except rds.exceptions.DBClusterNotFoundFault:
+            break
     print(f"cluster {cid} deleted")
 
 

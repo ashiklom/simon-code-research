@@ -150,19 +150,23 @@ resource "aws_api_gateway_gateway_response" "denied" {
   }
 }
 
+locals {
+  redeploy_input = jsonencode({
+    resources    = [aws_api_gateway_resource.root.id, aws_api_gateway_resource.proxy.id, [for r in aws_api_gateway_resource.public : r.id]]
+    methods      = [for m in concat(values(aws_api_gateway_method.protected), values(aws_api_gateway_method.public)) : [m.id, m.authorization, m.authorizer_id == null ? "" : m.authorizer_id]]
+    integrations = [for i in concat(values(aws_api_gateway_integration.protected), values(aws_api_gateway_integration.public)) : [i.id, i.uri, i.type]]
+    authorizer   = [aws_api_gateway_authorizer.jwt.id, var.authorizer_ttl, var.authorizer_identity_source, var.authorizer_invoke_arn]
+    responses    = [aws_api_gateway_gateway_response.unauthorized.response_templates, aws_api_gateway_gateway_response.denied.response_templates]
+  })
+}
+
 resource "aws_api_gateway_deployment" "this" {
   rest_api_id = aws_api_gateway_rest_api.this.id
   triggers = {
     # Hash configured inputs only. Hashing whole resource objects also picks up computed
-    # attributes, which aws-emulator reports differently from AWS (e.g. provider_arns = [] vs null)
-    # and would force a new deployment on every plan.
-    redeploy = sha1(jsonencode({
-      resources    = [aws_api_gateway_resource.root.id, aws_api_gateway_resource.proxy.id, [for r in aws_api_gateway_resource.public : r.id]]
-      methods      = [for m in concat(values(aws_api_gateway_method.protected), values(aws_api_gateway_method.public)) : [m.id, m.authorization, m.authorizer_id]]
-      integrations = [for i in concat(values(aws_api_gateway_integration.protected), values(aws_api_gateway_integration.public)) : [i.id, i.uri, i.type]]
-      authorizer   = [aws_api_gateway_authorizer.jwt.id, var.authorizer_ttl, var.authorizer_identity_source, var.authorizer_invoke_arn]
-      responses    = [aws_api_gateway_gateway_response.unauthorized.response_templates, aws_api_gateway_gateway_response.denied.response_templates]
-    }))
+    # attributes, which aws-emulator reports differently from AWS (e.g. provider_arns = [] vs null,
+    # authorizer_id = "" vs null on NONE methods) and would force a new deployment on every plan.
+    redeploy = sha1(local.redeploy_input)
   }
   lifecycle {
     create_before_destroy = true
