@@ -222,7 +222,7 @@ def probes(pr, findings):
 
 VOLATILE = re.compile(r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}|RequestID: \S+|127\.0\.0\.1:\d+"
                       r"|us-east-1_[0-9a-f]+|\b(?:sg|i|subnet|vpc)-[0-9a-f]+|[0-9a-f]{32}|probe-adv-[0-9a-f]+|\d{4}-\d\d-\d\dT\S+"
-                      r"|line \d+|\(Nov \d+ \d{4}[^)]*\)|rustc [^;]*")
+                      r"|line \d+|[A-Z][a-z]{2} \d+ \d{4}, [\d:]+|rustc [^;]*")
 
 
 def _norm(d):
