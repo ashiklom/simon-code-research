@@ -124,10 +124,11 @@ class IMERGFinalHH(_IMERGFinal):
     freq = "30min"
     h5var = "Grid/precipitation"
     source = "GES DISC GPM_3IMERGHH.07 (HTTPS range reads)"
-    notes = "Half-hourly gauge-adjusted IMERG Final V07, stamped at end of half hour. Extracted for the common window."
-    # GES DISC file access runs at ~3 files/s, so the half-hourly record is limited to the
-    # last two years of the common window (2023-09 .. 2025-08); daily Final covers everything.
-    start = pd.Timestamp("2023-09-01 00:30")
+    notes = "Half-hourly gauge-adjusted IMERG Final V07, stamped at end of half hour. Extracted for JJA 2025 only."
+    # GES DISC serves only per-file HDF5; under load we measured < 0.4 files/s (48 files/day),
+    # so the half-hourly Final run is limited to one summer (JJA 2025, ~4400 files). IMERG Final
+    # daily covers the full period and IMERG Late covers sub-daily behaviour throughout.
+    start = pd.Timestamp("2025-06-01 00:30")
     end = pd.Timestamp("2025-08-31 23:30")
     variables = {"pr": Var(["precipitation"], "precip", "mm", lambda precipitation: precipitation * 0.5,
                            {"desc": "precipitation over half hour ending at stamp (rate mm/h x 0.5 h)"})}

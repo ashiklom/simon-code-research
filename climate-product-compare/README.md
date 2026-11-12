@@ -10,7 +10,7 @@ and compared with station observations at hourly, daily and monthly scales:
 
 - **Products.** ERA5, ERA5-Land, MERRA-2, NLDAS-2 (forcing and the Noah/VIC/Mosaic land
   models), GEOS-FP (last 12 months), NOAA HRRR, PRISM, gridMET, Daymet, CHELSA-daily,
-  CHIRPS v3, IMERG Final (daily, and half-hourly for 2 years) and IMERG Late.
+  CHIRPS v3, IMERG Final (daily, and half-hourly for summer 2025) and IMERG Late.
 - **Sites.**
   - Tier 1: all 139 operational USCRN stations, including Alaska and Hawaii.
   - Tier 2: 66 "good" non-USCRN stations chosen to be as independent of the products as possible.
@@ -42,7 +42,7 @@ Full rationale, chunking and conventions are in [PLAN.md](PLAN.md). In short:
 | Daymet V4R1 | ORNL DAAC via Earthdata **Cloud OPeNDAP** (server-side subsetting) | 1 km daily, 1980–2025 |
 | CHELSA-daily v2.1 | EnviCloud COGs, windowed reads | 30″ daily, to 2025-09 |
 | CHIRPS v3 (final, rnl) | dynamical.org `ucsb-chc-chirps-analysis-final` Icechunk | 0.05° daily |
-| IMERG Final V07 | GES DISC HDF5 range reads (no time-series-chunked copy exists) | 0.1° daily 1998–2025-09; half-hourly 2023-09..2025-08 |
+| IMERG Final V07 | GES DISC HDF5 range reads (no time-series-chunked copy exists) | 0.1° daily 1998–2025-09; half-hourly JJA 2025 only |
 | IMERG Late V07 | dynamical.org `nasa-imerg-analysis-late` Icechunk | 0.1° half-hourly |
 
 ## Sites
@@ -163,9 +163,10 @@ and copy with `mise run store-copy -- file://$PWD/data/store s3://bucket/prefix`
   - HRRR shortwave is the instantaneous analysis-time flux.
   - Daily max/min from hourly products are the max/min of hourly values, while USCRN's
     come from 5-minute data. This biases product Tmax low and Tmin high.
-- **IMERG Final half-hourly** is limited to 2023-09..2025-08. GES DISC serves it only as
-  per-file HDF5 at roughly 1–3 files/s, and V07 Final ends 2025-09-30. IMERG Final
-  *daily* covers the full period.
+- **IMERG Final half-hourly** is limited to June–August 2025. GES DISC serves it only as
+  per-file HDF5, measured at under 0.4 files/s here (48 files per day of data), and V07
+  Final ends 2025-09-30. IMERG Final *daily* covers the full period and IMERG Late covers
+  sub-daily behaviour throughout.
 - **NLDAS-2 land models.** Only the variables Giovanni serves are included: Noah soil
   moisture/temperature, skin temperature, SWE and snow depth; VIC layers 1–2; Mosaic soil
   moisture and soil temperature. VIC/Mosaic skin temperature and SWE are not served.
