@@ -32,15 +32,21 @@ def series(data_id: str, lat: float, lon: float, t0: pd.Timestamp, t1: pd.Timest
 def _one(data_id, lat, lon, t0, t1) -> pd.Series:
     params = {"data": data_id, "location": f"[{lat:.5f},{lon:.5f}]",
               "time": f"{t0:%Y-%m-%dT%H:%M:%S}/{t1:%Y-%m-%dT%H:%M:%S}"}
-    for attempt in range(5):
-        r = http.session().get(URL, params=params, headers=http.earthdata_headers(), timeout=600)
+    import requests
+
+    for attempt in range(6):
+        try:
+            r = http.session().get(URL, params=params, headers=http.earthdata_headers(), timeout=600)
+        except (requests.ConnectionError, requests.Timeout, requests.exceptions.ChunkedEncodingError):
+            time.sleep(10 * (attempt + 1))
+            continue
         if r.status_code in (429, 500, 502, 503, 504):
             time.sleep(10 * (attempt + 1))
             continue
         r.raise_for_status()
         break
     else:
-        r.raise_for_status()
+        raise RuntimeError(f"Giovanni request failed repeatedly: {params}")
     txt = r.text
     head, _, body = txt.partition("\n\n")
     meta = dict(ln.split(",", 1) for ln in head.splitlines() if "," in ln)
