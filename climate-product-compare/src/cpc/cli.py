@@ -148,6 +148,11 @@ def cmd_report(a):
     print(report.write_pilot_report())
 
 
+def cmd_compact(a):
+    for name in (a.repos or store.list_repos(a.store)):
+        print(store.compact(name, a.store, keep_minutes=a.keep_minutes))
+
+
 def cmd_compression(a):
     from . import compression
 
@@ -208,6 +213,11 @@ def main(argv=None):
 
     s = sub.add_parser("report", help="write results/pilot/pilot_report.md")
     s.set_defaults(fn=cmd_report)
+
+    s = sub.add_parser("compact", help="expire old snapshots and garbage-collect unreferenced chunks")
+    s.add_argument("repos", nargs="*")
+    s.add_argument("--keep-minutes", type=float, default=30)
+    s.set_defaults(fn=cmd_compact)
 
     s = sub.add_parser("compression", help="compression study on pilot sites")
     s.set_defaults(fn=cmd_compression)

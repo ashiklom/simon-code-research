@@ -83,6 +83,7 @@ def run(name: str, sites: pd.DataFrame, *, t_end: pd.Timestamp | None = None, st
     specs = product.specs()
     t_wall = time.time()
     done_since_commit = 0
+    n_commits = 0
     nbytes = 0
     for t0, sids in sorted(work.items()):
         sub_idx = np.array([list(sites.site_id).index(s) for s in sids])
@@ -102,6 +103,12 @@ def run(name: str, sites: pd.DataFrame, *, t_end: pd.Timestamp | None = None, st
             if done_since_commit >= commit_every:
                 _record(w, finished)
                 session.commit(f"{name}: {len(finished)} site(s)")
+                n_commits += 1
+                if n_commits % 25 == 0:
+                    try:
+                        store.compact(store.repo_name("products", name), store_url)
+                    except Exception:
+                        pass
                 session = repo.writable_session("main")
                 w = store.GroupWriter(session, path, product.freq, has_px=True, t_origin=origin)
                 finished, done_since_commit = {}, 0
@@ -112,6 +119,10 @@ def run(name: str, sites: pd.DataFrame, *, t_end: pd.Timestamp | None = None, st
         w.set_extracted_end(t_end)
         if session.has_uncommitted_changes:
             session.commit(f"{name}: {len(finished)} site(s) to {t_end}")
+    try:
+        log(f"[{name}] compact: {store.compact(store.repo_name('products', name), store_url, keep_minutes=0.5)}")
+    except Exception as e:  # e.g. read-only backend
+        log(f"[{name}] compact skipped: {e!r}")
     dt = time.time() - t_wall
     log(f"[{name}] done: {n_sites} site(s), {_fmt_bytes(nbytes)} decoded, {dt:.0f} s")
     summary.update({"seconds": dt, "decoded_bytes": nbytes})

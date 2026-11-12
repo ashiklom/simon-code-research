@@ -386,3 +386,20 @@ def read_group(session: icechunk.Session, path: str, variables: list[str] | None
 
 def group_attrs(session: icechunk.Session, path: str) -> dict:
     return dict(zarr.open_group(session.store, mode="r", path=path).attrs)
+
+
+def compact(name: str, root: str | None = None, keep_minutes: float = 30) -> dict:
+    """Drop history older than `keep_minutes` and delete chunks no longer referenced.
+
+    Appending month/week blocks rewrites each site's time chunk, and Icechunk keeps every
+    version, so file-based extractions grow without this. The margin keeps objects written by
+    a concurrent, not-yet-committed session safe.
+    """
+    import datetime as dt
+
+    repo = open_repo(name, root, create=False)
+    cutoff = dt.datetime.now(dt.timezone.utc) - dt.timedelta(minutes=keep_minutes)
+    expired = repo.expire_snapshots(older_than=cutoff)
+    s = repo.garbage_collect(cutoff)
+    return {"repo": name, "expired_snapshots": len(expired), "deleted_chunks": s.chunks_deleted,
+            "deleted_bytes": s.bytes_deleted}
