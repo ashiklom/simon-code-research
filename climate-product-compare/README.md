@@ -187,6 +187,28 @@ Full rationale, chunking and conventions are in [PLAN.md](PLAN.md). In short:
     depths and models. Layers are matched by depth.
   - Wind: compared raw (10 m vs 1.5 m) and log-law adjusted to 1.5 m.
 
+## Deviations from the plan
+
+The plan (PLAN.md) was followed except for these points, all forced by access or throughput:
+
+- **Store layout.** There is one Icechunk repo per product and per station network
+  (`<root>/products-<name>.icechunk`), not a single repo. This allows concurrent writers.
+  Repos are compacted (old snapshots expired, then garbage-collected) during and after
+  extraction, because block-wise appends otherwise keep every rewritten chunk.
+- **CHELSA** covers the common window only (2018-09 → 2025-09). It has one COG per
+  variable-day, and the reads cost about 17 s per file for 305 sites.
+- **IMERG Final half-hourly** covers June–August 2025 only (see Limitations).
+- **NLDAS-2 land models** include only the variables Giovanni serves. **NLDAS-3** was not
+  extracted.
+- **Tier 2.**
+  - DEOS, FAWN, Michigan Enviroweather and the Walnut Gulch gauges were dropped. SCAN was
+    expanded from 2 to 8 sites instead: open API, soil moisture, and not in GHCN-D.
+  - NEON and AmeriFlux await credentials.
+- **Daily day windows.** For Daymet and gridMET precipitation, metrics use the empirically
+  aligned window instead of the documented one (see Key results).
+- **Soil-moisture quantum** is 1e-5 m³ m⁻³, not 1e-3. The pilot showed that 1e-4 moved
+  deep-layer correlations at a dry site by 0.02.
+
 ## Storage and compression
 
 <!-- STORAGE -->
