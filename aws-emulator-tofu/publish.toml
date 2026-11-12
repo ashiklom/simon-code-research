@@ -1,0 +1,8 @@
+# Site build + release-asset manifest (see /CLAUDE.md "Publishing").
+# The site renders from committed results/ and figures/ only (no emulator, no pixi).
+build = "mise run site"
+output = "report/_site"
+
+models = ["claude-opus-5-5"]
+tools = ["opentofu", "aws-emulator", "hashicorp/aws provider", "python", "rustpython (emulated Lambda)", "mise",
+         "pixi", "uv", "quarto", "gdal", "titiler", "tipg", "postgis", "boto3", "pytest"]

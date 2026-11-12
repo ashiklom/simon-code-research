@@ -1,0 +1,44 @@
+---
+title: "aws-emulator vs real AWS"
+subtitle: "Every behaviour difference found, and whether it is specific to the emulator"
+---
+
+{{< include _generated/version-box.md >}}
+
+::: {.big-warning}
+**The most important difference: Lambda functions do not run the way they do on AWS.**
+aws-emulator executes Python handlers on **RustPython**, an embedded interpreter inside the
+emulator process (`sys.implementation.name == "rustpython"`, reporting Python 3.14-alpha even for
+`python3.12`), and Node.js handlers on QuickJS. Consequences:
+
+- no native extensions: numpy, GDAL/rasterio, pydantic-core, cryptography and asyncpg can't load;
+- no sockets and no `asyncio`;
+- no layers for Python, and no container-image functions;
+- no Java, Ruby or custom (`provided.al2023`) runtimes.
+
+**Real titiler and real tipg cannot run on aws-emulator.** This experiment uses pure-Python
+stand-ins with the same API surface. Anything you validate on the emulator only says something
+about pure-Python or JS handler code.
+:::
+
+How to read this page:
+
+- **Scope.** *emulator only* means real AWS behaves differently: it is a fidelity gap.
+  **also on AWS** means a design constraint you'd hit in production too.
+- **Status.** *works* means it behaved like AWS, *partial* means usable with a workaround, *gap*
+  means it doesn't work.
+- **Source and evidence.** Rows come from [`findings.toml`](https://github.com/ashiklom/simon-code-research/blob/main/aws-emulator-tofu/findings.toml).
+  Evidence links point to the [capability probes](probes.qmd), the [end-to-end matrix](auth-api.qmd#results-on-aws-emulator)
+  or the [deploy cycle](emulator.qmd#deploy-cycle).
+
+The questions raised in planning, answered:
+
+| Question | Answer |
+|---|---|
+| HTTP API v2 JWT authorizer not checking signatures: emulator or general? | **Emulator only.** On AWS the JWT authorizer verifies the signature against the issuer's JWKS. On the emulator, a payload-edited token and a token signed by an unrelated key both got 200. |
+| CloudFront not forwarding `Authorization`: all CloudFront, or the emulator? | **Mostly the emulator.** On AWS, `Authorization` *is* forwarded when it's in the **cache policy** (cache key). An origin request policy alone can't forward it, and that part is real AWS behaviour. The emulator drops it whatever the policy says. |
+| CloudFront dropping origin response headers? | **Emulator only.** AWS passes origin headers (Content-Type, Cache-Control, CORS) through. |
+| Aurora without PostGIS? | **Emulator only.** Aurora PostgreSQL supports PostGIS; the emulator's engine is SQLite behind a PostgreSQL wire protocol. |
+| Lambda can't run titiler/tipg? | **Emulator only.** On AWS both run as container images or zip/layer packages. |
+
+{{< include _generated/differences.md >}}

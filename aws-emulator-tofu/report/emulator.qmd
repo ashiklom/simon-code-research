@@ -1,0 +1,129 @@
+---
+title: "2 · How well did OpenTofu + aws-emulator work?"
+subtitle: "Deploying a 108-resource stack, running it end to end, and what it took"
+---
+
+{{< include _generated/version-box.md >}}
+
+## Verdict
+
+**For the control plane, it works well, after a handful of non-obvious workarounds.** The final
+stack applies cleanly from an empty emulator in about a minute. `tofu plan` then reports no
+changes, and `tofu destroy` removes everything except one RDS-managed secret. Six of the 15
+services in the stack needed an emulator-specific setting before OpenTofu could manage them. Every
+one of those settings is a single switch in the code, so the same code still targets real AWS.
+
+**For the data plane, it works within narrow limits.** A surprising amount behaves like AWS:
+
+- REST API Gateway with Lambda authorizers, IAM policy evaluation (including inside Lambda),
+  Lambda permissions;
+- S3 range reads, the RDS Data API, Cognito password login with groups;
+- CloudFront routing, caching and WAF;
+- SQS, SNS, EventBridge schedules, Step Functions and DynamoDB streams;
+- ALB → Lambda.
+
+But the emulator **cannot run real application code**: Lambda is an embedded RustPython or QuickJS
+interpreter, and Aurora is SQLite. Several edge and identity features are accepted by the API and
+then silently ignored. Those are the dangerous kind of gap, because `tofu apply` succeeds.
+
+::: {.callout-warning}
+## Use it for
+- Validating OpenTofu modules: resource wiring, IAM, naming, drift, destroy. It is fast, free and
+  offline.
+- Integration-testing **pure-Python or JS** Lambda logic against S3, DynamoDB, SQS, the RDS Data
+  API and API Gateway.
+- Exercising REST API authorizer and IAM designs. Here, 60 of 60 role × endpoint cases matched AWS.
+
+## Don't use it for
+- Anything with native dependencies: GDAL, numpy, titiler, tipg, FastAPI on pydantic v2, database
+  drivers. The same goes for container-image Lambdas, ECS and EC2 workloads, which are lifecycle
+  models only.
+- Database behaviour: no PostGIS, SQLite semantics, and the Data API sees a different database
+  from the wire endpoint.
+- Security assertions about **HTTP API JWT authorizers** (signatures aren't verified),
+  CloudFront Functions or response-header policies, or browser CORS.
+:::
+
+## Deploy cycle {#deploy-cycle}
+
+`mise run measure` runs the whole cycle on a fresh emulator with empty state:
+
+{{< include _generated/deploy.md >}}
+
+## What it took: the workarounds, in the order I hit them
+
+| # | Symptom | Cause | Fix | Finding |
+|---|---|---|---|---|
+| 1 | Every SDK call: `AccessDenied: Sign the request with the emulator credentials` | the session's own `AWS_ACCESS_KEY_ID` env vars win over the emulator's credentials file | `unset AWS_ACCESS_KEY_ID …` in `scripts/emulator.sh env` | (setup) |
+| 2 | `aws_s3_bucket: Still creating... [10m elapsed]` | provider 6.x reads tags via **S3 Control**; the account-id host prefix gives `000000000000.127.0.0.1:9297` | `skip_credentials_validation` + `skip_requesting_account_id`; build `execution_arn` from `aws_caller_identity` | [tofu-s3control-host-prefix](differences.qmd#tofu-s3control-host-prefix) |
+| 3 | `aws_security_group`: `RevokeSecurityGroupEgress … InvalidPermission.NotFound` | new SGs lack AWS's default egress rule, which the provider revokes | no SG on the emulator | [ec2-sg-default-egress](differences.qmd#ec2-sg-default-egress) |
+| 4 | `MasterUsername must be 1 to 16 letters or numbers; got 'features_admin'` | stricter validation (matches the API reference text) | `featuresadmin` | [rds-master-username-rule](differences.qmd#rds-master-username-rule) |
+| 5 | `aws_rds_cluster`: `DescribeGlobalClusters … unrecognized filter name: db-cluster-id` | the provider uses an undocumented filter that AWS accepts | tried CloudFormation (#6), then a `terraform_data` + boto3 script read back by `data "aws_rds_cluster"` | [rds-describeglobalclusters-filter](differences.qmd#rds-describeglobalclusters-filter) |
+| 6 | CloudFormation stack `CREATE_COMPLETE`, but its DB instance fails with "cluster not found" | CloudFormation (and Cloud Control) don't actually create RDS clusters | abandoned that route | [cfn-rds-not-materialized](differences.qmd#cfn-rds-not-materialized) |
+| 7 | All authenticated calls get 401; authorizer log: `JWKS fetch … HTTPError 400` | in-Lambda HTTP to the Cognito JWKS URL is routed to Cognito's signed API | fetch the JWKS at deploy time (`data "http"`) into `JWKS_JSON` | [lambda-guest-http](differences.qmd#lambda-guest-http) |
+| 8 | Through CloudFront: 401 with a valid token | the edge never forwards `Authorization` | authorizer also reads `X-Auth-Token` | [cloudfront-authorization-dropped](differences.qmd#cloudfront-authorization-dropped) |
+| 9 | `plan` after `apply` wants to replace all API Gateway deployments | empty-vs-null computed attributes change the `triggers` hash | hash configured inputs only, normalise `authorizer_id` | [apigw-computed-attr-drift](differences.qmd#apigw-computed-attr-drift) |
+| 10 | `aws_s3_object` keeps updating | multipart ETag ≠ MD5, **as on AWS** | `source_hash` | [s3-multipart-etag](differences.qmd#s3-multipart-etag) |
+| 11 | `tofu destroy` fails on the DB subnet group | my cluster script didn't wait for the cluster to be gone | wait in the script | (my bug) |
+
+Before any of this, the bigger decision: real titiler and tipg can't run, so I wrote pure-Python
+stand-ins ([details](auth-api.qmd#what-was-built)). The stand-ins had to avoid loops over pixels,
+because RustPython is slow at them, and use `bytes.translate`, slicing and big-int bit tricks
+instead. A 256×256 tile then renders in 0.2–1.3 s on the emulator.
+
+## Service by service (the main stack)
+
+| Service | Resources managed by tofu | Out of the box? | Data plane in the stack |
+|---|---|---|---|
+| IAM | roles, inline policies | yes | enforced inside Lambda (least-privilege policies matter) |
+| CloudWatch Logs | log groups | yes | Lambda `print()` output is queryable; that made debugging possible |
+| Lambda | 5 zip functions (python3.12) | yes | runs, **on RustPython** |
+| API Gateway (REST) | 4 APIs, authorizers, methods, integrations, gateway responses, deployments, stages, permissions | needed the drift fix (#9) | authorizers, IAM policy, Lambda permissions all enforced |
+| Cognito | pool, client, 3 groups, 4 users, memberships | yes | `InitiateAuth`, refresh, `cognito:groups`; ES256 tokens |
+| S3 | bucket, public access block, SSE, TLS-only policy, 2 objects | needed #2 | range GETs from Lambda |
+| EC2/VPC | VPC, 2 subnets (security group dropped, #3) | partly | – |
+| RDS | subnet group (+ cluster/instance via script) | **no** (#5) | Data API works; no PostGIS |
+| Secrets Manager / KMS | via RDS-managed master secret | yes | Data API authenticates with it |
+| CloudFront | distribution, cache policy | yes | routing and caching; drops `Authorization` and response headers |
+| http / random / archive providers | JWKS fetch, passwords, zips | yes | – |
+
+## End-to-end correctness
+
+{{< include _generated/e2e-summary.md >}}
+
+The full matrix is on the [design page](auth-api.qmd#results-on-aws-emulator).
+
+## Beyond the stack
+
+{{< include _generated/probe-counts.md >}}
+
+See the [probe results](probes.qmd) and the full [list of differences](differences.qmd).
+
+Some positive surprises, where the emulator's fidelity goes well beyond stubbing:
+
+- **IAM in Lambda.** Explicit and implicit denies in a Lambda's role are enforced, with AWS-style
+  `AccessDenied` messages.
+- **CloudFront.** Caches by policy (`x-cache: Hit from cloudfront`) and enforces **WAFv2** rules.
+- **ECS.** Models image-pull *reachability* from the task's subnet routes. A subnet without a NAT
+  or IGW gets `CannotPullContainerError … dial tcp public.ecr.aws:443: i/o timeout`.
+- **Event sources.** EventBridge `rate(1 minute)` rules, SQS and DynamoDB-stream mappings, and
+  S3 notifications actually invoke Lambdas.
+- **ALBs.** Each gets a local listener that invokes Lambda targets.
+
+Some negative surprises, where the API accepts the configuration and nothing happens:
+
+- CloudFront Functions and response-headers policies;
+- Cognito pre-token-generation output;
+- user pool domains (no `/oauth2/token`);
+- Python layers;
+- CloudFormation RDS resources.
+
+On top of these, the HTTP API (v2) JWT authorizer **lets forged tokens through**.
+
+## Keeping this current
+
+aws-emulator is under very active development: a new release (1.0.336) appeared during this
+experiment. Each finding in `findings.toml` lists the emulator source paths and issue files it
+depends on. `mise run update-check` reports which findings a new release could affect;
+[UPDATE.md](https://github.com/ashiklom/simon-code-research/blob/main/aws-emulator-tofu/UPDATE.md)
+has the full procedure.

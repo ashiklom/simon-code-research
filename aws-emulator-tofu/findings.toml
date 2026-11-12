@@ -1,0 +1,725 @@
+# Findings registry: every observed difference between aws-emulator (+ OpenTofu's AWS provider)
+# and real AWS, plus notable things that DO work. Source of truth for report/differences.qmd,
+# report tables and scripts/update_check.py (see UPDATE.md).
+#
+# Fields
+#   id, title           stable id (referenced from infra/ comments, probes/*/check.py) and short title
+#   category            section on the differences page
+#   severity            major | moderate | minor | info
+#   emulator_only       true  = only on aws-emulator; false = also true on real AWS (a design gotcha)
+#   status              gap | partial | works   (as observed on last_verified_version)
+#   aws                 what real AWS does
+#   emulator            what aws-emulator did
+#   workaround          what this experiment did about it (or "none needed")
+#   infra_switch        optional: the variable/setting in infra/ that implements the workaround
+#   evidence            probe:<name> | e2e:<route/check> | deploy:<field> | unit:<test> | source:<path>
+#   crates, issues      aws-emulator repo paths / issue file names whose change should trigger a re-test
+#   last_verified_version
+
+# ------------------------------------------------------------------------------------- Lambda
+[[finding]]
+id = "lambda-rustpython"
+title = "Python Lambdas run on RustPython (in-process), not CPython"
+category = "Lambda"
+severity = "major"
+emulator_only = true
+status = "gap"
+aws = "python3.x runtimes are CPython in a Firecracker microVM: native extensions (numpy, GDAL, pydantic-core, cryptography), sockets, asyncio, /tmp, subprocesses all work."
+emulator = "Handlers run inside the emulator process on RustPython 0.6 (sys.implementation.name == 'rustpython', reporting version 3.14.0 alpha for both python3.12 and python3.13). Only .py files load (compiled .so are skipped), C modules are an allow-list (no _socket, _ssl, select, _asyncio, _ctypes), and there is no host filesystem or network. Real titiler and real tipg cannot import."
+workaround = "Pure-Python stand-ins (titiler-lite, tipg-lite) with titiler/tipg-compatible API surface; JWT verification written in pure Python; Data API (HTTPS) instead of a Postgres driver."
+evidence = ["probe:lambda-runtimes", "probe:real-tipg-zip", "source:services/service-com-amazonaws-lambda-awsgirapiservice/src/state/execution/python.rs"]
+crates = ["services/service-com-amazonaws-lambda-awsgirapiservice/src/state/execution", "vendor/engine/src/lib.rs"]
+issues = ["20261107T091747Z-lambda-the-execution-environment-has-no-filesystem-or.md"]
+last_verified_version = "1.0.322"
+
+[[finding]]
+id = "lambda-native-extensions"
+title = "Zip packages with native wheels cannot run"
+category = "Lambda"
+severity = "major"
+emulator_only = true
+status = "gap"
+aws = "manylinux wheels in the zip (or a layer) import normally."
+emulator = "The real tipg + mangum zip (manylinux wheels, uploaded via S3) deploys, but the handler fails importing pydantic_core (native module)."
+workaround = "None possible for native code; use pure-Python code only."
+evidence = ["probe:real-tipg-zip"]
+crates = ["services/service-com-amazonaws-lambda-awsgirapiservice/src/state/execution"]
+issues = []
+last_verified_version = "1.0.322"
+
+[[finding]]
+id = "lambda-runtimes-limited"
+title = "Only python3.x and nodejs runtimes execute"
+category = "Lambda"
+severity = "major"
+emulator_only = true
+status = "partial"
+aws = "All managed runtimes (Python, Node.js, Java, .NET, Ruby) and OS-only runtimes (provided.al2023) run."
+emulator = "python3.12/3.13 (RustPython) and nodejs22.x (QuickJS, process.version reported as v22.0.0) run; java21, ruby3.3 and provided.al2023 functions are created but Invoke fails with InvalidRuntimeException."
+workaround = "Use Python or Node.js."
+evidence = ["probe:lambda-runtimes"]
+crates = ["services/service-com-amazonaws-lambda-awsgirapiservice/src/state/execution.rs", "services/service-com-amazonaws-lambda-awsgirapiservice/src/ops/invoke.rs"]
+issues = ["20261109T185037Z-lambda-sqs-3-net-new-causes-dotnet-go-java-ruby.md"]
+last_verified_version = "1.0.322"
+
+[[finding]]
+id = "lambda-container-images"
+title = "Container-image Lambdas are created but never run"
+category = "Lambda"
+severity = "major"
+emulator_only = true
+status = "gap"
+aws = "PackageType=Image functions run the image's handler (titiler's documented Lambda deployment)."
+emulator = "ECR accepts an image pushed through the ECR API (docker push upload sessions are refused); CreateFunction succeeds, Invoke returns InvalidRuntimeException."
+workaround = "None; use zip packages."
+evidence = ["probe:real-titiler-image"]
+crates = ["services/service-com-amazonaws-lambda-awsgirapiservice/src/ops/invoke.rs", "services/service-com-amazonaws-lambda-awsgirapiservice/src/state/image_source.rs", "services/service-com-amazonaws-ecr-amazonec2containerregistry-v20150921/src/service/registry_v2.rs"]
+issues = ["20261103T031416Z-ecr-lambda-createfunction-accepts-a-container-image-whose.md"]
+last_verified_version = "1.0.322"
+
+[[finding]]
+id = "lambda-python-layers"
+title = "Python layers are not mounted"
+category = "Lambda"
+severity = "moderate"
+emulator_only = true
+status = "gap"
+aws = "Layer contents are extracted to /opt; /opt/python is on sys.path."
+emulator = "The layer is stored and attached, but `import probe_layer_mod` fails with ModuleNotFoundError (layers are only read for Node.js)."
+workaround = "Vendor shared code into each zip (this stack copies lambdas/common/*.py into every package)."
+evidence = ["probe:lambda-python-layer"]
+crates = ["services/service-com-amazonaws-lambda-awsgirapiservice/src/state/execution.rs"]
+issues = ["20261107T091747Z-lambda-lambda-layers-are-never-materialized-into-the.md", "20261106T151148Z-lambda-a-layer-supplied-boto3-package-does-not.md"]
+last_verified_version = "1.0.322"
+
+[[finding]]
+id = "lambda-guest-http"
+title = "In-Lambda HTTP reaches only AWS-shaped hosts in-process; boto3 is a stand-in"
+category = "Lambda"
+severity = "moderate"
+emulator_only = true
+status = "partial"
+aws = "Functions have outbound network access (subject to VPC config) and the real boto3."
+emulator = "urllib requests are delivered in-process only to AWS-style hostnames (signed with the execution role); the in-Lambda boto3 has clients for a fixed list (s3, rds-data, secretsmanager, dynamodb, sqs, ...) but not cognito-idp. Calling Cognito InitiateAuth via urllib to cognito-idp.us-east-1.amazonaws.com works; GET of the pool's JWKS URL returns 400."
+workaround = "Token service calls Cognito with urllib; the authorizer gets the JWKS at deploy time (http data source -> JWKS_JSON) when it can't fetch it."
+infra_switch = "infra/main.tf: data.http.jwks + JWKS_JSON (emulator only)"
+evidence = ["e2e:token_minting", "source:services/service-com-amazonaws-lambda-awsgirapiservice/src/state/execution/guest_http.rs"]
+crates = ["services/service-com-amazonaws-lambda-awsgirapiservice/src/state/execution/guest_http.rs", "services/service-com-amazonaws-lambda-awsgirapiservice/src/state/execution/aws_sdk_guest.rs", "services/service-com-amazonaws-cognitoidentityprovider-awscognitoidentityproviderservice/src/service.rs"]
+issues = []
+last_verified_version = "1.0.322"
+
+[[finding]]
+id = "lambda-function-url"
+title = "Function URLs use the real AWS hostname"
+category = "Lambda"
+severity = "minor"
+emulator_only = true
+status = "partial"
+aws = "https://<id>.lambda-url.<region>.on.aws/ resolves publicly."
+emulator = "The published URL doesn't resolve; the function URL works when the request is sent to the emulator port with that Host header."
+workaround = "Send to https://127.0.0.1:9297 with Host: <id>.lambda-url.us-east-1.on.aws."
+evidence = ["probe:lambda-function-url"]
+crates = ["services/service-com-amazonaws-lambda-awsgirapiservice/src/service/function_url.rs"]
+issues = []
+last_verified_version = "1.0.322"
+
+[[finding]]
+id = "iam-enforced-in-lambda"
+title = "IAM policies are enforced for Lambda execution roles"
+category = "IAM"
+severity = "info"
+emulator_only = false
+status = "works"
+aws = "Identity policies with explicit and implicit deny are evaluated."
+emulator = "Matches: allowed prefix readable, explicit Deny and implicit deny return AccessDenied with AWS-style messages. A Lambda without s3:GetObject cannot read the COG bucket."
+workaround = "none needed"
+evidence = ["probe:iam-deny-enforced"]
+crates = ["services/common/src/iam_authorization.rs"]
+issues = []
+last_verified_version = "1.0.322"
+
+# ------------------------------------------------------------------------------- API Gateway
+[[finding]]
+id = "apigw-rest-authorizer-works"
+title = "REST API Lambda REQUEST authorizers, IAM policy evaluation and Lambda permissions work"
+category = "API Gateway"
+severity = "info"
+emulator_only = false
+status = "works"
+aws = "Authorizer policy decides 200/403; raising 'Unauthorized' gives 401; aws_lambda_permission is required."
+emulator = "Matches: 60/60 role x endpoint cases on the direct route, including the wildcard admin policy, tampered/ID/alg-none tokens and gateway-response bodies."
+workaround = "none needed"
+evidence = ["e2e:apigw"]
+crates = ["services/service-com-amazonaws-apigateway-backplanecontrolservice/src/service/invoke"]
+issues = []
+last_verified_version = "1.0.322"
+
+[[finding]]
+id = "apigw-path-style-invoke"
+title = "execute-api hostnames don't resolve; use the path-style address"
+category = "API Gateway"
+severity = "minor"
+emulator_only = true
+status = "partial"
+aws = "https://<api-id>.execute-api.<region>.amazonaws.com/<stage>/..."
+emulator = "Same API is served at https://127.0.0.1:9297/_aws/execute-api/<api-id>/<stage>/...; the provider's invoke_url still shows the AWS hostname."
+workaround = "Output path-style URLs when var.emulator."
+infra_switch = "infra/outputs.tf: api_base_urls"
+evidence = ["e2e:apigw"]
+crates = ["services/service-com-amazonaws-apigateway-backplanecontrolservice/src/service.rs"]
+issues = []
+last_verified_version = "1.0.322"
+
+[[finding]]
+id = "apigw-computed-attr-drift"
+title = "Empty-vs-absent attributes cause perpetual redeploys if deployment triggers hash whole resources"
+category = "OpenTofu provider x emulator"
+severity = "minor"
+emulator_only = true
+status = "partial"
+aws = "Omitted fields come back absent (null)."
+emulator = "Returns provider_arns = [], response_parameters = {}, request_models = {}, and authorizer_id = \"\" for NONE methods; the common `triggers = { redeploy = sha1(jsonencode([aws_api_gateway_method.x, ...])) }` idiom then changes after the first refresh and forces a new deployment on every plan."
+workaround = "Hash configured inputs only, normalising authorizer_id null/\"\". After that: 0 changes on plan after apply."
+infra_switch = "infra/modules/authenticated_api: local.redeploy_input"
+evidence = ["deploy:plan_after_apply"]
+crates = ["services/service-com-amazonaws-apigateway-backplanecontrolservice/src/ops"]
+issues = []
+last_verified_version = "1.0.322"
+
+[[finding]]
+id = "apigwv2-jwt-no-signature-check"
+title = "HTTP API (v2) JWT authorizer accepts tokens with forged signatures"
+category = "API Gateway"
+severity = "major"
+emulator_only = true
+status = "gap"
+aws = "The JWT authorizer verifies the signature against the issuer's JWKS (OIDC discovery) before checking iss/aud/exp/scopes."
+emulator = "Checks shape, alg != none, iss, aud/client_id, exp/nbf and scopes, but not the signature: a token with an edited payload (username -> mallory) and a token signed by an unrelated key both get 200."
+workaround = "Not used in this design (REST API + Lambda authorizer that verifies signatures). Never treat emulator results as evidence of v2 JWT security."
+evidence = ["probe:apigwv2-jwt"]
+crates = ["services/service-com-amazonaws-apigatewayv2-apigatewayv2/src/service/jwt.rs"]
+issues = ["20261107T193731Z-apigatewayv2-cognito-idp-lambda-a-jwt-authorizer-route.md"]
+last_verified_version = "1.0.322"
+
+[[finding]]
+id = "apigwv2-no-lambda-permission-check"
+title = "HTTP API (v2) invokes Lambdas without lambda:InvokeFunction permission"
+category = "API Gateway"
+severity = "moderate"
+emulator_only = true
+status = "gap"
+aws = "Without a resource policy allowing apigateway.amazonaws.com the integration fails (500)."
+emulator = "The route still invokes the function (200). REST APIs (v1) do enforce it."
+workaround = "None needed for this stack (REST APIs); be aware a missing aws_lambda_permission won't be caught."
+evidence = ["probe:apigwv2-jwt"]
+crates = ["services/service-com-amazonaws-apigatewayv2-apigatewayv2/src/service/invoke"]
+issues = ["20261110T165732Z-apigatewayv2-cloudformation-lambda-apigatewayv2-an-http-api-aws-proxy-route-invokes.md"]
+last_verified_version = "1.0.322"
+
+[[finding]]
+id = "front-door-cross-origin"
+title = "Cross-site browser requests are refused by the emulator's front door"
+category = "API Gateway"
+severity = "moderate"
+emulator_only = true
+status = "gap"
+aws = "API Gateway serves cross-origin requests; CORS headers come from the API's configuration."
+emulator = "Requests carrying browser cross-site markers (Origin + Sec-Fetch-Site: cross-site) get 403 'Requests a browser sends from another site are refused', including OPTIONS preflights, before the API runs. Same request without them: 200 with Access-Control-Allow-Origin."
+workaround = "Test browser clients against a same-origin page or real AWS; server-to-server calls are unaffected."
+evidence = ["probe:apigw-cors-browser"]
+crates = ["vendor/server/src/listener_guard.rs"]
+issues = ["20261110T024230Z-apigateway-lambda-apigateway-execute-api-a-sigv4-signed-cross-origin.md"]
+last_verified_version = "1.0.322"
+
+# --------------------------------------------------------------------------------- CloudFront
+[[finding]]
+id = "cloudfront-authorization-dropped"
+title = "CloudFront never forwards the Authorization header"
+category = "CloudFront"
+severity = "major"
+emulator_only = true
+status = "gap"
+aws = "Authorization is forwarded when it is part of the cache policy's cache key (an origin request policy alone can't forward it; that part is also true on AWS)."
+emulator = "Dropped regardless of cache/origin request policy: every authenticated call through CloudFront with Authorization gets 401 (30/60 e2e mismatches); other whitelisted headers (X-Auth-Token, X-Custom) are forwarded."
+workaround = "Authorizer also reads X-Auth-Token; clients send the token there when going through CloudFront on the emulator. With it: 60/60."
+infra_switch = "TOKEN_HEADERS in lambdas/authorizer + X-Auth-Token in the edge cache policy; identity source empty / TTL 0 on the emulator"
+evidence = ["e2e:cf-authz", "e2e:cf-xauth", "probe:cloudfront-edge"]
+crates = ["services/service-com-amazonaws-cloudfront-cloudfront2020-05-31/src/service/edge.rs"]
+issues = ["20261110T092303Z-apigateway-cloudfront-s3-5-net-new-causes-at.md"]
+last_verified_version = "1.0.322"
+
+[[finding]]
+id = "cloudfront-drops-origin-headers"
+title = "CloudFront drops all origin response headers (Content-Type, Cache-Control, custom)"
+category = "CloudFront"
+severity = "moderate"
+emulator_only = true
+status = "gap"
+aws = "Origin response headers pass through to the viewer."
+emulator = "Only status and body are returned (plus x-cache, x-amz-cf-id, content-length, date): tiles arrive without image/png, JSON without application/json."
+workaround = "Clients sniff content; tests assert on bodies. Not fixable from configuration."
+evidence = ["e2e:extra_checks", "probe:cloudfront-edge"]
+crates = ["services/service-com-amazonaws-cloudfront-cloudfront2020-05-31/src/service/edge.rs"]
+issues = ["20261110T092303Z-apigateway-cloudfront-s3-5-net-new-causes-at.md"]
+last_verified_version = "1.0.322"
+
+[[finding]]
+id = "cloudfront-no-functions"
+title = "CloudFront Functions and response-headers policies are not executed"
+category = "CloudFront"
+severity = "moderate"
+emulator_only = true
+status = "gap"
+aws = "viewer-request functions run at the edge; response-headers policies add headers."
+emulator = "Both are accepted by the API (tofu applies them, no drift) but have no effect on requests/responses. Lambda@Edge is likewise not run."
+workaround = "None (the design avoids needing them; X-Forwarded-Host for public links would need one on AWS)."
+evidence = ["probe:cloudfront-edge"]
+crates = ["services/service-com-amazonaws-cloudfront-cloudfront2020-05-31/src/service/edge.rs"]
+issues = ["20261029T175823Z-cloudfront-testfunction-stub.md"]
+last_verified_version = "1.0.322"
+
+[[finding]]
+id = "cloudfront-viewer-protocol"
+title = "viewer_protocol_policy is not enforced; distributions are local listeners"
+category = "CloudFront"
+severity = "minor"
+emulator_only = true
+status = "gap"
+aws = "redirect-to-https answers plain HTTP with 301; the domain is <id>.cloudfront.net."
+emulator = "domain_name is 127.0.0.1:<port> (a per-distribution listener serving both HTTP and HTTPS) and http:// is served (200) despite redirect-to-https; also reachable at /_aws/cloudfront/<id>/."
+workaround = "Use the listener or path form; EMULATOR_LISTENER_PORT_RANGE pins the port range."
+evidence = ["probe:cloudfront-edge"]
+crates = ["services/service-com-amazonaws-cloudfront-cloudfront2020-05-31/src/state/edge_endpoint.rs"]
+issues = []
+last_verified_version = "1.0.322"
+
+[[finding]]
+id = "cloudfront-waf-works"
+title = "CloudFront caching and WAF (web ACL) rules are enforced"
+category = "CloudFront"
+severity = "info"
+emulator_only = false
+status = "works"
+aws = "Cache policy TTLs cache responses; WAFv2 rules block matching requests (403)."
+emulator = "Matches: second identical GET is 'Hit from cloudfront' with the same body; a byte-match rule on /blocked returns 403; origin request policy forwards whitelisted headers and query strings."
+workaround = "none needed"
+evidence = ["probe:cloudfront-edge"]
+crates = ["services/service-com-amazonaws-cloudfront-cloudfront2020-05-31/src/service/edge.rs"]
+issues = []
+last_verified_version = "1.0.322"
+
+# ------------------------------------------------------------------------------------ Cognito
+[[finding]]
+id = "cognito-es256"
+title = "Cognito signs tokens with ES256 instead of RS256"
+category = "Cognito"
+severity = "moderate"
+emulator_only = true
+status = "gap"
+aws = "Access/ID tokens are RS256; the JWKS has RSA keys (n, e)."
+emulator = "ES256 (P-256) with EC JWKS keys (x, y). Verifiers pinned to RS256 (aws-jwt-verify, many middlewares) reject emulator tokens."
+workaround = "Authorizer verifies both ES256 and RS256."
+evidence = ["probe:cognito-advanced", "e2e:apigw"]
+crates = ["services/service-com-amazonaws-cognitoidentityprovider-awscognitoidentityproviderservice/src/state/tokens.rs"]
+issues = ["20261029T182116Z-cognito-idp-issued-tokens-diverge-es256-instead-of.md", "20261109T124858Z-cognito-idp-5-net-new-causes-tokens-are.md"]
+last_verified_version = "1.0.322"
+
+[[finding]]
+id = "cognito-iss-host"
+title = "Token issuer depends on the hostname the client used"
+category = "Cognito"
+severity = "minor"
+emulator_only = true
+status = "partial"
+aws = "iss is always https://cognito-idp.<region>.amazonaws.com/<pool-id>."
+emulator = "Tokens minted inside a Lambda (calling cognito-idp.us-east-1.amazonaws.com) carry the AWS issuer; tokens minted from the host via https://127.0.0.1:9297 carry iss = https://127.0.0.1:9297/<pool-id>."
+workaround = "ALLOWED_ISSUERS lists both on the emulator (both e2e caller types pass)."
+infra_switch = "infra/main.tf: local.issuers"
+evidence = ["e2e:alice(host-minted)", "probe:apigwv2-jwt"]
+crates = ["services/service-com-amazonaws-cognitoidentityprovider-awscognitoidentityproviderservice/src/state/user_pool.rs"]
+issues = []
+last_verified_version = "1.0.322"
+
+[[finding]]
+id = "cognito-pretoken-ignored"
+title = "Pre-token-generation trigger output is ignored"
+category = "Cognito"
+severity = "moderate"
+emulator_only = true
+status = "gap"
+aws = "V2 trigger can add claims and scopes to ID and access tokens (Essentials/Plus tier)."
+emulator = "The trigger Lambda is invoked, but claimsToAddOrOverride and scopesToAdd don't appear in the tokens."
+workaround = "Design authorizes on cognito:groups (present in access tokens on both)."
+evidence = ["probe:cognito-advanced"]
+crates = ["services/service-com-amazonaws-cognitoidentityprovider-awscognitoidentityproviderservice/src/state/lambda_triggers.rs"]
+issues = ["20261105T111951Z-cognito-idp-lambda-the-pretokengeneration-v2-trigger-does.md"]
+last_verified_version = "1.0.322"
+
+[[finding]]
+id = "cognito-custom-attrs-missing"
+title = "Custom attributes are not included in ID tokens"
+category = "Cognito"
+severity = "minor"
+emulator_only = true
+status = "gap"
+aws = "custom:<attr> claims appear in the ID token."
+emulator = "Stored and returned by AdminGetUser, absent from the ID token."
+workaround = "none needed here"
+evidence = ["probe:cognito-advanced"]
+crates = ["services/service-com-amazonaws-cognitoidentityprovider-awscognitoidentityproviderservice/src/state/tokens.rs"]
+issues = []
+last_verified_version = "1.0.322"
+
+[[finding]]
+id = "cognito-no-oauth-endpoints"
+title = "No hosted UI / OAuth2 endpoints (/oauth2/token client_credentials)"
+category = "Cognito"
+severity = "moderate"
+emulator_only = true
+status = "gap"
+aws = "A user pool domain serves /oauth2/authorize, /oauth2/token (client_credentials with resource-server scopes) and the hosted UI."
+emulator = "Domain, resource server and OAuth client are accepted by tofu, but nothing serves /oauth2/token (neither on the emulator port nor with the amazoncognito.com Host)."
+workaround = "Machine-to-machine tokens not covered by this demo."
+evidence = ["probe:cognito-advanced"]
+crates = ["services/service-com-amazonaws-cognitoidentityprovider-awscognitoidentityproviderservice/src/service.rs"]
+issues = []
+last_verified_version = "1.0.322"
+
+[[finding]]
+id = "cognito-no-srp"
+title = "USER_SRP_AUTH is not implemented"
+category = "Cognito"
+severity = "minor"
+emulator_only = true
+status = "gap"
+aws = "SRP is the default flow for Amplify/most SDK sign-in helpers."
+emulator = "InitiateAuth with USER_SRP_AUTH fails (not implemented)."
+workaround = "USER_PASSWORD_AUTH (over TLS) for the token service."
+evidence = ["probe:cognito-advanced"]
+crates = ["services/service-com-amazonaws-cognitoidentityprovider-awscognitoidentityproviderservice/src/ops/initiate_auth.rs"]
+issues = []
+last_verified_version = "1.0.322"
+
+[[finding]]
+id = "cognito-groups-in-token"
+title = "cognito:groups is present in access tokens; user/group management via tofu works"
+category = "Cognito"
+severity = "info"
+emulator_only = false
+status = "works"
+aws = "Access tokens carry cognito:groups; aws_cognito_user with password sets a permanent password."
+emulator = "Matches (users created by tofu log in immediately with USER_PASSWORD_AUTH; groups appear in tokens; refresh works)."
+workaround = "none needed"
+evidence = ["e2e:token_minting", "e2e:extra_checks"]
+crates = ["services/service-com-amazonaws-cognitoidentityprovider-awscognitoidentityproviderservice/src/state.rs"]
+issues = []
+last_verified_version = "1.0.322"
+
+# -------------------------------------------------------------------------------- RDS / Aurora
+[[finding]]
+id = "rds-describeglobalclusters-filter"
+title = "aws_rds_cluster cannot be created: DescribeGlobalClusters rejects the provider's filter"
+category = "OpenTofu provider x emulator"
+severity = "major"
+emulator_only = true
+status = "gap"
+aws = "AWS documents only a `region` filter but accepts `db-cluster-id`, which the AWS provider uses on every read of a provisioned/global cluster."
+emulator = "InvalidParameterValue: unrecognized filter name: db-cluster-id. The cluster is created, then the provider errors and taints it, so `aws_rds_cluster` (provisioned engine mode) can't be managed at all."
+workaround = "Escape hatch: terraform_data runs scripts/rds_cluster.py (boto3) and the aws_rds_cluster data source (which doesn't make the call) reads it back."
+infra_switch = "infra/modules/database: via_script = var.emulator"
+evidence = ["probe:rds-cluster-native"]
+crates = ["services/service-com-amazonaws-rds-amazonrdsv19/src/ops/describe_global_clusters.rs"]
+issues = []
+last_verified_version = "1.0.322"
+
+[[finding]]
+id = "cfn-rds-not-materialized"
+title = "CloudFormation (and Cloud Control) report success for RDS clusters without creating them"
+category = "CloudFormation"
+severity = "major"
+emulator_only = true
+status = "gap"
+aws = "AWS::RDS::DBCluster in a stack creates a real cluster; GetAtt MasterUserSecret.SecretArn resolves."
+emulator = "Stack CREATE_COMPLETE, Ref/GetAtt Arn resolve, but rds:DescribeDBClusters shows no cluster, the secret output is empty, and a DBInstance in the same stack fails 'source cluster could not be found'. cloudcontrol:CreateResource likewise returns SUCCESS with nothing created."
+workaround = "Not usable as a workaround for the provider issue above."
+evidence = ["probe:rds-via-cloudformation"]
+crates = ["services/service-com-amazonaws-cloudformation-cloudformation/src/state", "services/service-com-amazonaws-cloudcontrol-cloudapiservice/src"]
+issues = []
+last_verified_version = "1.0.322"
+
+[[finding]]
+id = "rds-sqlite-no-postgis"
+title = "Aurora PostgreSQL is SQLite behind a PostgreSQL wire front; no PostGIS"
+category = "RDS / Aurora"
+severity = "major"
+emulator_only = true
+status = "gap"
+aws = "Real PostgreSQL (16.x) with PostGIS, PL/pgSQL, full SQL."
+emulator = "CREATE EXTENSION postgis fails (only a short allow-list of extensions is recorded, without functions); DO blocks fail; statements are limited to 5 s, results to 10,000 rows / 8 MiB, databases to 64 MiB. Plain CRUD, COUNT, LIMIT/OFFSET and named parameters work."
+workaround = "tipg-lite stores GeoJSON + bbox columns and does exact intersection in Python."
+evidence = ["probe:rds-postgis-wire"]
+crates = ["services/service-com-amazonaws-rds-amazonrdsv19/src/state/data_plane", "services/service-com-amazonaws-rdsdata-rdsdataservice/src"]
+issues = ["20261105T224225Z-rds-5-net-new-causes-the-postgresql-endpoint.md", "20261107T233409Z-logs-rds-the-emulated-aurora-postgresql-engine-refuses.md"]
+last_verified_version = "1.0.322"
+
+[[finding]]
+id = "rds-dataapi-separate-store"
+title = "RDS Data API and the PostgreSQL endpoint are different databases"
+category = "RDS / Aurora"
+severity = "moderate"
+emulator_only = true
+status = "gap"
+aws = "The Data API runs SQL against the cluster's own database."
+emulator = "Rows written via the Data API are not visible over the wire endpoint (and vice versa)."
+workaround = "This stack uses the Data API for both loading and serving."
+evidence = ["probe:rds-postgis-wire"]
+crates = ["services/service-com-amazonaws-rdsdata-rdsdataservice/src/state.rs"]
+issues = ["20261109T135215Z-rds-rds-data-secretsmanager-data-api-writes-to.md"]
+last_verified_version = "1.0.322"
+
+[[finding]]
+id = "rds-random-port"
+title = "Cluster endpoint is 127.0.0.1 on an ephemeral port"
+category = "RDS / Aurora"
+severity = "minor"
+emulator_only = true
+status = "partial"
+aws = "<cluster>.cluster-xxxx.<region>.rds.amazonaws.com:5432 (configurable)."
+emulator = "Endpoint 127.0.0.1, port from EMULATOR_LISTENER_PORT_RANGE (e.g. 19300); TLS with the emulator certificate; reader endpoint has no listener."
+workaround = "Read endpoint/port from the data source; pin the range with EMULATOR_LISTENER_PORT_RANGE."
+evidence = ["probe:rds-postgis-wire"]
+crates = ["services/service-com-amazonaws-rds-amazonrdsv19/src/state/data_plane/cluster_endpoint.rs"]
+issues = ["20261108T051751Z-rds-7-net-new-causes-endpoint-port-is.md"]
+last_verified_version = "1.0.322"
+
+[[finding]]
+id = "rds-managed-secret-outlives-cluster"
+title = "RDS-managed master secret survives cluster deletion"
+category = "RDS / Aurora"
+severity = "minor"
+emulator_only = true
+status = "gap"
+aws = "Deleting the cluster deletes the rds!cluster-... secret."
+emulator = "After tofu destroy, the secret remains (only leftover of the 108-resource stack)."
+workaround = "Restart the emulator for clean state."
+evidence = ["deploy:destroy.leftovers"]
+crates = ["services/service-com-amazonaws-rds-amazonrdsv19/src/state/managed_master_secret.rs"]
+issues = ["20261109T205028Z-secretsmanager-an-rds-managed-master-user-secret-outlives.md"]
+last_verified_version = "1.0.322"
+
+[[finding]]
+id = "rds-master-username-rule"
+title = "MasterUsername with an underscore rejected (unverified on AWS)"
+category = "RDS / Aurora"
+severity = "minor"
+emulator_only = true
+status = "partial"
+aws = "The CreateDBCluster API reference says 1-16 letters or numbers; Aurora PostgreSQL is commonly used with underscores in practice (not re-verified here)."
+emulator = "featuresadmin accepted; features_admin rejected with InvalidParameterValue."
+workaround = "Use letters and digits only (portable either way)."
+evidence = ["source:services/service-com-amazonaws-rds-amazonrdsv19/src/ops/create_db_cluster.rs"]
+crates = ["services/service-com-amazonaws-rds-amazonrdsv19/src/ops/create_db_cluster.rs"]
+issues = []
+last_verified_version = "1.0.322"
+
+[[finding]]
+id = "rds-dataapi-works"
+title = "RDS Data API, managed master secret, Serverless v2 config work for CRUD"
+category = "RDS / Aurora"
+severity = "info"
+emulator_only = false
+status = "works"
+aws = "Data API ExecuteStatement/BatchExecuteStatement with secretArn."
+emulator = "Matches for the SQL tipg-lite needs (BatchExecute loads 433 rows in < 1 s; parameters typed; columnMetadata labels)."
+workaround = "none needed"
+evidence = ["e2e:features", "unit:test_features_conformance"]
+crates = ["services/service-com-amazonaws-rdsdata-rdsdataservice/src"]
+issues = []
+last_verified_version = "1.0.322"
+
+# ------------------------------------------------------------------------------------------ S3
+[[finding]]
+id = "tofu-s3control-host-prefix"
+title = "aws_s3_bucket hangs forever unless the provider is told to skip the account id"
+category = "OpenTofu provider x emulator"
+severity = "major"
+emulator_only = true
+status = "gap"
+aws = "Provider reads bucket tags via S3 Control ListTagsForResource at <account>.s3-control.<region>.amazonaws.com."
+emulator = "With a custom endpoint the SDK prefixes the account id onto the host: 000000000000.127.0.0.1:9297, which never resolves; the provider retries indefinitely (apply 'Still creating...' for 10+ min)."
+workaround = "skip_credentials_validation = true and skip_requesting_account_id = true (the provider then falls back to GetBucketTagging); build account-id ARNs (execute-api source_arn) from aws_caller_identity."
+infra_switch = "infra/providers.tf (both flags = var.emulator)"
+evidence = ["probe:s3-control-tagging"]
+crates = ["vendor/server/src/tls_certificate_authority.rs", "services/service-com-amazonaws-s3control-awss3controlservicev20180820/src"]
+issues = ["20261103T082051Z-s3-the-https-front-door-aborts-the-handshake.md"]
+last_verified_version = "1.0.322"
+
+[[finding]]
+id = "s3-capacity-limits"
+title = "S3 storage is capped (64 MiB per bucket, 128 MiB total)"
+category = "S3"
+severity = "moderate"
+emulator_only = true
+status = "partial"
+aws = "Objects up to 5 TB, unlimited bucket size."
+emulator = "A 70 MiB object or a bucket past 64 MiB is refused; ~17 MB of COGs fit fine."
+workaround = "Keep test data small (COGs subset to a few MB)."
+evidence = ["probe:s3-addressing-limits"]
+crates = ["services/service-com-amazonaws-s3-amazons3/src/state.rs"]
+issues = []
+last_verified_version = "1.0.322"
+
+[[finding]]
+id = "s3-virtual-host-tls"
+title = "Virtual-hosted-style S3 addressing fails TLS; use path style"
+category = "S3"
+severity = "minor"
+emulator_only = true
+status = "partial"
+aws = "Virtual-hosted style is the default (path style is legacy)."
+emulator = "The certificate covers only localhost/127.0.0.1, so bucket.127.0.0.1 fails; path style works, as do presigned URLs and Range GETs (206)."
+workaround = "s3_use_path_style = true (provider), AWS_VIRTUAL_HOSTING=FALSE (GDAL)."
+infra_switch = "infra/providers.tf: s3_use_path_style"
+evidence = ["probe:s3-addressing-limits"]
+crates = ["vendor/server/src/tls_certificate_authority.rs"]
+issues = ["20261029T083133Z-s3-virtual-hosted-style-bucket-addressing-is-unreachable.md"]
+last_verified_version = "1.0.322"
+
+[[finding]]
+id = "s3-multipart-etag"
+title = "aws_s3_object etag drifts for large files (multipart upload)"
+category = "OpenTofu provider x emulator"
+severity = "minor"
+emulator_only = false
+status = "works"
+aws = "Multipart uploads get an ETag that is not the MD5 ('…-N'), so etag = filemd5() shows a perpetual diff (same on AWS)."
+emulator = "Same behaviour (13 MB COG uploaded in 3 parts)."
+workaround = "Use source_hash = filemd5(...) instead of etag."
+evidence = ["deploy:plan_after_apply"]
+crates = []
+issues = []
+last_verified_version = "1.0.322"
+
+# ----------------------------------------------------------------------------- EC2 / compute
+[[finding]]
+id = "ec2-sg-default-egress"
+title = "aws_security_group fails: new SGs lack AWS's default egress rule"
+category = "OpenTofu provider x emulator"
+severity = "moderate"
+emulator_only = true
+status = "gap"
+aws = "Every new security group gets an allow-all egress rule; the provider revokes it before applying the configured rules."
+emulator = "The SG is created without it, so the provider's RevokeSecurityGroupEgress fails with InvalidPermission.NotFound."
+workaround = "Skip the SG on the emulator (RDS uses no VPC SG ids)."
+infra_switch = "infra/modules/database: create_security_group = !var.emulator"
+evidence = ["probe:ec2-security-group"]
+crates = ["services/service-com-amazonaws-ec2-amazonec2/src/ops/create_security_group.rs"]
+issues = []
+last_verified_version = "1.0.322"
+
+[[finding]]
+id = "no-container-or-vm-execution"
+title = "ECS tasks and EC2 instances are lifecycle models; nothing actually runs"
+category = "Compute"
+severity = "major"
+emulator_only = true
+status = "partial"
+aws = "Fargate runs the container; EC2 boots the AMI and runs user_data."
+emulator = "See probes: control plane and state transitions are modelled, but no container or VM executes (no console output / exit code from the workload)."
+workaround = "Use Lambda (Python/Node) for compute that must run in tests."
+evidence = ["probe:ecs-fargate", "probe:ec2-instance"]
+crates = ["services/service-com-amazonaws-ecs-amazonec2containerservicev20141113/src", "services/service-com-amazonaws-ec2-amazonec2/src/ops/run_instances.rs"]
+issues = []
+last_verified_version = "1.0.322"
+
+[[finding]]
+id = "elb-data-plane"
+title = "ALB -> Lambda target works through a local listener"
+category = "Networking"
+severity = "info"
+emulator_only = false
+status = "works"
+aws = "Internal ALB DNS name routes HTTP to the Lambda target."
+emulator = "dns_name is a 127.0.0.1:<port> listener that invokes the Lambda target (no security group needed)."
+workaround = "none needed"
+evidence = ["probe:alb-lambda"]
+crates = ["services/service-com-amazonaws-elasticloadbalancingv2-elasticloadbalancing-v10"]
+issues = []
+last_verified_version = "1.0.322"
+
+# ------------------------------------------------------------------------ real-AWS design notes
+[[finding]]
+id = "aws-cloudfront-authorization-cache-key"
+title = "On AWS, CloudFront forwards Authorization only if it is in the cache key"
+category = "Design notes (also true on AWS)"
+severity = "info"
+emulator_only = false
+status = "works"
+aws = "Origin request policies can't forward Authorization; put it in the cache policy (TTL > 0 max) so responses are cached per token."
+emulator = "n/a (emulator drops it anyway; see cloudfront-authorization-dropped)."
+workaround = "infra/modules/edge cache policy keys on Authorization + X-Auth-Token, default TTL 0."
+evidence = ["source:infra/modules/edge/main.tf"]
+crates = []
+issues = []
+last_verified_version = "1.0.322"
+
+[[finding]]
+id = "aws-authorizer-cache-policy-scope"
+title = "Cached authorizer results must cover every resource the caller may use"
+category = "Design notes (also true on AWS)"
+severity = "info"
+emulator_only = false
+status = "works"
+aws = "API Gateway caches the authorizer policy per identity source for the TTL and applies it to the caller's other requests."
+emulator = "The emulator config uses TTL 0, but the policy is built the AWS-safe way."
+workaround = "lambdas/authorizer/policy.py returns all allowed prefixes."
+evidence = ["unit:test_authorizer"]
+crates = []
+issues = []
+last_verified_version = "1.0.322"
+
+[[finding]]
+id = "aws-cognito-group-scopes"
+title = "Cognito user tokens don't carry per-group OAuth scopes without a trigger"
+category = "Design notes (also true on AWS)"
+severity = "info"
+emulator_only = false
+status = "works"
+aws = "Custom scopes reach user access tokens only via the hosted UI/authorize flow or a V2 pre-token trigger (Essentials/Plus)."
+emulator = "Same limitation plus the trigger output is ignored."
+workaround = "Authorize on cognito:groups in a Lambda authorizer."
+evidence = ["probe:cognito-advanced"]
+crates = []
+issues = []
+last_verified_version = "1.0.322"
+
+[[finding]]
+id = "aws-apigw-limits"
+title = "29 s integration timeout and 6 MB Lambda payload apply on AWS too"
+category = "Design notes (also true on AWS)"
+severity = "info"
+emulator_only = false
+status = "works"
+aws = "REST API integration timeout 29 s (raisable for Regional APIs), Lambda sync payload 6 MB."
+emulator = "Lambda wait ceiling 30 s and ~6 MB responses, close to AWS."
+workaround = "Lambda timeout 29 s; tiles are ~10-600 kB."
+evidence = ["source:infra/modules/lambda_function/main.tf"]
+crates = []
+issues = []
+last_verified_version = "1.0.322"
+
+# --------------------------------------------------------------------------------- operational
+[[finding]]
+id = "emulator-ephemeral-state"
+title = "All state is in memory; credentials and certificate change on every start"
+category = "Operations"
+severity = "moderate"
+emulator_only = true
+status = "partial"
+aws = "n/a"
+emulator = "Restarting the emulator loses every resource while tofu state still lists them; new keys and a new self-signed certificate are written to ~/.aws/emulator/<port>/ each start."
+workaround = "Treat emulator + state as one unit: `mise run emulator:restart` deletes tofu state; scripts/emulator.sh env re-exports the new paths."
+evidence = ["source:scripts/emulator.sh"]
+crates = ["vendor/server/src/lib.rs", "vendor/server/src/cli.rs"]
+issues = []
+last_verified_version = "1.0.322"

@@ -1,0 +1,47 @@
+---
+title: "Reproduce"
+---
+
+Everything runs locally on Linux x86-64 with no AWS account and no Docker. Tools are pinned:
+
+- **mise** pins OpenTofu, pixi and Quarto.
+- **pixi** pins Python, GDAL, PostGIS, titiler and tipg for the reference tests.
+- **`.terraform.lock.hcl`** pins the providers.
+
+```bash
+cd aws-emulator-tofu
+mise install && pixi install
+mise run fetch                 # 2 small COGs (~17 MB) + Natural Earth vectors -> data/
+mise run emulator:install      # latest aws-emulator .deb -> .emulator/  (or: scripts/emulator.sh install --version 1.0.322)
+mise run all                   # unit tests, fresh emulator, deploy cycle, load, e2e matrix, probes (~30 min)
+mise run site                  # this report, from committed results (no emulator needed)
+```
+
+Individual steps:
+
+| Task | What it does | Writes |
+|---|---|---|
+| `mise run unit` | CPython tests: titiler-lite vs titiler, tipg-lite vs tipg (local PostGIS), authorizer, token service | – |
+| `mise run emulator:restart` | fresh emulator (state is in memory) + delete tofu state | `results/emulator-version.json` |
+| `mise run measure` | apply → plan (drift) → destroy → leftover scan → re-apply | `results/deploy.json` |
+| `mise run load` | load vectors into Aurora via the RDS Data API | – |
+| `mise run e2e` | role × endpoint × route matrix, sample figures | `results/e2e.json`, `figures/` |
+| `mise run probes` | capability probes | `results/probes.json` |
+| `mise run update-check` | has aws-emulator changed since these results? ([UPDATE.md](https://github.com/ashiklom/simon-code-research/blob/main/aws-emulator-tofu/UPDATE.md)) | `results/update-check.json` |
+
+To use the stack interactively:
+
+```bash
+eval "$(scripts/emulator.sh env)"
+tofu -chdir=infra output api_base_urls
+tofu -chdir=infra output -json user_passwords
+curl --cacert "$AWS_CA_BUNDLE" -X POST "$(tofu -chdir=infra output -raw cloudfront_base_url)/auth/token" \
+     -d '{"username":"alice","password":"<from output>"}'
+```
+
+For an agent-oriented summary of every setting and trap, see
+[EMULATOR-GUIDE.md](https://github.com/ashiklom/simon-code-research/blob/main/aws-emulator-tofu/EMULATOR-GUIDE.md).
+
+**Requirements that can't be pinned:** Linux with glibc ≥ 2.17 (the emulator `.deb`), outbound
+HTTPS to `downloads.aws.com`, `github.com` (raw files and the git tags `update-check` reads),
+the Element 84 Sentinel-2 bucket and the Copernicus DEM bucket.

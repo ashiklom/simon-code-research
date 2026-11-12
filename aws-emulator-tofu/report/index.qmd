@@ -1,0 +1,85 @@
+---
+title: "Authenticated geospatial APIs on aws-emulator, deployed with OpenTofu"
+subtitle: "CloudFront → API Gateway → Lambda (titiler-style tiles, tipg-style OGC Features), Cognito JWT roles, Aurora, S3"
+---
+
+This experiment had two goals:
+
+1. **Design a good authenticated-API pattern.** Users get role-based access (`tiler`, `features`,
+   or `admin` = every current *and future* API), using user-specific JWTs minted from a Cognito
+   user pool.
+2. **Test how far [aws-emulator](https://github.com/aws/aws-emulator) goes.** That covers
+   AWS's local emulator, released 2026, and how well OpenTofu can deploy to it. After that, I kept
+   probing for what it can't do that AWS can.
+
+Everything ran locally against the emulator: no AWS account, no Docker.
+
+::: {.big-warning}
+**Read this first: aws-emulator does not run Lambda code like AWS does.** Python handlers execute
+on **RustPython**, an embedded interpreter inside the emulator process, with no native extensions,
+no sockets, no layers and no container images. Real **titiler and tipg cannot run** on it. This
+stack uses pure-Python stand-ins with the same API surface, verified against the real titiler and
+tipg. Aurora PostgreSQL is SQLite underneath, with no PostGIS.
+[All differences →](differences.qmd)
+:::
+
+```{=html}
+<div class="grid" style="margin-top:1em">
+```
+
+::: {.g-col-12 .g-col-md-6}
+### [1 · The authenticated API →](auth-api.qmd)
+- **Roles and permissions.** Roles are Cognito groups; a permission is a service path prefix.
+- **One shared authorizer.** A Lambda REQUEST authorizer verifies the JWT (ES256 and RS256) and
+  returns an IAM policy covering everything the caller may use. **admin = `*/*/*/*`**, so a brand-new
+  API (`/reports`) is reachable by admins only, with zero configuration.
+- **Adding an API** is one module call.
+- **Correctness.** All **60 of 60** role × endpoint × caller cases return exactly the status AWS
+  would, both directly and through CloudFront (with a token header workaround).
+:::
+
+::: {.g-col-12 .g-col-md-6}
+### [2 · How well OpenTofu + aws-emulator worked →](emulator.qmd)
+- **Deploy cycle.** **108 resources apply in about 60 s** from an empty emulator. The plan right
+  after is clean, and destroy is clean apart from one leftover secret.
+- **What it took.** Several emulator-specific switches: S3 Control tagging hang, security-group
+  egress, `aws_rds_cluster` unusable (replaced by a scripted cluster), JWKS fetch from Lambda,
+  CloudFront dropping `Authorization`, drift from empty-vs-null attributes.
+- **Good for** IaC validation and pure-Python or JS integration tests. **Not for** native code,
+  real databases, containers or edge logic.
+:::
+
+```{=html}
+</div>
+```
+
+### Beyond the stack: capability probes
+
+{{< include _generated/probe-counts.md >}}
+
+Highlights:
+
+- **HTTP API v2 JWT authorizers accept forged signatures** on the emulator.
+- **CloudFront** runs no Functions, drops origin `Content-Type`, but *does* enforce WAF and caching.
+- **Cognito** ignores pre-token-generation output, has no `/oauth2/token`, and signs ES256.
+- **CloudFormation** reports RDS clusters it never creates.
+- **ECS and EC2** model lifecycles without running anything.
+- **Working on the emulator:** EventBridge schedules, Step Functions, SQS, SNS, DynamoDB
+  streams, S3 notifications, KMS/Secrets Manager, Route 53 + ACM validation and ALB → Lambda.
+
+[Probe results →](probes.qmd) · [aws-emulator vs AWS: every difference →](differences.qmd) ·
+[Reproduce →](reproduce.qmd)
+
+### For agents and future me
+
+- [**EMULATOR-GUIDE.md**](https://github.com/ashiklom/simon-code-research/blob/main/aws-emulator-tofu/EMULATOR-GUIDE.md):
+  a field guide to prototyping AWS with OpenTofu + aws-emulator. It covers the provider block,
+  environment, data-plane addresses, Lambda constraints, a per-service cheat sheet and the drift
+  traps.
+- [**UPDATE.md**](https://github.com/ashiklom/simon-code-research/blob/main/aws-emulator-tofu/UPDATE.md):
+  how to re-check these findings against a newer aws-emulator. In short:
+  1. `mise run update-check` reports whether the emulator changed;
+  2. it then reports which findings the change could affect;
+  3. only those are re-tested.
+
+{{< include _generated/version-box.md >}}

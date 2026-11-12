@@ -1,0 +1,39 @@
+project:
+  type: website
+  output-dir: _site
+  render:
+    - "*.qmd"
+  resources:
+    - figures/
+
+website:
+  title: "OpenTofu + aws-emulator"
+  site-url: "https://ashiklom.github.io/simon-code-research/aws-emulator-tofu/"
+  repo-url: "https://github.com/ashiklom/simon-code-research"
+  page-navigation: true
+  navbar:
+    left:
+      - href: index.qmd
+        text: Overview
+      - href: auth-api.qmd
+        text: "1 · Authenticated API design"
+      - href: emulator.qmd
+        text: "2 · How well OpenTofu + aws-emulator worked"
+      - href: differences.qmd
+        text: "aws-emulator vs AWS"
+      - href: probes.qmd
+        text: "Capability probes"
+      - href: reproduce.qmd
+        text: Reproduce
+
+format:
+  html:
+    theme: [cosmo, style.scss]
+    toc: true
+    toc-depth: 3
+    fig-responsive: true
+    mermaid:
+      theme: neutral
+
+execute:
+  enabled: false

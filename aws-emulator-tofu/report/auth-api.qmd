@@ -1,0 +1,227 @@
+---
+title: "1 · The authenticated API: design and deployment"
+subtitle: "CloudFront → API Gateway → Lambda, Cognito JWTs, and role-based access that extends to future APIs"
+---
+
+{{< include _generated/version-box.md >}}
+
+## What was built
+
+Four small HTTP services, each its own API Gateway REST API behind one CloudFront distribution:
+
+| Path | Backend (Lambda) | Data | Who may call it |
+|---|---|---|---|
+| `POST /auth/token` | token service | Cognito user pool | anyone (it *is* the login) |
+| `GET /auth/me` | token service | the authorizer's context | any authenticated user |
+| `/tiler/cog/...` | **titiler-lite** (titiler-compatible COG tiler) | COGs in S3 (range reads) | role `tiler` or `admin` |
+| `/features/...` | **tipg-lite** (tipg-compatible OGC API Features) | Aurora PostgreSQL via the RDS Data API | role `features` or `admin` |
+| `/reports/...` | a stand-in for a *future* API | none | nobody has been granted it, so only `admin` |
+
+Users and roles are Cognito users and Cognito groups. Four demo users: `alice` (tiler), `bob`
+(features), `carol` (admin) and `dave` (no role).
+
+::: {.callout-important}
+## The tiler and features backends are stand-ins, not titiler and tipg
+aws-emulator runs Lambda Python on an embedded **RustPython** interpreter with no native extensions
+and no sockets ([details](differences.qmd#lambda)), so the real titiler (GDAL/rasterio/numpy) and tipg
+(asyncpg/pydantic-core) cannot run there. I wrote two small pure-Python stand-ins:
+
+- **titiler-lite** (`lambdas/tiler_lite/`) has the same URLs and parameters as titiler 2.x for the
+  common endpoints: `info`, `WebMercatorQuad/tilejson.json`, `tiles` (`url`, `bidx`, `rescale`,
+  `colormap_name`, `tilesize`) and `point`.
+- **tipg-lite** (`lambdas/features_lite/`) does the same for tipg 1.x: landing page,
+  `conformance`, `collections`, `queryables`, and `items` (`limit`, `offset`, `bbox`, `properties`,
+  property filters, `sortby`), plus single items.
+
+Conformance tests compare their responses with **real titiler and real tipg** (on a local PostGIS)
+for the common cases: status codes, content types, JSON keys, link relations, `numberMatched`, and
+feature ids. All 32 pass (`mise run unit`). On real AWS you would deploy the real titiler and tipg
+in exactly the same slots.
+:::
+
+## Architecture
+
+```{mermaid}
+flowchart LR
+  C[Client] -->|HTTPS| CF[CloudFront<br/>path behaviours<br/>/auth/* /tiler/* /features/* /reports/*]
+  CF --> GA[REST API auth]
+  CF --> GT[REST API tiler]
+  CF --> GF[REST API features]
+  CF --> GR[REST API reports]
+  GA -->|/auth/token: no auth| LT[token Lambda]
+  LT -->|InitiateAuth| COG[(Cognito user pool<br/>groups = roles)]
+  GA -->|/auth/me| AZ
+  GT --> AZ{{shared Lambda<br/>REQUEST authorizer}}
+  GF --> AZ
+  GR --> AZ
+  AZ -.->|JWKS| COG
+  GT -->|allowed| LTi[titiler-lite Lambda] -->|Range GET| S3[(S3: COGs)]
+  GF -->|allowed| LF[tipg-lite Lambda] -->|Data API| RDS[(Aurora PostgreSQL)]
+  GR -->|allowed| LR[reports Lambda]
+```
+
+The request path for a tile:
+
+```{mermaid}
+sequenceDiagram
+  autonumber
+  participant U as alice
+  participant CF as CloudFront
+  participant AG as API Gateway (tiler)
+  participant AZ as authorizer λ
+  participant T as titiler-lite λ
+  participant S3
+  U->>CF: POST /auth/token {username, password}
+  CF->>AG: (auth API) → token λ → Cognito InitiateAuth
+  AG-->>U: access_token (JWT, cognito:groups = [tiler])
+  U->>CF: GET /tiler/cog/tiles/WebMercatorQuad/12/2428/1854.png?url=s3://…  (Bearer token)
+  CF->>AG: forwards token (header in cache key)
+  AG->>AZ: REQUEST event (headers, methodArn)
+  AZ->>AZ: verify signature (JWKS), iss, token_use=access, client_id, exp
+  AZ-->>AG: Allow arn:…:*/*/*/tiler/* + */*/*/auth/me, context {username, groups}
+  AG->>T: Lambda proxy event (+ authorizer context)
+  T->>S3: GET Range: bytes=… (one internal COG tile)
+  T-->>U: 200 image/png
+```
+
+## Roles and permissions: the design
+
+**Roles are Cognito groups. Permissions are service path prefixes.** Every API is rooted at
+`/<service>/…` (`/tiler/…`, `/features/…`). A permission is therefore just a service name, and
+it maps to an `execute-api` resource pattern that doesn't depend on API ids or stages:
+
+```hcl
+# infra/main.tf: the only place roles are defined
+role_permissions = {
+  tiler    = ["tiler"]
+  features = ["features"]
+  admin    = ["*"]          # every current AND future API
+}
+base_permissions = ["auth/me"]   # every authenticated user
+```
+
+The authorizer (`lambdas/authorizer/policy.py`) turns the caller's permissions into one IAM policy:
+
+| permission | resources allowed |
+|---|---|
+| `tiler` | `arn:aws:execute-api:<region>:<acct>:*/*/*/tiler`, `…/tiler/*` |
+| `auth/me` | `…:*/*/*/auth/me`, `…/auth/me/*` |
+| `*` (admin) | `arn:aws:execute-api:<region>:<acct>:*/*/*/*` |
+
+Three properties follow from this:
+
+- **Admin covers future APIs without any change.** The `reports` API was added with no role
+  mapping at all. `carol` (admin) gets 200 and everyone else gets 403 (see the matrix below).
+- **Adding an API is one module call.** Use `module "api"` with a new key in `local.apis`; the
+  CloudFront behaviour is generated from the same map. Granting it to a role is one entry in
+  `role_permissions`.
+- **The policy lists *everything* the caller may call, not just the current method ARN.** API
+  Gateway caches an authorizer result per token (TTL 300 s on AWS). A policy that allowed only the
+  first method called would wrongly deny the caller's next request to a different path. This is a
+  real-AWS pitfall, not an emulator one.
+
+### Why not the built-in alternatives?
+
+| Option | Why not used here |
+|---|---|
+| `COGNITO_USER_POOLS` authorizer + OAuth scopes | Scopes in a *user's* access token need a pre-token-generation trigger (V2, Essentials/Plus tier) to map groups to scopes. Without it you get only `aws.cognito.signin.user.admin`. There is also no wildcard "all future scopes" for admin: every new API needs a new scope added to the admin mapping. |
+| HTTP API (v2) JWT authorizer | It authorizes by scopes only, so it has the same group-mapping problem. On aws-emulator it also **does not verify JWT signatures** ([probe](probes.qmd#apigwv2-jwt)). |
+| Checking roles inside each backend | Every backend would duplicate auth code, and a forgotten check would be a hole. With a gateway authorizer, a backend never runs for an unauthorized call. |
+
+A Lambda REQUEST authorizer keeps the role→permission map in one place, and with it the wildcard
+admin rule and the ability to read the token from more than one header (useful below).
+
+### What the authorizer checks
+
+- **Signature.** It checks the signature against the pool's JWKS, supporting **ES256 and RS256**:
+  aws-emulator's Cognito signs with ES256 while AWS signs with RS256. Verification is pure Python
+  (P-256 ECDSA with Jacobian coordinates; RSA PKCS#1 v1.5), because the emulator's runtime can't
+  load `cryptography`. Unit tests cross-check it against `cryptography` and PyJWT.
+- **Claims.** `iss` must be in an allow-list, `token_use` must be `access` (ID tokens are
+  rejected), `client_id` must be the app client, and `exp`/`nbf` must hold.
+- **Rejections.** A missing or bad token raises `Unauthorized`, which API Gateway turns into
+  **401**. A valid token whose roles don't cover the API gets a policy that doesn't match, which
+  becomes **403**. Both bodies are JSON (`aws_api_gateway_gateway_response`).
+- **Context for backends.** The authorizer passes `{username, sub, groups, permissions}` to the
+  backends, which is how `/auth/me` answers.
+
+### Minting user-specific JWTs
+
+`POST /auth/token` with `{"username", "password"}` calls Cognito `InitiateAuth`
+(`USER_PASSWORD_AUTH`) and returns the user's access, ID and refresh tokens and their groups.
+`{"refresh_token"}` refreshes. The token Lambda holds no secrets: the app client has no secret,
+and `InitiateAuth` is an unsigned Cognito API. Access tokens live 60 minutes.
+
+## Results on aws-emulator
+
+The end-to-end test (`tests/e2e.py`) mints tokens for every user through the deployed token
+service. It then calls 6 endpoints as 10 different callers over 3 routes:
+
+- `apigw`: API Gateway directly, `Authorization: Bearer`;
+- `cf-authz`: through CloudFront, `Authorization: Bearer`, which is the correct AWS configuration;
+- `cf-xauth`: through CloudFront, `X-Auth-Token` (the emulator workaround).
+
+The callers are the four users, alice with a token minted straight from Cognito on the host, and
+five bad tokens: none, tampered (alice→admin), an ID token, `alg: none`, and garbage. Expected
+status codes are what AWS would return for this design.
+
+{{< include _generated/e2e-summary.md >}}
+
+{{< include _generated/e2e-matrix.md >}}
+
+Every mismatch is on the `cf-authz` route, where aws-emulator's CloudFront drops the
+`Authorization` header ([finding](differences.qmd#cloudfront)). The authorizer also accepts
+`X-Auth-Token`, which CloudFront does forward. With that header the matrix through CloudFront
+matches AWS exactly.
+
+### Sample responses, fetched through CloudFront
+
+::: {layout-ncol=2}
+![titiler-lite, user alice: Sentinel-2 true colour over the Nile near Aswan, 3×3 tiles at z13](figures/tiles-s2-aswan.png)
+
+![titiler-lite, user carol (admin): Copernicus DEM, `rescale=400,4200&colormap_name=terrain`, z10](figures/tiles-dem-alps.png)
+:::
+
+![tipg-lite, user bob: countries, populated places and rivers intersecting a European bbox. The bbox filter is exact, matching PostGIS `ST_Intersects`.](figures/features-europe.png){width=80%}
+
+{{< include _generated/latency.md >}}
+
+## Deployment with OpenTofu
+
+```
+infra/
+  providers.tf            one provider block; var.emulator switches endpoints/CA/credentials
+  main.tf                 roles, data (S3, Aurora), functions, APIs, edge
+  modules/identity        user pool, groups (roles), app client, demo users
+  modules/lambda_function zip (function + lambdas/common), role, log group, least-privilege policy
+  modules/authenticated_api  REST API rooted at /<service>, shared authorizer, proxy integration,
+                          gateway responses, deployment (hash of inputs), stage, Lambda permissions
+  modules/edge            CloudFront: one origin + behaviour per API, token-keyed cache policy
+  modules/network         VPC + 2 private subnets
+  modules/database        Aurora PostgreSQL Serverless v2 + Data API + managed master secret
+```
+
+`var.emulator = true` (the default) points every endpoint at aws-emulator. Every emulator-specific
+workaround is a separate, commented switch:
+
+{{< include _generated/workarounds.md >}}
+
+With `-var emulator=false` the same code is a normal AWS deployment. For that you would swap the
+tiler and features Lambdas for real titiler and tipg (container images), and you could drop
+`X-Auth-Token`.
+
+## Before production
+
+These are things the demo deliberately leaves out:
+
+- **Rate limiting.** Add usage plans or a WAF rate-based rule. WAF on CloudFront is enforced even
+  on the emulator ([probe](probes.qmd#cloudfront-edge)).
+- **Token revocation.** JWTs stay valid until `exp`, so keep access tokens short. Cognito
+  `GlobalSignOut` revokes refresh tokens only.
+- **Authorizer caching.** On AWS use a TTL of 300 s with identity source `Authorization`. Its
+  policy already covers all of the caller's resources.
+- **Public links behind CloudFront.** API responses build links from `Host`, so behind CloudFront
+  they point at the API Gateway origin unless the edge sets `X-Forwarded-Host`. That needs a
+  CloudFront Function, which aws-emulator doesn't run.
+- **CORS.** Configure it for browser map clients. The emulator's front door refuses cross-site
+  browser requests outright ([probe](probes.qmd#apigw-cors-browser)).

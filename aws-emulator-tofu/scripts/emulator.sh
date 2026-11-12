@@ -70,7 +70,10 @@ CTL
     install_deb "$EMU_DIR/aws-emulator-src.deb" "source-build@$commit"
   else
     local url
-    if [[ -n "$version" ]]; then url="$BASE_URL/aws-emulator_${version}-1_amd64.deb"
+    # versions.json lists X.Y.Z.R; the .deb is named aws-emulator_X.Y.Z-R_amd64.deb
+    if [[ -n "$version" ]]; then
+      [[ "$version" =~ ^([0-9]+\.[0-9]+\.[0-9]+)(\.([0-9]+))?$ ]] || die "bad --version $version"
+      url="$BASE_URL/aws-emulator_${BASH_REMATCH[1]}-${BASH_REMATCH[3]:-1}_amd64.deb"
     else url="$BASE_URL/latest/aws-emulator_amd64.deb"; fi
     echo "Downloading $url"
     curl -fsSL -o "$EMU_DIR/download.deb" "$url"

@@ -1,0 +1,15 @@
+/*-- scss:defaults --*/
+$body-bg: #fcfcfb;
+$body-color: #0b0b0b;
+$link-color: #256abf;
+$font-family-sans-serif: system-ui, -apple-system, "Segoe UI", sans-serif;
+/*-- scss:rules --*/
+.callout { border-left-width: 3px; }
+table { font-variant-numeric: tabular-nums; font-size: 0.88em; }
+td code, li code { font-size: 0.85em; }
+.status-works { color: #1a7f37; font-weight: 600; }
+.status-partial { color: #9a6700; font-weight: 600; }
+.status-gap { color: #cf222e; font-weight: 600; }
+.big-warning { border: 2px solid #cf222e; background: #fff5f5; padding: 0.8em 1.1em; border-radius: 6px; margin: 1em 0 1.4em; }
+.big-warning strong { color: #cf222e; }
+.versionbox { font-size: 0.85em; color: #444; border: 1px solid rgba(0,0,0,0.12); border-radius: 6px; padding: 0.5em 0.8em; background: #fff; }

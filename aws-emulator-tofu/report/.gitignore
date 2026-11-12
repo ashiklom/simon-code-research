@@ -1,0 +1,5 @@
+figures/
+_generated/
+
+/.quarto/
+**/*.quarto_ipynb

@@ -53,8 +53,8 @@ description = "Has aws-emulator changed since the recorded version? Which findin
 run = "pixi run python scripts/update_check.py"
 
 [tasks.site]
-description = "Render the Quarto report from committed results (no emulator needed)"
-run = ["pixi run python scripts/make_report_assets.py", "quarto render report"]
+description = "Render the Quarto report from committed results (no emulator, no pixi needed)"
+run = ["mise install", "uv run --no-project --python 3.12 scripts/make_report_assets.py", "quarto render report"]
 
 [tasks.all]
 description = "Everything after `mise run fetch` + `mise run emulator:install`"

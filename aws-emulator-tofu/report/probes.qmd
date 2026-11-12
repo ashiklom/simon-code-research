@@ -1,0 +1,24 @@
+---
+title: "Capability probes"
+subtitle: "What else can aws-emulator do that AWS can, via OpenTofu?"
+---
+
+{{< include _generated/version-box.md >}}
+
+After the main stack worked, I probed other services and features a typical AWS project uses. Each
+probe is a small OpenTofu root module plus a `check.py` that exercises the data plane
+(`probes/<name>/`). `probes/run.py` runs each one in a fixed sequence and records every step:
+
+1. `tofu apply`;
+2. the check;
+3. `tofu plan -detailed-exitcode` (drift);
+4. `tofu destroy`.
+
+All probes share one env-only provider configuration (`probes/_common/provider.tf`).
+
+{{< include _generated/probe-counts.md >}}
+
+The status column judges *behaviour vs AWS*. A probe whose `tofu apply` fails on purpose (because
+the failure is the finding) is marked "(the finding)".
+
+{{< include _generated/probes.md >}}
