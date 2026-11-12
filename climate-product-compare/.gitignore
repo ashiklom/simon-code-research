@@ -1,0 +1,8 @@
+data/
+_site/
+site/node_modules/
+site/dist/
+site/public/data/
+.venv/
+__pycache__/
+*.pyc
