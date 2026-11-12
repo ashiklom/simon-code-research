@@ -66,14 +66,15 @@ def ghcnd_active(since: int = 2008) -> pd.DataFrame:
 
 
 def nearest_km(lat, lon, ref_lat, ref_lon) -> np.ndarray:
-    """Distance (km) from each point to the nearest reference point (haversine via BallTree-free chunks)."""
-    from .grid import haversine_km
+    """Great-circle distance (km) from each point to the nearest reference point (KD-tree on the unit sphere)."""
+    from scipy.spatial import cKDTree
 
-    lat, lon = np.asarray(lat, float), np.asarray(lon, float)
-    out = np.empty(len(lat))
-    for i in range(len(lat)):
-        out[i] = haversine_km(lat[i], lon[i], ref_lat, ref_lon).min()
-    return out
+    def xyz(la, lo):
+        la, lo = np.radians(np.asarray(la, float)), np.radians(np.asarray(lo, float))
+        return np.c_[np.cos(la) * np.cos(lo), np.cos(la) * np.sin(lo), np.sin(la)]
+
+    chord, _ = cKDTree(xyz(ref_lat, ref_lon)).query(xyz(lat, lon))
+    return 2 * 6371.0088 * np.arcsin(np.clip(chord / 2, 0, 1))
 
 
 def farthest_point(df: pd.DataFrame, k: int, seed_idx: int = 0) -> pd.DataFrame:
@@ -134,3 +135,107 @@ def build_tier2() -> pd.DataFrame:
 
 
 import numpy as np  # noqa: E402
+
+
+# --- Tier 3: station-remote points -----------------------------------------------------
+
+KG = {1: "Af", 2: "Am", 3: "Aw", 4: "BWh", 5: "BWk", 6: "BSh", 7: "BSk", 8: "Csa", 9: "Csb", 10: "Csc", 11: "Cwa", 12: "Cwb",
+      13: "Cwc", 14: "Cfa", 15: "Cfb", 16: "Cfc", 17: "Dsa", 18: "Dsb", 19: "Dsc", 20: "Dsd", 21: "Dwa", 22: "Dwb", 23: "Dwc",
+      24: "Dwd", 25: "Dfa", 26: "Dfb", 27: "Dfc", 28: "Dfd", 29: "ET", 30: "EF"}
+IGBP = {1: "ENF", 2: "EBF", 3: "DNF", 4: "DBF", 5: "MF", 6: "CSH", 7: "OSH", 8: "WSA", 9: "SAV", 10: "GRA", 11: "WET",
+        12: "CRO", 13: "URB", 14: "CVM", 15: "SNO", 16: "BSV"}
+LC_GROUP = {"ENF": "forest", "EBF": "forest", "DNF": "forest", "DBF": "forest", "MF": "forest", "CSH": "shrub", "OSH": "shrub",
+            "WSA": "savanna", "SAV": "savanna", "GRA": "grass", "WET": "wetland", "CRO": "crop", "CVM": "crop",
+            "BSV": "barren", "SNO": "barren", "URB": "urban"}
+
+
+def _all_station_points() -> pd.DataFrame:
+    """Union of station networks that products may use or that we compare against."""
+    from .obs import iem, nrcs
+
+    parts = [ghcnd_active()[["lat", "lon"]], load("uscrn")[["lat", "lon"]], load("tier2")[["lat", "lon"]]]
+    for net in ("SCAN", "SNOTEL"):
+        s = nrcs.station_list(net)
+        parts.append(s.rename(columns={"latitude": "lat", "longitude": "lon"})[["lat", "lon"]])
+    parts.append(iem.station_list()[["lat", "lon"]])
+    return pd.concat(parts, ignore_index=True).dropna()
+
+
+def build_remote(n: int = 100, seed: int = 42, min_sep_km: float = 75.0) -> pd.DataFrame:
+    """Sample `n` CONUS points far from stations, stratified by Koppen-Geiger x IGBP group.
+
+    Candidates: 0.1 deg cells inside the PRISM 4 km land mask (CONUS, US only). Allocation is
+    proportional to stratum area (largest-remainder), at least 1 point for strata covering
+    >= 0.3 % of CONUS. Within a stratum we greedily take the cell with the largest distance to
+    any station or already-chosen point (points >= `min_sep_km` apart where possible).
+    """
+    import rasterio
+    from pyhdf.SD import SD
+
+    from .grid import haversine_km
+    from .products import registry
+
+    rng = np.random.default_rng(seed)
+    # CONUS land mask from a PRISM grid (4 km), sampled on a 0.1 deg lattice
+    prism = registry.get("prism")
+    with prism._open("tmax", pd.Timestamp("2020-07-01")) as ds:
+        a = ds.read(1)
+        tr, nod = ds.transform, ds.nodata
+    lats = np.arange(24.55, 49.45, 0.1)
+    lons = np.arange(-124.65, -66.95, 0.1)
+    LA, LO = np.meshgrid(lats, lons, indexing="ij")
+    r = ((LA - tr.f) / tr.e).astype(int)
+    c = ((LO - tr.c) / tr.a).astype(int)
+    ok = (r >= 0) & (r < a.shape[0]) & (c >= 0) & (c < a.shape[1])
+    land = np.zeros_like(ok)
+    land[ok] = a[r[ok], c[ok]] != nod
+    cand = pd.DataFrame({"lat": LA[land].round(3), "lon": LO[land].round(3)})
+    # Koppen-Geiger 1991-2020 (Beck et al. 2023), 1 km
+    with rasterio.open(config.CACHE / "koppen" / "1991_2020" / "koppen_geiger_0p00833333.tif") as kg:
+        cand["kg"] = [KG.get(int(v[0]), "NA") for v in kg.sample(zip(cand.lon, cand.lat))]
+    # MODIS MCD12C1 2020 IGBP majority class (0.05 deg)
+    sd = SD(str(config.CACHE / "modis" / "MCD12C1_2020.hdf"))
+    lc = sd.select("Majority_Land_Cover_Type_1")[:]
+    lr = ((90 - cand.lat) / 0.05).astype(int).clip(0, 3599)
+    lcc = ((cand.lon + 180) / 0.05).astype(int).clip(0, 7199)
+    cand["igbp"] = [IGBP.get(int(v), "WAT") for v in lc[lr, lcc]]
+    cand["lc"] = cand.igbp.map(LC_GROUP).fillna("water")
+    cand = cand[(cand.lc != "water") & (cand.lc != "urban") & (cand.kg != "NA")].reset_index(drop=True)
+    st = _all_station_points()
+    cand["d_station_km"] = nearest_km(cand.lat, cand.lon, st.lat.values, st.lon.values)
+    cand["stratum"] = cand.kg + "/" + cand.lc
+    share = cand.stratum.value_counts(normalize=True)
+    share = share[share >= 0.003]
+    alloc = np.floor(share * n).astype(int).clip(lower=1)
+    rem = (share * n - np.floor(share * n)).sort_values(ascending=False)
+    i = 0
+    while alloc.sum() < n:
+        alloc[rem.index[i % len(rem)]] += 1
+        i += 1
+    while alloc.sum() > n:
+        alloc[alloc.idxmax()] -= 1
+    chosen = []
+    plat, plon = np.array([]), np.array([])
+    for stratum, k in alloc.sort_values(ascending=False).items():
+        sub = cand[cand.stratum == stratum].copy()
+        # small random jitter breaks ties reproducibly
+        sub["score"] = sub.d_station_km + rng.uniform(0, 0.01, len(sub))
+        for _ in range(int(k)):
+            d_pts = (np.array([haversine_km(sub.lat.values, sub.lon.values, la, lo) for la, lo in zip(plat, plon)]).min(0)
+                     if len(plat) else np.full(len(sub), np.inf))
+            ok = d_pts >= min_sep_km
+            pool = sub[ok] if ok.any() else sub
+            best = pool.score.idxmax()
+            row = sub.loc[best]
+            chosen.append(row)
+            plat, plon = np.append(plat, row.lat), np.append(plon, row.lon)
+            sub = sub.drop(best)
+    df = pd.DataFrame(chosen).reset_index(drop=True)
+    df.insert(0, "site_id", [f"REMOTE:{k:03d}" for k in range(len(df))])
+    df.insert(1, "network", "REMOTE")
+    df.insert(2, "tier", 3)
+    df["name"] = df.stratum + " (" + df.igbp + ")"
+    df["state"] = ""
+    df["elev_m"] = np.nan
+    df["d_station_km"] = df.d_station_km.round(1)
+    return df[["site_id", "network", "tier", "name", "state", "lat", "lon", "elev_m", "kg", "igbp", "lc", "stratum", "d_station_km"]]
