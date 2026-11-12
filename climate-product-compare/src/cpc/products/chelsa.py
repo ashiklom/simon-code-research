@@ -34,10 +34,13 @@ class CHELSA(Product):
     name = "chelsa"
     title = "CHELSA-daily v2.1"
     freq = "1d"
-    start = pd.Timestamp("1941-01-01")
+    # CHELSA is one COG per variable-day and each file is sampled once per site (~17 s per file for
+    # 305 sites), so the full record (~58k files) was impractical here: extract the common window.
+    start = pd.Timestamp("2018-09-01")
     source = "CHELSA-daily v2.1 COGs (os.unil.cloud.switch.ch/chelsa02/chelsa/global/daily)"
-    notes = "30 arc-second downscaled ERA5. prec is not bias corrected; pr (GPCC-corrected) only 1979-2019."
-    file_workers = 96
+    notes = ("30 arc-second downscaled ERA5. Extracted for the common window (2018-09 onward) only. "
+             "prec is not bias corrected; pr (GPCC-corrected) only 1979-2019.")
+    file_workers = 48
     variables = {
         "tair": Var(["tas"], "temp", "degC", lambda tas: tas - 273.15, {**UTC, "desc": "daily mean 2 m temperature"}),
         "tmax": Var(["tasmax"], "temp", "degC", lambda tasmax: tasmax - 273.15, {**D06}),
