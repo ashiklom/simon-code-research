@@ -150,7 +150,10 @@ def cmd_report(a):
 
 def cmd_compact(a):
     for name in (a.repos or store.list_repos(a.store)):
-        print(store.compact(name, a.store, keep_minutes=a.keep_minutes))
+        try:
+            print(store.compact(name, a.store, keep_minutes=a.keep_minutes))
+        except Exception as e:
+            print(f"{name}: skipped ({e!r})")
 
 
 def cmd_compression(a):
