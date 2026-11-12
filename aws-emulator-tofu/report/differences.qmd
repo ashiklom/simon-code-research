@@ -41,4 +41,10 @@ The questions raised in planning, answered:
 | Aurora without PostGIS? | **Emulator only.** Aurora PostgreSQL supports PostGIS; the emulator's engine is SQLite behind a PostgreSQL wire protocol. |
 | Lambda can't run titiler/tipg? | **Emulator only.** On AWS both run as container images or zip/layer packages. |
 
+## What changed in the latest emulator release {#changes}
+
+{{< include _generated/changes.md >}}
+
+## All findings
+
 {{< include _generated/differences.md >}}

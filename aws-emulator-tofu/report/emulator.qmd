@@ -129,3 +129,7 @@ experiment. Each finding in `findings.toml` lists the emulator source paths and 
 depends on. `mise run update-check` reports which findings a new release could affect;
 [UPDATE.md](https://github.com/ashiklom/simon-code-research/blob/main/aws-emulator-tofu/UPDATE.md)
 has the full procedure.
+
+### What the update changed
+
+{{< include _generated/changes.md >}}

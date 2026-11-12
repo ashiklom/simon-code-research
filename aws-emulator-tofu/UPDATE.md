@@ -38,9 +38,14 @@ generous: a hit means "re-test this finding", not "this finding is fixed".
 ## 2. Install the new emulator and look at what changed
 
 ```bash
+OLD=$(python3 -c "import json;print(json.load(open('results/emulator-version.json'))['version'])")
+mkdir -p results/history/$OLD && cp results/{emulator-version,deploy,e2e,probes}.json results/history/$OLD/
 scripts/emulator.sh install                      # latest .deb (default), or: --version 1.0.336
 mise run emulator:restart                        # fresh state, records results/emulator-version.json
 ```
+
+The snapshot in `results/history/<old version>/` is what the site's "changes since the previous
+version" table (`report/_generated/changes.md`) compares against.
 
 For each affected finding, skim the diff summary printed by `update-check`. The full diff is in
 `.emulator/src-check` (`git -C .emulator/src-check diff <old> <new> -- <crate path>`). Also read any

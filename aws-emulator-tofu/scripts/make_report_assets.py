@@ -160,13 +160,13 @@ def differences(findings):
     out.append("")
     for c in cats:
         anchor = re.sub(r"[^a-z0-9]+", "-", c.lower()).strip("-")
-        out.append(f"## {c} {{#{anchor}}}\n")
+        out.append(f"### {c} {{#{anchor}}}\n")
         for f in sorted(by[c], key=lambda f: sev[f["severity"]]):
             scope = "emulator only" if f["emulator_only"] else "also true on real AWS"
             ev = ", ".join(evidence_link(e) for e in f.get("evidence", []))
             issues = ", ".join(f"[`{i[:40]}…`]({GH}/blob/{COMMIT}/issues/things-that-do-not-work/{i})"
                                for i in f.get("issues", []))
-            out.append(f"### {f['title']} {{#{f['id']}}}\n")
+            out.append(f"#### {f['title']} {{#{f['id']}}}\n")
             out.append(f"{badge(f['status'])} · {f['severity']} · {scope} · id `{f['id']}` · "
                        f"verified on {f['last_verified_version']}\n")
             out.append(f"- **AWS:** {f['aws']}")
@@ -220,6 +220,51 @@ def probes(pr, findings):
                              f"{counts['gap']} don't.")
 
 
+def changes(cur_probes, cur_e2e, cur_deploy, v):
+    """Compare current results with the newest snapshot in results/history/<version>/."""
+    hist = sorted((RES / "history").glob("*/probes.json"), key=lambda p: [int(x) for x in p.parent.name.split(".")])
+    hist = [h for h in hist if h.parent.name != v["version"]]
+    if not hist:
+        write("changes.md", "No earlier emulator version has been recorded yet.")
+        return
+    prev_dir = hist[-1].parent
+    prev = json.loads((prev_dir / "probes.json").read_text())
+    pv = json.loads((prev_dir / "emulator-version.json").read_text())
+    old = {r["name"]: r for r in prev["probes"]}
+    new = {r["name"]: r for r in (cur_probes or {}).get("probes", [])}
+    out = [f"Compared with the previous run on **aws-emulator {pv['version']}** "
+           f"([`{pv['commit'][:10]}`]({GH}/commit/{pv['commit']})), kept in `results/history/{pv['version']}/`:", ""]
+    rows = []
+    for name in sorted(set(old) | set(new)):
+        a, b = old.get(name), new.get(name)
+        sa = a["check"]["status"] if a else "–"
+        sb = b["check"]["status"] if b else "–"
+        da = (a or {}).get("check", {}).get("detail", "")
+        db = (b or {}).get("check", {}).get("detail", "")
+        if sa != sb or (a and b and bool(a.get("apply", {}).get("ok")) != bool(b.get("apply", {}).get("ok"))):
+            rows.append(f"| [{name}](probes.qmd#{name}) | {badge(sa) if a else '–'} | {badge(sb) if b else '–'} | {esc(db[:220])} |")
+        elif a and b and da != db and sa != "works":
+            rows.append(f"| [{name}](probes.qmd#{name}) | {badge(sa)} | {badge(sb)} (details changed) | {esc(db[:220])} |")
+    if rows:
+        out += [f"| Probe | {pv['version']} | {v['version']} | Now |", "|---|---|---|---|", *rows]
+    else:
+        out.append("No probe changed status.")
+    pe = prev_dir / "e2e.json"
+    if pe.exists() and cur_e2e:
+        a, b = json.loads(pe.read_text())["summary"], cur_e2e["summary"]
+        out += ["", "End-to-end matrix (cases as expected on AWS): " + "; ".join(
+            f"`{r}` {a[r]['match']}/{a[r]['n']} → {b[r]['match']}/{b[r]['n']}" for r in b)]
+    pd = prev_dir / "deploy.json"
+    if pd.exists() and cur_deploy:
+        a, b = json.loads(pd.read_text()), cur_deploy
+        out += ["", f"Deploy cycle: apply {a['apply']['seconds']} s → {b['apply']['seconds']} s; "
+                    f"plan after apply clean: {a['plan_after_apply']['no_changes']} → {b['plan_after_apply']['no_changes']}; "
+                    f"destroy ok: {a['destroy']['ok']} → {b['destroy']['ok']}, leftovers "
+                    f"{sum(len(x) for x in (a['destroy']['leftovers'] or {}).values())} → "
+                    f"{sum(len(x) for x in (b['destroy']['leftovers'] or {}).values())}."]
+    write("changes.md", "\n".join(out))
+
+
 def main():
     global COMMIT, DEPLOY
     GEN.mkdir(parents=True, exist_ok=True)
@@ -234,8 +279,10 @@ def main():
         deploy_tables(DEPLOY)
     workarounds(findings)
     differences(findings)
-    if (pr := load("probes.json")):
+    pr = load("probes.json")
+    if pr:
         probes(pr, findings)
+    changes(pr, load("e2e.json"), DEPLOY, v)
     figs = ROOT / "report" / "figures"
     shutil.rmtree(figs, ignore_errors=True)
     shutil.copytree(ROOT / "figures", figs)
