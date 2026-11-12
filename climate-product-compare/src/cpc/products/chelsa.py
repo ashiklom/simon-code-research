@@ -37,7 +37,7 @@ class CHELSA(Product):
     start = pd.Timestamp("1941-01-01")
     source = "CHELSA-daily v2.1 COGs (os.unil.cloud.switch.ch/chelsa02/chelsa/global/daily)"
     notes = "30 arc-second downscaled ERA5. prec is not bias corrected; pr (GPCC-corrected) only 1979-2019."
-    file_workers = 32
+    file_workers = 96
     variables = {
         "tair": Var(["tas"], "temp", "degC", lambda tas: tas - 273.15, {**UTC, "desc": "daily mean 2 m temperature"}),
         "tmax": Var(["tasmax"], "temp", "degC", lambda tasmax: tasmax - 273.15, {**D06}),

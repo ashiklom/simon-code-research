@@ -91,6 +91,41 @@ def cmd_lags(a):
     print(f"wrote {out}")
 
 
+def cmd_sitedata(a):
+    from . import export_site
+
+    sites = sitesmod.load(a.sites)
+    mfile = config.DATA / "results" / f"metrics_{a.metrics}.parquet"
+    metrics = pd.read_parquet(mfile) if mfile.exists() else pd.DataFrame()
+    export_site.export(sites, metrics, hourly_years=a.hourly_years)
+
+
+def cmd_status(a):
+    """Per repo: sites with data, min/max per-site end time, on-disk size (local roots)."""
+    from .products import registry
+
+    rows = []
+    for name in store.list_repos(a.store):
+        kind, _, n = name.partition("-")
+        try:
+            sess = store.open_repo(name, a.store, create=False).readonly_session("main")
+            freq = registry.get(n).freq if kind == "products" else "1h"
+            at = store.group_attrs(sess, store.group_path(kind, n, freq))
+        except Exception as e:
+            rows.append({"repo": name, "error": repr(e)[:60]})
+            continue
+        se = pd.to_datetime(pd.Series(at.get("site_end", {})), errors="coerce")
+        rows.append({"repo": name, "sites": len(at.get("sites", [])), "done": len(se),
+                     "end_min": se.min(), "end_max": se.max()})
+    print(pd.DataFrame(rows).to_string(index=False))
+
+
+def cmd_compression(a):
+    from . import compression
+
+    compression.run()
+
+
 def cmd_store_copy(a):
     store.copy_store(a.src, a.dst)
 
@@ -129,6 +164,18 @@ def main(argv=None):
         s.add_argument("--sites", default="pilot")
         s.add_argument("--workers", type=int, default=4)
         s.set_defaults(fn=fn)
+
+    s = sub.add_parser("sitedata", help="export website data to site/public/data")
+    s.add_argument("--sites", default="all")
+    s.add_argument("--metrics", default="all")
+    s.add_argument("--hourly-years", type=int, default=2)
+    s.set_defaults(fn=cmd_sitedata)
+
+    s = sub.add_parser("status", help="extraction progress per repo")
+    s.set_defaults(fn=cmd_status)
+
+    s = sub.add_parser("compression", help="compression study on pilot sites")
+    s.set_defaults(fn=cmd_compression)
 
     s = sub.add_parser("store-copy", help="copy the store between backends")
     s.add_argument("src")

@@ -12,7 +12,6 @@ PRODUCTS = {
     "nldas2_noah": "nldas2:NLDAS2Noah",
     "nldas2_vic": "nldas2:NLDAS2VIC",
     "nldas2_mosaic": "nldas2:NLDAS2Mosaic",
-    "nldas3_beta": "nldas3:NLDAS3Beta",
     "geosfp": "geosfp:GEOSFP",
     "hrrr": "dynamical:HRRR",
     "prism": "prism:PRISM",

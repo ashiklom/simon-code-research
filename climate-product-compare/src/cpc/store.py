@@ -375,3 +375,7 @@ def read_group(session: icechunk.Session, path: str, variables: list[str] | None
         ds[v].attrs.update(dict(a.attrs))
     ds.attrs.update({k: v for k, v in g.attrs.items() if k not in ("sites", "done")})
     return ds
+
+
+def group_attrs(session: icechunk.Session, path: str) -> dict:
+    return dict(zarr.open_group(session.store, mode="r", path=path).attrs)

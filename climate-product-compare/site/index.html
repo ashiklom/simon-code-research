@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>climate-product-compare: gridded products vs stations</title>
+  <link rel="stylesheet" href="./src/style.css" />
+</head>
+<body>
+  <div class="viz-root">
+    <header>
+      <h1>Gridded weather products vs. stations</h1>
+      <nav>
+        <button data-view="map" class="active">Sites</button>
+        <button data-view="summary">Summary</button>
+        <button data-view="about">About</button>
+      </nav>
+    </header>
+    <main>
+      <section id="view-map" class="view active">
+        <div id="map-wrap">
+          <div id="map"></div>
+          <div class="filters" id="tier-filters"></div>
+        </div>
+        <aside id="panel">
+          <p class="muted">Click a site on the map to compare its time series across products.</p>
+        </aside>
+      </section>
+      <section id="view-summary" class="view"></section>
+      <section id="view-about" class="view"></section>
+    </main>
+  </div>
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>

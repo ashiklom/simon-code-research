@@ -6,3 +6,4 @@ site/public/data/
 .venv/
 __pycache__/
 *.pyc
+site/node_modules/
