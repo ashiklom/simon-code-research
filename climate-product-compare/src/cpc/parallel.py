@@ -37,31 +37,51 @@ def _shutdown():
         p.shutdown(cancel_futures=True)
 
 
-def process_map(fn, items, workers: int, ahead: int | None = None, timeout: float = 900, retries: int = 2):
+def process_map(fn, items, workers: int, ahead: int | None = None, timeout: float = 900, retries: int = 3):
     """Ordered results of fn(item) computed in `workers` processes (fn must be picklable).
 
-    A task that produces no result within `timeout` seconds is resubmitted (up to `retries`
-    times): a lost task otherwise blocks the whole run while every worker sits idle.
+    Robust to (a) lost tasks: no result within `timeout` s -> resubmitted, and (b) workers that
+    die (e.g. a hard per-task deadline calls os._exit): the pool is rebuilt and every pending
+    task resubmitted. Each item is retried at most `retries` times.
     """
     from concurrent.futures import TimeoutError as FutTimeout
+    from concurrent.futures.process import BrokenProcessPool
 
     ahead = ahead or 4 * workers
-    ex = _pool(workers)
-    q = deque()
+    q: deque = deque()  # [item, future, tries]
 
-    def get(item, fut):
-        for attempt in range(retries + 1):
+    def resubmit_all():
+        _POOLS.pop(workers, None)
+        ex = _pool(workers)
+        for entry in q:
+            entry[1] = ex.submit(fn, entry[0])
+
+    def get_head():
+        while True:
+            entry = q[0]
             try:
-                return fut.result(timeout=timeout)
-            except FutTimeout:
-                if attempt == retries:
+                res = entry[1].result(timeout=timeout)
+                q.popleft()
+                return res
+            except (FutTimeout, BrokenProcessPool):
+                entry[2] += 1
+                if entry[2] > retries:
                     raise
-                fut.cancel()
-                fut = ex.submit(fn, item)
+                broken = isinstance(entry[1].exception(timeout=0) if entry[1].done() else None, BrokenProcessPool) \
+                    or any(f.done() and isinstance(f.exception(), BrokenProcessPool) for _, f, _ in q)
+                if broken:
+                    try:
+                        _POOLS[workers].shutdown(wait=False, cancel_futures=True)
+                    except Exception:
+                        pass
+                    resubmit_all()
+                else:
+                    entry[1].cancel()
+                    entry[1] = _pool(workers).submit(fn, entry[0])
 
     for x in items:
-        q.append((x, ex.submit(fn, x)))
+        q.append([x, _pool(workers).submit(fn, x), 0])
         if len(q) >= ahead:
-            yield get(*q.popleft())
+            yield get_head()
     while q:
-        yield get(*q.popleft())
+        yield get_head()

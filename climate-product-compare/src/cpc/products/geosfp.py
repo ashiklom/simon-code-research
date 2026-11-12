@@ -91,19 +91,20 @@ class GEOSFP(Product):
             yield Block(list(sites.site_id), th, self.convert_all(raw))
 
 
-class _Deadline(Exception):
-    pass
-
-
 def _alarm(signum, frame):
-    raise _Deadline()
+    # HDF5 swallows exceptions raised inside its read callback and retries the (hung) read, so a
+    # timeout must end the worker; parallel.process_map rebuilds the pool and resubmits the task.
+    import os
+
+    os._exit(17)
 
 
 def _read_hour(args) -> dict[str, np.ndarray]:
     """Read the needed variables of the 4 collections for the hour ending at t_end.
 
     Runs in a worker process: a hard SIGALRM deadline per file guards against HTTP reads that
-    hang inside fsspec despite socket timeouts (seen repeatedly on the NCCS portal).
+    hang inside fsspec despite socket timeouts (seen repeatedly on the NCCS portal); on expiry
+    the worker exits and the task is resubmitted by parallel.process_map.
     """
     import signal
     import time
@@ -125,7 +126,7 @@ def _read_hour(args) -> dict[str, np.ndarray]:
                 break
             except FileNotFoundError:
                 break
-            except Exception:  # includes _Deadline
+            except Exception:
                 if attempt == 5:
                     raise
                 time.sleep(3 * (attempt + 1))
