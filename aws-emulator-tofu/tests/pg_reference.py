@@ -67,7 +67,10 @@ def _pgtype(values) -> str:
 
 
 def stop() -> None:
-    subprocess.run(["pg_ctl", "-D", str(PGDATA), "stop", "-m", "fast"], capture_output=True)
+    try:
+        _run("pg_ctl", "-D", str(PGDATA), "stop", "-m", "fast")
+    except subprocess.CalledProcessError:
+        pass  # not running
 
 
 if __name__ == "__main__":
