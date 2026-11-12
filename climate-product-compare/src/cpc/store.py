@@ -7,7 +7,7 @@ local path):
 
     file:///abs/path            local filesystem (read/write)
     s3://bucket/prefix          S3 (read/write; standard AWS env credentials, or anonymous
-                                with ?anonymous=1; ?region=..&endpoint=.. supported)
+                                with ?anonymous=1; ?region=..&endpoint=..&force_path_style=1)
     https://host/prefix         Icechunk HTTP storage (read-only), e.g. CloudFront over S3
 
 Layout (all arrays Zarr v3, pcodec-compressed):
@@ -84,8 +84,11 @@ def storage_from_url(url: str) -> icechunk.Storage:
     if u.scheme == "s3":
         anon = qs.get("anonymous", "0") == "1"
         kw = dict(bucket=u.netloc, prefix=u.path.lstrip("/"), region=qs.get("region", os.environ.get("AWS_REGION", "us-west-2")))
-        if ep := qs.get("endpoint"):
+        if ep := qs.get("endpoint"):  # S3-compatible endpoint (MinIO, AWS Emulator, ...)
             kw["endpoint_url"] = ep
+            kw["allow_http"] = ep.startswith("http://")
+        if qs.get("force_path_style", "0") == "1":
+            kw["force_path_style"] = True
         if anon:
             kw["anonymous"] = True
         else:

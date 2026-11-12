@@ -70,3 +70,7 @@ run = [
   "mise run pack-site",
   "mise run site",
 ]
+
+[tasks.emulator-check]
+description = "Test s3:// and https:// (CloudFront) store backends against a running AWS Emulator (see results/emulator_check.md)"
+run = ["uv run --with boto3 python scripts/emulator_check.py --port 9297", "uv run --with boto3 python scripts/emulator_http_noauth.py --port 9298"]

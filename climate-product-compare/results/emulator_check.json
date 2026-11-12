@@ -1,0 +1,95 @@
+{
+ "s3": {
+  "copy_seconds": 2.6,
+  "objects": 430,
+  "bytes": 12105674,
+  "products-chirps3": {
+   "read_seconds": 0.08,
+   "max_abs_diff": 0.0,
+   "values": 8772
+  },
+  "products-era5land": {
+   "read_seconds": 0.41,
+   "max_abs_diff": 0.0,
+   "values": 3784536
+  },
+  "products-hrrr": {
+   "read_seconds": 0.3,
+   "max_abs_diff": 0.0,
+   "values": 698960
+  },
+  "obs-USCRN": {
+   "read_seconds": 0.33,
+   "max_abs_diff": 0.0,
+   "values": 1051260
+  },
+  "ok": true
+ },
+ "cloudfront": {
+  "distribution": {
+   "Id": "E1MJV490Q2CKJ1",
+   "DomainName": "127.0.0.1:41043",
+   "ARN": "arn:aws:cloudfront::000000000000:distribution/E1MJV490Q2CKJ1",
+   "Status": "InProgress"
+  },
+  "GET https": {
+   "status": 200,
+   "bytes": 574,
+   "x-cache": "Miss from cloudfront",
+   "body": ""
+  },
+  "GET http": {
+   "status": 200,
+   "bytes": 574,
+   "x-cache": "Hit from cloudfront",
+   "body": ""
+  },
+  "products-chirps3": {
+   "error": "icechunk.StorageError(message=\"object store error Operation not supported: Range request not supported by manifests/H6RGTXNS090C42AX6DZG\n\ncontext:\n   0: icechunk_arrow_object_store::get_object_range\n           with path=\"manifests/H6RGTXNS090C42AX6DZG\" range=Some(0..246)\n             at icechunk-arr"
+  },
+  "products-era5land": {
+   "error": "icechunk.StorageError(message=\"object store error Operation not supported: Range request not supported by manifests/QYK5A38JDDXVB7TV9HV0\n\ncontext:\n   0: icechunk_arrow_object_store::get_object_range\n           with path=\"manifests/QYK5A38JDDXVB7TV9HV0\" range=Some(0..246)\n             at icechunk-arr"
+  },
+  "products-hrrr": {
+   "error": "icechunk.StorageError(message=\"object store error Operation not supported: Range request not supported by manifests/6XNM07E9CP6X56D6VTHG\n\ncontext:\n   0: icechunk_arrow_object_store::get_object_range\n           with path=\"manifests/6XNM07E9CP6X56D6VTHG\" range=Some(0..244)\n             at icechunk-arr"
+  },
+  "obs-USCRN": {
+   "error": "icechunk.StorageError(message=\"object store error Operation not supported: Range request not supported by manifests/EA17Y90PKTG3FFJBXCZ0\n\ncontext:\n   0: icechunk_arrow_object_store::get_object_range\n           with path=\"manifests/EA17Y90PKTG3FFJBXCZ0\" range=Some(0..246)\n             at icechunk-arr"
+  },
+  "second_GET_x-cache": "Hit from cloudfront",
+  "anonymous_direct_S3_GET_status": 403
+ },
+ "https_public_bucket": {
+  "products-chirps3": {
+   "error": "icechunk.StorageError(message=\"object store error The operation lacked the necessary privileges to complete for path refs/branch.main/ref.json: Error performing GET https://127.0.0.1:9297/cpc-store-test-public/store/products-chirps3.icechunk/refs/branch.main/ref.json in 5.398161ms - Server returned "
+  },
+  "products-era5land": {
+   "error": "icechunk.StorageError(message=\"object store error The operation lacked the necessary privileges to complete for path refs/branch.main/ref.json: Error performing GET https://127.0.0.1:9297/cpc-store-test-public/store/products-era5land.icechunk/refs/branch.main/ref.json in 2.882552ms - Server returned"
+  },
+  "products-hrrr": {
+   "error": "icechunk.StorageError(message=\"object store error The operation lacked the necessary privileges to complete for path refs/branch.main/ref.json: Error performing GET https://127.0.0.1:9297/cpc-store-test-public/store/products-hrrr.icechunk/refs/branch.main/ref.json in 2.882631ms - Server returned non"
+  },
+  "obs-USCRN": {
+   "error": "icechunk.StorageError(message=\"object store error The operation lacked the necessary privileges to complete for path refs/branch.main/ref.json: Error performing GET https://127.0.0.1:9297/cpc-store-test-public/store/obs-USCRN.icechunk/refs/branch.main/ref.json in 2.952588ms - Server returned non-2xx"
+  }
+ },
+ "https_auth_off_emulator": {
+  "base_url": "https://127.0.0.1:9298/cpc-http/store",
+  "products-chirps3": {
+   "read_seconds": 0.19,
+   "max_abs_diff": 0.0
+  },
+  "products-era5land": {
+   "read_seconds": 0.77,
+   "max_abs_diff": 0.0
+  },
+  "products-hrrr": {
+   "read_seconds": 0.41,
+   "max_abs_diff": 0.0
+  },
+  "obs-USCRN": {
+   "read_seconds": 0.79,
+   "max_abs_diff": 0.0
+  }
+ }
+}
