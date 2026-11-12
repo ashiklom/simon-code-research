@@ -87,7 +87,8 @@ def bias_distributions(metrics: pd.DataFrame, network: str = "USCRN", window: st
     m = metrics[(metrics.network == network) & (metrics.scale == "daily") & (metrics.window == window) & (metrics.method == "bilinear")]
     vars_ = [("tmax", "Daily max temperature bias (°C)"), ("tmin", "Daily min temperature bias (°C)"), ("pr", "Precipitation total ratio (product / station)")]
     fig, axes = plt.subplots(1, 3, figsize=(13, 4.6), dpi=150, sharey=True)
-    order = [p for p in registry.names() if p in set(m["product"])]
+    has = set(m[m.obs_var.isin([v for v, _ in vars_]) & (m.obs_var == m["var"])]["product"])
+    order = [p for p in registry.names() if p in has]
     for ax, (v, title) in zip(axes, vars_):
         d = m[(m.obs_var == v) & (m["var"] == v)]
         col = "ratio" if v == "pr" else "bias"
