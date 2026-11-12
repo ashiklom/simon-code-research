@@ -46,14 +46,14 @@ QUANTA = {
     "precip": 0.01,  # mm per interval
     "rh": 0.1,  # %
     "rad": 0.1,  # W m-2
-    "sm": 0.0001,  # m3 m-3
+    "sm": 0.00001,  # m3 m-3 (1e-4 changed deep-layer r by up to 0.02 at a dry site; see compression study)
     "pres": 1.0,  # Pa
     "wind": 0.01,  # m s-1
     "swe": 0.1,  # mm
     "snowd": 0.001,  # m
     "q": 0.001,  # g kg-1
     "vpd": 0.001,  # kPa
-    "frac": 0.001,  # 0-1
+    "frac": 0.0001,  # 0-1
     "coord": None,
 }
 

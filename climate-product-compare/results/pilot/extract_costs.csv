@@ -1,0 +1,13 @@
+product,sites,decoded_MB,seconds,log,store_MB,s_per_site,MB_per_site,est_hours_all_sites,est_store_MB_all_sites
+chirps3,11,1.1,6,pilot_chirps3_imerg_late_gridmet.log,0.39,0.55,0.04,0.05,10.95
+imerg_late,12,60.6,169,pilot_chirps3_imerg_late_gridmet.log,8.32,14.08,0.69,1.19,211.53
+gridmet,10,9.5,107,pilot_chirps3_imerg_late_gridmet.log,3.27,10.7,0.33,0.91,99.61
+daymet,12,8.4,390,pilot_daymet.log,9.96,32.5,0.83,2.75,253.03
+era5,12,475.0,155,pilot_era5_era5land.log,,12.92,,1.09,
+era5land,12,544.5,41,pilot_era5_era5land.log,0.03,3.42,0.0,0.29,0.74
+hrrr,10,162.1,175,pilot_hrrr.log,112.95,17.5,11.29,1.48,3444.84
+merra2,12,571.9,211,pilot_merra2.log,0.0,17.58,0.0,1.49,0.01
+nldas2_forcing,10,227.0,179,pilot_nldas2_forcing_nldas2_noah_nldas2_vic_nldas2_mosaic.log,191.1,17.9,19.11,1.52,5828.4
+nldas2_noah,10,277.4,185,pilot_nldas2_forcing_nldas2_noah_nldas2_vic_nldas2_mosaic.log,,18.5,,1.57,
+nldas2_vic,10,100.9,72,pilot_nldas2_forcing_nldas2_noah_nldas2_vic_nldas2_mosaic.log,,7.2,,0.61,
+nldas2_mosaic,10,100.9,70,pilot_nldas2_forcing_nldas2_noah_nldas2_vic_nldas2_mosaic.log,,7.0,,0.59,

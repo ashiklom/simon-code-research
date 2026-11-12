@@ -333,7 +333,8 @@ function renderSummary() {
       ${opts('method', ['bilinear', 'nearest'])} ${opts('metric', ['r', 'bias', 'rmse', 'kge', 'anom_r', 'ratio'])}</div>
     <p class="note">Each cell: median over sites of the per-site ${sum.metric} for that product and station variable (n sites in the tooltip).
       Windows: full = each product's whole overlap; common = 2018-09-01..2025-08-31 (all products except GEOS-FP, IMERG Late, half-hourly IMERG Final);
-      recent = 2025-11..2026-10 (includes GEOS-FP). Bias = product − station. Color is a reading aid; values are printed.</p>
+      recent = 2025-11..2026-10 (includes GEOS-FP). Bias = product − station. Color is a reading aid; values are printed.
+      ${sum.network === 'REMOTE' ? '<br><b>REMOTE</b>: no observations; each product is compared with the median of the <i>other</i> products (leave-one-out). Daily values mix day definitions, so use the monthly scale for clean comparisons.' : ''}</p>
     <table class="heat"><tr><th>Product</th>${cols.map((c) => `<th>${c}</th>`).join('')}</tr>
     ${prods.map((p) => `<tr><td>${PRODMETA[p]?.title || p}</td>${cols.map((c) => {
       const r = cell[`${p}|${c}`]

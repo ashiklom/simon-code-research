@@ -149,4 +149,33 @@ and copy with `mise run store-copy -- file://$PWD/data/store s3://bucket/prefix`
 
 ## Limitations
 
-<!-- LIMITATIONS -->
+- **NEON and AmeriFlux** (41 of the 66 Tier 2 sites, and the most independent ones) are
+  wired to read credentials from the environment, but no credentials were available in
+  this session, so they are not yet ingested. The readers follow the documented
+  file/API formats but have not been exercised. The NEON reader uses the lowest
+  single-aspirated temperature level and skips soil sensors.
+- **USCRN is not an independent reference** for PRISM, Daymet and HRRR, which ingest it.
+  gridMET inherits PRISM's temperature and precipitation. Treat their USCRN skill as an
+  upper bound.
+- **Instantaneous vs averaged.**
+  - ERA5, ERA5-Land and HRRR state variables are instantaneous at the hour; USCRN hourly
+    temperature is the hourly mean.
+  - HRRR shortwave is the instantaneous analysis-time flux.
+  - Daily max/min from hourly products are the max/min of hourly values, while USCRN's
+    come from 5-minute data. This biases product Tmax low and Tmin high.
+- **IMERG Final half-hourly** is limited to 2023-09..2025-08. GES DISC serves it only as
+  per-file HDF5 at roughly 1–3 files/s, and V07 Final ends 2025-09-30. IMERG Final
+  *daily* covers the full period.
+- **NLDAS-2 land models.** Only the variables Giovanni serves are included: Noah soil
+  moisture/temperature, skin temperature, SWE and snow depth; VIC layers 1–2; Mosaic soil
+  moisture and soil temperature. VIC/Mosaic skin temperature and SWE are not served.
+- **NLDAS-3** is not released. Only a 2001–2023 *beta* forcing exists. Its virtual store is
+  chunked 1 day × 500 × 900 pixels, so extracting our sites would take about 1 TB of
+  reads; it was not extracted.
+- **ERA5 (free Earthmover copy)** lags by a quarter (ends 2026-06-30 here), so it is absent
+  from most of the 12-month GEOS-FP window. The paid daily-updated copy was not used.
+- **Wind heights differ**: USCRN 1.5 m, SCAN ~3 m, SURFRAD 10 m, products mostly 10 m.
+  A log-law adjustment with z0 = 0.03 m is reported alongside the raw comparison.
+- **Representativeness.** A 3 km–60 km pixel is not a point; the nearest-vs-bilinear
+  difference and the pixel-minus-station elevation (stored per pixel where the product
+  provides it) are reported as diagnostics, not corrected for.

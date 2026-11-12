@@ -14,7 +14,8 @@ from . import analysis as A
 from . import config
 
 WINDOWS = {"full": (None, None), "common": config.W_COMMON, "recent": config.W_RECENT}
-DIRECT = {"tair", "tmax", "tmin", "pr", "sw", "tsurf", "rh", "tdew", "vpd", "q", "vp", "rhmax", "rhmin", "vpdmax", "vpdmin"}
+DIRECT = {"tair", "tmax", "tmin", "pr", "sw", "tsurf", "rh", "tdew", "vpd", "q", "vp", "rhmax", "rhmin", "vpdmax", "vpdmin",
+          "swe", "snowd", "ps"}
 OBS_SM = {5: "sm05", 10: "sm10", 20: "sm20", 50: "sm50", 100: "sm100"}
 OBS_TS = {5: "ts05", 10: "ts10", 20: "ts20", 50: "ts50", 100: "ts100"}
 Z0 = 0.03  # m, roughness for log-law wind height adjustment (short grass, typical USCRN siting)
@@ -145,8 +146,10 @@ def day_overrides() -> dict[tuple[str, str], float]:
     return {}
 
 
-def site_metrics(site: pd.Series, products: list[str], network: str = "USCRN", root: str | None = None) -> list[dict]:
-    obs_h = A.obs_series(network, site.site_id, root)
+def site_metrics(site: pd.Series, products: list[str], network: str = "USCRN", root: str | None = None,
+                 obs_root: str | None = None) -> list[dict]:
+    """`root` is the store root for products; observations always come from `obs_root` (default store)."""
+    obs_h = A.obs_series(network, site.site_id, obs_root)
     if obs_h is None or obs_h.empty:
         return []
     obs_h = A.add_station_humidity(obs_h, float(site.elev_m))
@@ -213,4 +216,53 @@ def site_metrics(site: pd.Series, products: list[str], network: str = "USCRN", r
                                 rows.append({"site": site.site_id, "network": network, "product": name, "var": v,
                                              "obs_var": ov, "kind": kind, "scale": sc, "window": w, "method": method,
                                              "day_end_offset_h": E, **m})
+    return rows
+
+
+# --- Tier 3: products vs each other ---------------------------------------------------
+
+REMOTE_VARS = ["tair", "tmax", "tmin", "pr", "sw", "rh", "tdew", "vpd", "tsurf", "wind"]
+
+
+def remote_metrics(site: pd.Series, products: list[str], root: str | None = None, min_products: int = 3) -> list[dict]:
+    """Each product vs the median of the OTHER products (leave-one-out), daily and monthly.
+
+    Daily values use each product's own day definition (UTC days for hourly products), so part
+    of the daily spread is day-window mismatch; monthly values are nearly free of it.
+    """
+    series: dict[str, dict[str, pd.Series]] = {v: {} for v in REMOTE_VARS}
+    for name in products:
+        df = A.product_series(name, site.site_id, root, "bilinear")
+        if df is None or df.empty:
+            continue
+        vattrs = df.attrs["variables"]
+        freq = df.attrs["freq"]
+        if freq == "30min":
+            df = A.to_hourly(df)
+        if freq in ("1h", "30min"):
+            d = df.copy()
+            if "tair" in d:
+                d["tmax"] = d.get("tmax", d["tair"])
+                d["tmin"] = d.get("tmin", d["tair"])
+            df = A.daily(d, 24, 24)
+        for v in REMOTE_VARS:
+            if v in df and not (v == "wind" and vattrs.get(v, {}).get("height_m", 10) != 10):
+                series[v][name] = df[v]
+    rows = []
+    for v, sdict in series.items():
+        if len(sdict) < min_products:
+            continue
+        D = pd.DataFrame(sdict)
+        kind = "precip" if v == "pr" else "cont"
+        for name in D.columns:
+            others = D.drop(columns=name)
+            ref = others.median(axis=1).where(others.notna().sum(axis=1) >= min_products - 1)
+            for sc, (pp, oo) in (("daily", (D[name], ref)), ("monthly", (A.monthly(D[[name]])[name], A.monthly(ref.to_frame("x"))["x"]))):
+                for w in WINDOWS:
+                    m = compute(_window(oo, w), _window(pp, w), kind, sc, MIN_N[sc])
+                    if m is None:
+                        continue
+                    rows.append({"site": site.site_id, "network": "REMOTE", "product": name, "var": v, "obs_var": v,
+                                 "kind": kind, "scale": sc, "window": w, "method": "bilinear", "reference": "median of other products",
+                                 "n_products": D.shape[1], **m})
     return rows

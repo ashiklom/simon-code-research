@@ -48,7 +48,7 @@ def write_pilot_report():
                    "est_store_MB_all_sites"]].round(2).to_markdown(index=False), "\n"]
     for name, title in (("compression_sizes.csv", "Compression study: encoded bytes per value"),
                         ("compression_metric_maxabsdiff.csv", "Compression study: max |metric difference| quantized vs lossless"),
-                        ("../day_window_overrides_pilot.csv", "Daily windows: documented vs best-aligned (median r over sites)")):
+                        ("day_window_overrides_pilot.csv", "Daily windows: documented vs best-aligned (median r over sites)")):
         f = out / name
         if f.exists():
             parts += [f"## {title}\n", pd.read_csv(f).round(4).to_markdown(index=False), "\n"]

@@ -23,6 +23,10 @@ def run(network: str, sites: pd.DataFrame, *, root=None, force=False, update=Fal
     sites = sites[sites.network == network]
     if sites.empty:
         return
+    need = getattr(mod, "token", None) or getattr(mod, "creds", None)
+    if need is not None and not need():
+        log(f"[{network}] credentials not set; skipping {len(sites)} sites (see README, Requirements)")
+        return
     specs = {k: store.VarSpec(k, *v) for k, v in mod.VARS.items()}
     years = list(range(config.START.year, pd.Timestamp.now().year + 1))
     repo = store.open_repo(store.repo_name("obs", network), root)
@@ -66,7 +70,8 @@ def run(network: str, sites: pd.DataFrame, *, root=None, force=False, update=Fal
             st[r.site_id] = {"name": r.name, "lat": float(r.lat), "lon": float(r.lon),
                              "elev_m": None if pd.isna(r.elev_m) else float(r.elev_m)}
         w.g.attrs["stations"] = st
-        s.commit(f"obs {network}: {len(chunk)} sites")
+        if s.has_uncommitted_changes:
+            s.commit(f"obs {network}: {len(chunk)} sites")
         log(f"[{network}] committed {i + len(chunk)}/{len(todo)}")
 
 

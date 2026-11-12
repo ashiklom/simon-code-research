@@ -61,7 +61,11 @@ def _site_rows(args):
     fn, site, products = args
     from . import diagnostics, metrics
 
-    return {"metrics": metrics.site_metrics, "lags": diagnostics.lag_table}[fn](site, products)
+    if fn == "metrics":
+        if site.network == "REMOTE":
+            return metrics.remote_metrics(site, products)
+        return metrics.site_metrics(site, products, network=site.network)
+    return diagnostics.lag_table(site, products)
 
 
 def _run_sites(fn: str, a, out_name: str):
