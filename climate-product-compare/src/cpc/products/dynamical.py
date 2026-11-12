@@ -117,6 +117,7 @@ class IMERGLate(DynamicalProduct):
     bucket, prefix = "dynamical-nasa-imerg", "nasa-imerg-analysis-late/v0.1.0.icechunk"
     source = "dynamical.org nasa-imerg-analysis-late v0.1.0 Icechunk"
     notes = "Half-hourly IMERG Late Run V07 (not the gauge-adjusted Final run). Stamped at the end of each half hour."
+    site_workers = 2  # each 1440x100x100 chunk decodes to 57 MB; 8 parallel sites ran out of memory
     time_shift = pd.Timedelta(minutes=30)  # source stamps the start of the half hour
     variables = {
         "pr": Var(["precipitation_surface"], "precip", "mm", lambda precipitation_surface: np.maximum(precipitation_surface, 0) * 1800,
