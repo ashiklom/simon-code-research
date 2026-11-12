@@ -42,7 +42,7 @@ class GEOSFP(Product):
     start = pd.Timestamp("2025-11-01 01:00")
     source = "NCCS HTTPS portal, GEOS.fp.asm.tavg1_2d_{slv,flx,rad,lnd}_Nx (range reads)"
     notes = "GMAO forward-processing analysis, last ~12 months. GEOS 5.43 upgrade on 2026-02-26 06Z."
-    hour_workers = 16
+    hour_workers = 32  # portal is ~2-3 MB/s per connection; more streams = more throughput
     block_days = 31  # each block rewrites every site's time chunk, so fewer, larger blocks are much faster
     variables = {
         "tair": Var(["T2M"], "temp", "degC", lambda **a: a["T2M"] - K0, {"height_m": 2, "desc": "2 m temperature, hour mean"}),
