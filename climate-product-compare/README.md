@@ -25,8 +25,8 @@ Site: https://ashiklom.github.io/simon-code-research/climate-product-compare/
 ## Key results
 
 Numbers are medians across USCRN stations: daily values, common window (2018-09..2025-08),
-bilinear interpolation. All metrics are in `site-data.tar` (`summary.json`, per-site
-`metrics.json`) and can be regenerated with `mise run metrics`.
+bilinear interpolation. All metrics are in the published site data (`summary.json`, per-site
+`metrics.json`; see "Publishing the site data") and can be regenerated with `mise run metrics`.
 
 ![Median daily r at USCRN](results/figures/heatmap_r_USCRN_common.png)
 
@@ -307,6 +307,22 @@ run. PRISM's TLS chain needs the emSign Root CA G1, which is added for PRISM req
 Point everything at another backend with `--store` or `CPC_STORE`, for example
 `s3://bucket/prefix?region=us-west-2` (read/write) or `https://<cloudfront>/prefix` (read-only),
 and copy with `mise run store-copy -- file://$PWD/data/store s3://bucket/prefix`.
+
+## Publishing the site data
+
+Each site's daily/hourly Parquet and metrics JSON files (`mise run sitedata` → `site/public/data`,
+576 MB, 1,224 files) are not committed here. GitHub releases could not be created from the session
+that built this experiment, so the data lives in
+[ashiklom/simon-code-research-assets](https://github.com/ashiklom/simon-code-research-assets/tree/main/climate-product-compare)
+under `climate-product-compare/data/`.
+
+- **How the site reads it.** The browser fetches the files from `raw.githubusercontent.com` at the
+  commit pinned in `site/.env.production` (`VITE_DATA_BASE`). raw.githubusercontent.com serves CORS
+  headers and byte ranges, which the in-browser Parquet reader uses.
+- **Local builds.** Without that variable (`npm run dev`), the site reads the local `./data`.
+- **Updating.** Run `scripts/publish_site_data.sh <assets-clone>`. It copies the data, commits and
+  pushes it in batches, and re-pins `.env.production`. Then commit that file here.
+- **Tarball.** `mise run pack-site` still makes a `site-data.tar`, if a release asset is preferred later.
 
 ## Limitations
 

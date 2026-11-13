@@ -46,7 +46,7 @@ description = "Export per-site website data to site/public/data"
 run = "uv run cpc sitedata --sites all --metrics all"
 
 [tasks.pack-site]
-description = "Pack site/public/data into site/site-data.tar (the release asset)"
+description = "Pack site/public/data into site/site-data.tar (optional; the site reads data from the assets repo)"
 run = "tar -cf site/site-data.tar -C site/public data"
 
 [tasks.site]

@@ -5,7 +5,9 @@ import 'uplot/dist/uPlot.min.css'
 import { asyncBufferFromUrl, parquetReadObjects } from 'hyparquet'
 import { compressors } from 'hyparquet-compressors'
 
-const DATA = './data'
+// Site data base URL: local ./data by default; production builds read it from the assets repo
+// at a pinned commit (site/.env.production, VITE_DATA_BASE).
+const DATA = (import.meta.env.VITE_DATA_BASE || './data').replace(/\/$/, '')
 
 // ---- fixed product styling (color follows the product, never its rank) -------------------
 // 8 validated categorical slots; products 9-16 reuse the hues with a dashed line.
