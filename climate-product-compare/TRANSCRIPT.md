@@ -3537,3 +3537,74 @@ The site is live (HTTP 200) and listed on the homepage. Running the headless che
 - **Bash**: Headless smoke test of the live site: `S=/tmp/claude-0/-home-user-simon-code-research/6369bf11-64ec-5807-91ce-c940e0205b3b/scratchpad; sed "s|http://localhost:8765/|https://ashiklom.github.io/simon-…`
 - **Read**: `/tmp/claude-0/-home-user-simon-code-research/6369bf11-64ec-5807-91ce-c940e0205b3b/scratchpad/live_summary.png`
 - **Bash**: Regenerate transcript, scan, commit and push to main: `cd /home/user/simon-code-research && timeout 300 uv run _helpers/transcript.py -o climate-product-compare/TRANSCRIPT.md 2>&1 | grep -v UV_NATIVE | tail -1; gre…`
+
+`climate-product-compare` is published at https://ashiklom.github.io/simon-code-research/climate-product-compare/. I checked the live site in a headless browser: the map, site panels, hourly zoom, summary heatmap and remote points all load with no errors.
+
+**What it covers.** 17 gridded products compared at 305 sites:
+- 139 USCRN stations, including Alaska and Hawaii.
+- 25 other open stations: SURFRAD, SCAN, SNOTEL and Iowa's ISUSM network.
+- 100 station-remote points, where products are compared only with each other.
+
+Comparisons are hourly, daily and monthly, both nearest-pixel and interpolated. The extracted series total 13 GB, within the plan's 8–25 GB estimate.
+
+**Key results** (full detail in the README):
+- **Station-based products need care.** PRISM, gridMET and Daymet score best at USCRN, but they ingest USCRN. At SCAN and ISUSM stations, which they don't use, PRISM's daily precipitation r drops from 0.98 to 0.77–0.86. Every product drops there too, so part of that is gauge quality.
+- **Warm nights in every reanalysis.** Tmin is +1 to +2 °C too warm, and the same split shows up at the remote points.
+- **HRRR** is the best model-based product (hourly temperature r 0.99), but its precipitation total is 20% low.
+- **Precipitation.** Satellite and reanalysis products are weak day to day (r 0.67–0.78) but agree well monthly. NLDAS-2 has the best hourly timing.
+- **USCRN's solar sensors read 3–5% low** against co-located SURFRAD radiometers, and the gap is growing.
+- **Daymet and gridMET precipitation** line up best with a day ending 12 UTC the next day, not their documented day.
+- **Interpolation barely matters**: bilinear vs nearest pixel changes RMSE by a few hundredths.
+- **Rounding values before compression** makes the store about 2.5× smaller than lossless, and changes r by at most 0.0004.
+
+**Emulator check.** The S3 backend works end to end. Through the emulated CloudFront, whole files download fine, but the emulator ignores byte-range requests, so the store can't be read through it. Real CloudFront supports byte ranges.
+
+**Deviations from the plan, all forced by throughput or access** (listed in the README):
+- **CHELSA** covers only the common window (2018-09 → 2025-09).
+- **IMERG Final half-hourly** covers only June–August 2025.
+- **NLDAS-2 land models** include only the variables NASA's Giovanni service provides.
+- **NLDAS-3** isn't released, so it wasn't extracted.
+
+**Site data location.** This session can't create GitHub releases. As you asked, the 576 MB of site data is in `ashiklom/simon-code-research-assets` under `climate-product-compare/data/`, pinned to commit `2a480a7`. `publish.toml` lists no release assets, and `scripts/publish_site_data.sh` re-publishes the data and updates the pin.
+
+**`main`** was fast-forwarded and the Pages deploy succeeded.
+
+**Needs you:**
+- **Delete the remote branch.** `claude/climate-product-compare-75whba` is still on origin: this session's git proxy refuses branch deletions. It's identical to `main`, so it's safe to delete on GitHub.
+- **NEON and AmeriFlux credentials.** Those 41 sites are still skipped until you set `NEON_API_TOKEN` and `AMERIFLUX_USER_ID`/`AMERIFLUX_EMAIL`. Those readers have never been run against real data.
+
+The extracted store wasn't persisted, as you chose. Re-extracting everything would take many hours.
+
+## User
+
+Update the excitement repo's root level instructions to note the existence of the assets repo. It is available as a last resort when other options fail (as is the case here). Avoid committing multiple versions of the same big binary files to the assets repo as much as possible by delaying pushing there until the very end of an experiment (to make sure you're done). If you need to update existing assets, use a force push.
+
+## Claude
+
+I read "excitement repo" as `simon-code-research` and its root `CLAUDE.md`. Looking at the relevant sections first.
+
+- **Bash**: Find relevant sections in root CLAUDE.md: `git fetch -q origin main && git status -sb | head -2 && grep -n "^## \|^### \|Release\|release" CLAUDE.md | head -40`
+- **Read**: `CLAUDE.md`
+
+Adding an "Assets repo (last resort)" subsection under Releases, plus a pointer in "Data and large files".
+
+- **Bash**: Edit CLAUDE.md and PROMPT.md; commit on work branch: `git checkout -q -B claude/climate-product-compare-75whba origin/main && python3 - <<'EOF' import pathlib p=pathlib.Path("CLAUDE.md"); s=p.read_text() s=s.repla…`
+
+Committed on the work branch. Pushing it, then fast-forwarding `main` as `CLAUDE.md`'s workflow prescribes.
+
+- **Bash**: Push branch, fast-forward main, clean up local branch: `git push -q --force-with-lease origin claude/climate-product-compare-75whba 2>&1 | tail -1; git fetch -q origin main && git merge-base --is-ancestor origin/mai…`
+
+I added an "Assets repo (last resort)" section to the repository's root `CLAUDE.md`, plus a pointer to it from "Data and large files". It's on `main` (`dc8a102`). The section says:
+
+- **When to use it:** `ashiklom/simon-code-research-assets` holds big files only when other options fail, for example a session that can't create releases, as in `climate-product-compare`.
+- **When to push:** only at the very end of an experiment, once results are final, so it doesn't collect several versions of the same big files.
+- **Updating assets:** rewrite and force-push (`git push --force-with-lease`) instead of adding commits on top. Only rewrite your own experiment's commits, and update the experiment's pinned commit afterwards.
+- **Conventions I added**, since that's how `climate-product-compare` used it:
+  - Each experiment's files go under `<folder>/` in that repo, with a short README.
+  - The experiment pins an assets-repo commit, e.g. through raw GitHub URLs, and documents the pin.
+  - These files are not listed in `publish.toml`'s `[[assets]]`.
+  - Ask before pushing there, listing files and sizes, as with releases.
+
+Your request is also recorded verbatim in `climate-product-compare/PROMPT.md` as Follow-up 5.
+
+The remote branch `claude/climate-product-compare-75whba` still can't be deleted from this session, so please delete it on GitHub.
