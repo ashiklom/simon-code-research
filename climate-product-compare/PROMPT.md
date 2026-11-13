@@ -123,3 +123,7 @@ Update the excitement repo's root level instructions to note the existence of th
 ## Follow-up 6
 
 The storage size estimates are incomplete in the results, or at least I can't find them. Review my earlier prompt for the request: I also want estimates for each full product, variable subsets, etc. Add a page about this to the website.
+
+## Follow-up 7
+
+The instructions are in follow up 3 in the prompt.md.
