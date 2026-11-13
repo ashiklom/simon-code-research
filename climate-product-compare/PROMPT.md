@@ -115,3 +115,7 @@ When everything is done, as a bonus, try to check the remote back ends using aws
 ## Answer (round 4)
 
 Commit the asset to https://github.com/ashiklom/simon-code-research-assets. For now, wire the website to retrieve it from there. Now
+
+## Follow-up 5
+
+Update the excitement repo's root level instructions to note the existence of the assets repo. It is available as a last resort when other options fail (as is the case here). Avoid committing multiple versions of the same big binary files to the assets repo as much as possible by delaying pushing there until the very end of an experiment (to make sure you're done). If you need to update existing assets, use a force push.
