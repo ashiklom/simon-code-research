@@ -15,6 +15,14 @@ def cmd_sites(a):
     df = sitesmod.build_uscrn()
     sitesmod.save(df, "uscrn")
     print(f"uscrn: {len(df)} stations ({df.pilot.sum()} pilot)")
+    if a.tier2:
+        t2 = sitesmod.build_tier2()
+        sitesmod.save(t2, "tier2")
+        print(f"tier2: {len(t2)} sites")
+    if a.remote:  # needs data/cache/koppen and data/cache/modis (see README)
+        r = sitesmod.build_remote()
+        sitesmod.save(r, "remote")
+        print(f"remote: {len(r)} points")
 
 
 def cmd_obs(a):
@@ -183,7 +191,9 @@ def main(argv=None):
     p.add_argument("--store", default=None, help="store URL (file://, s3://, https://); default $CPC_STORE or local")
     sub = p.add_subparsers(required=True)
 
-    s = sub.add_parser("sites", help="build USCRN site table (results/sites/uscrn.csv)")
+    s = sub.add_parser("sites", help="build site tables (results/sites/*.csv)")
+    s.add_argument("--tier2", action="store_true", help="also rebuild the tier-2 list")
+    s.add_argument("--remote", action="store_true", help="also re-sample the 100 remote points")
     s.set_defaults(fn=cmd_sites)
 
     s = sub.add_parser("obs", help="ingest station observations")

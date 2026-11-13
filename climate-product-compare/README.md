@@ -278,7 +278,8 @@ and pcodec-encoded in Icechunk. Full table: `results/store_sizes.csv`.
 cd climate-product-compare
 mise install            # Python 3.13, uv, Node 22
 uv sync
-mise run sites          # USCRN table (tier2/remote: uv run python -c "from cpc import sites; ...", see src/cpc/sites.py)
+mise run sites          # USCRN table; `uv run cpc sites --tier2 --remote` re-derives the other two lists
+                        # (committed in results/sites/; --remote needs the Koppen-Geiger zip and MODIS MCD12C1)
 mise run all            # obs ingest, extraction/update of every product, lag check, metrics, figures, site data, site
 ```
 
