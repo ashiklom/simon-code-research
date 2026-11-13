@@ -211,7 +211,46 @@ The plan (PLAN.md) was followed except for these points, all forced by access or
 
 ## Storage and compression
 
-<!-- STORAGE -->
+Measured after extracting every site and compacting history. Each value is stored as
+float32, rounded to a fixed absolute step (0.01 °C, 0.01 mm, 0.1 W m⁻², 1e-5 m³ m⁻³, ...)
+and pcodec-encoded in Icechunk. Full table: `results/store_sizes.csv`.
+
+| Product | Sites | Size | MB per site | Bytes per value | Plan estimate (sites only) |
+|---|---|---|---|---|---|
+| ERA5 (16 vars, hourly) | 305 | 2.72 GB | 8.9 | 0.86 | 1.5–4 GB |
+| ERA5-Land (18 vars, hourly) | 305 | 2.66 GB | 8.7 | 0.73 | 1.5–4 GB |
+| MERRA-2 (19 vars, hourly) | 305 | 2.64 GB | 8.6 | 0.69 | 1.5–4.5 GB |
+| NLDAS-2 forcing (9 vars) | 280 | 1.26 GB | 4.5 | 0.76 | 0.5–1.5 GB |
+| NLDAS-2 Noah + VIC + Mosaic | 280 | 1.84 GB | 6.6 | 0.49–0.61 | 2–6 GB |
+| HRRR (10 vars) | 280 | 0.90 GB | 3.2 | 0.76 | 0.5–1.5 GB |
+| GEOS-FP (19 vars, 12.5 months) | 305 | 0.28 GB | 0.93 | 1.36 | 0.1–0.25 GB |
+| IMERG Late (half-hourly) | 305 | 60 MB | 0.20 | 0.15 | 0.1–0.2 GB |
+| PRISM 4 km (8 vars, daily) | 280 | 106 MB | 0.38 | 1.72 | 30–70 MB |
+| gridMET (9 vars, daily) | 280 | 92 MB | 0.33 | 1.33 | 40–90 MB |
+| Daymet (7 vars, daily) | 305 | 78 MB | 0.26 | 1.39 | 30–70 MB |
+| CHELSA (9 vars, daily, common window only) | 305 | 44 MB | 0.14 | 1.56 | 40–100 MB (full period) |
+| IMERG Final daily / half-hourly (JJA 2025) | 305 | 13 / 3 MB | 0.04 / 0.01 | 1.60 / 0.51 | 0.1–0.2 GB |
+| CHIRPS v3 (daily) | 290 | 9 MB | 0.03 | 1.08 | ~3 MB |
+| Station observations (5 networks) | 164 | 263 MB | 0.5–1.7 | 0.30–1.15 | <2 GB |
+| **Total** | | **13.0 GB** | | | **8–25 GB** |
+
+- **Hourly products** land at 0.5–0.9 bytes per value, as the plan assumed, which puts them
+  inside the estimated range.
+- **Daily products** need 1.3–1.7 bytes per value, about twice the assumed 0.7–0.8.
+  Day-to-day series are less smooth than hour-to-hour ones, and each site's chunk is small,
+  so fixed per-chunk overhead counts for more.
+- **Compression study** on 3 pilot sites (`results/pilot/compression_*.csv`):
+  - Quantized pcodec stores 0.40–0.78× the bytes of lossless pcodec. ERA5: 0.81 vs 2.08
+    bytes/value; zstd needs 2.89.
+  - gridMET gains nothing, since its source is already packed at 0.1-unit resolution.
+  - Metric changes from quantization (common window): r ≤ 0.0004, anomaly r ≤ 0.0001, daily
+    bias ≤ 0.006 in the variable's units.
+  - The first pass used a 1e-4 m³ m⁻³ soil-moisture step, which moved deep-layer r at a dry
+    site by 0.02. That is why the step is 1e-5.
+- **Whole-product sizes** (the full archive, the used variables only, and an optimized
+  Icechunk copy of the used variables) are estimated in [PLAN.md](PLAN.md#storage-volume-estimates-per-product).
+  They range from tens of GB (PRISM, gridMET, CHIRPS) to petabytes (ERA5, HRRR archives).
+
 
 ## How to reproduce
 

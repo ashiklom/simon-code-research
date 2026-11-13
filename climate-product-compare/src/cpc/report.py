@@ -83,3 +83,38 @@ def write_pilot_report():
         parts += ["## Daily precipitation detection (1 mm), common window\n", pr.to_markdown(), "\n"]
     (out / "pilot_report.md").write_text("\n".join(parts))
     return out / "pilot_report.md"
+
+
+def store_table() -> pd.DataFrame:
+    """Final on-disk size per repo, sites, stored values and bytes per value (results/store_sizes.csv)."""
+    import zarr
+
+    from . import store
+    from .products import registry
+
+    rows = []
+    for d in sorted((config.DATA / "store").glob("*.icechunk")):
+        name = d.name.removesuffix(".icechunk")
+        kind, _, n = name.partition("-")
+        size = sum(p.stat().st_size for p in d.rglob("*") if p.is_file())
+        freq = registry.get(n).freq if kind == "products" else "1h"
+        path = store.group_path(kind, n, freq)
+        g = zarr.open_group(store.readonly(kind, n).store, mode="r", path=path)
+        values = 0
+        nvars = 0
+        for an, a in g.arrays():
+            dims = tuple(a.metadata.dimension_names or ())
+            if "time" in dims and an != "time":
+                values += int(np.prod(a.shape))
+                nvars += 1
+        nsite = len(g.attrs.get("sites", []))
+        ntime = g["time"].shape[0] if "time" in g else 0
+        rows.append({"repo": name, "freq": freq, "sites": nsite, "time_steps": ntime, "variables": nvars,
+                     "stored_values": values, "size_MB": size / 1e6, "MB_per_site": size / 1e6 / max(nsite, 1),
+                     "bytes_per_value": size / max(values, 1)})
+    df = pd.DataFrame(rows)
+    df.round(3).to_csv(config.RESULTS / "store_sizes.csv", index=False)
+    return df
+
+
+import numpy as np  # noqa: E402
