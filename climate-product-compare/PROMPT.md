@@ -87,3 +87,19 @@ Wire in the ability to update all datasets to the latest date on command, having
 ## Follow-up 4
 
 When everything is done, as a bonus, try to check the remote back ends using aws-emulator (https://github.com/aws/aws-emulator): Put a few subsets of example datasets into an emulated s3 bucket and check if access worked. Then, put an emulated cloudfront in front of the bucket it and try the HTTP endpoint. Report on how well this works.
+
+## Claude: questions (round 3)
+
+1. **Release.** The experiment is finished and pushed to branch claude/climate-product-compare-75whba; the site builds locally and passes a headless-browser check. The Pages site needs one release asset: site-data.tar (599 MB, 4,600+ per-site Parquet/JSON files, 305 sites, 2 years of hourly data), listed in publish.toml. No climate-product-compare release exists yet. May I create the release and upload it? (gh release create via the REST API, then upload with --clobber)
+   - *Create release + upload (Recommended).* Create release 'climate-product-compare' and upload site-data.tar (599 MB). The Pages build downloads it at deploy time.
+   - *Smaller asset first.* Re-export with 1 hourly year (about 420 MB) before uploading, to leave more headroom under the ~1 GB Pages limit.
+   - *Don't upload yet.* Leave the release for later; the site can't deploy until it exists.
+2. **main.** CLAUDE.md says to rebase onto origin/main, fast-forward main and push it, then delete the work branch. This session was told to develop and push only on claude/climate-product-compare-75whba. Should I update main?
+   - *Fast-forward main + push.* Rebase the branch onto origin/main, fast-forward main, push main (which triggers the Pages deploy), and delete the work branch locally and on origin.
+   - *Leave main alone.* Keep everything on claude/climate-product-compare-75whba; you merge it yourself (or ask me to open a PR).
+   - *Open a PR instead.* Open a pull request from the branch into main for review.
+
+## Answer (round 3)
+
+1. Release: Create release + upload (Recommended)
+2. main: Fast-forward main + push
