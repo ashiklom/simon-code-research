@@ -182,6 +182,12 @@ def cmd_compression(a):
     compression.run()
 
 
+def cmd_storage(a):
+    from . import storage_estimates
+
+    storage_estimates.run(measure=a.measure)
+
+
 def cmd_store_copy(a):
     store.copy_store(a.src, a.dst)
 
@@ -250,6 +256,10 @@ def main(argv=None):
 
     s = sub.add_parser("compression", help="compression study on pilot sites")
     s.set_defaults(fn=cmd_compression)
+
+    s = sub.add_parser("storage", help="storage-volume estimates per product (results/storage_estimates.csv)")
+    s.add_argument("--measure", action="store_true", help="re-measure full-grid bytes/value (network)")
+    s.set_defaults(fn=cmd_storage)
 
     s = sub.add_parser("store-copy", help="copy the store between backends")
     s.add_argument("src")

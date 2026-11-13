@@ -41,6 +41,10 @@ run = ["uv run cpc metrics --sites all", "uv run cpc merge-metrics"]
 [tasks.figures]
 run = "uv run cpc figures"
 
+[tasks.storage]
+description = "Storage-volume estimates per product (results/storage_estimates.csv, site/src/storage.json); add -- --measure to re-measure full-grid compression"
+run = "uv run cpc storage"
+
 [tasks.sitedata]
 description = "Export per-site website data to site/public/data"
 run = "uv run cpc sitedata --sites all --metrics all"
@@ -66,6 +70,7 @@ run = [
   "mise run lags",
   "mise run metrics",
   "mise run figures",
+  "mise run storage",
   "mise run sitedata",
   "mise run pack-site",
   "mise run site",
