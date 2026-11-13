@@ -4,6 +4,7 @@ import uPlot from 'uplot'
 import 'uplot/dist/uPlot.min.css'
 import { asyncBufferFromUrl, parquetReadObjects } from 'hyparquet'
 import { compressors } from 'hyparquet-compressors'
+import STORAGE from './storage.json'
 
 // Site data base URL: local ./data by default; production builds read it from the assets repo
 // at a pinned commit (site/.env.production, VITE_DATA_BASE).
@@ -356,6 +357,97 @@ function renderAbout() {
     </table><p class="note">See the experiment README for methods, caveats and how to reproduce.</p></div>`
 }
 
+// ---- storage estimates ------------------------------------------------------------------
+const STORE_CATS = [
+  { k: 'all_orig', lo: 'all_orig_lo_TB', hi: 'all_orig_hi_TB', s: 1e12, label: '1. Complete product, all variables, original format' },
+  { k: 'used_orig', lo: 'used_orig_lo_TB', hi: 'used_orig_hi_TB', s: 1e12, label: '2. Complete product, variables used here, original format' },
+  { k: 'used_opt', lo: 'used_opt_lo_TB', hi: 'used_opt_hi_TB', s: 1e12, label: '3. As 2, quantized + pcodec in Icechunk' },
+  { k: 'sites_full', lo: 'sites_full_GB', hi: 'sites_full_GB', s: 1e9, label: '4. As 3, extracted sites only (complete record)' },
+]
+const esc = (t) => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;')
+
+function storageChart() {
+  const rows = STORAGE.rows
+  const W = 860, padL = 190, padR = 16, padT = 26, rowH = 34, H = padT + rows.length * rowH + 8
+  const lmin = 6, lmax = 16  // 1 MB .. 10 PB
+  const x = (b) => padL + ((Math.log10(Math.max(b, 10 ** lmin)) - lmin) / (lmax - lmin)) * (W - padL - padR)
+  const ticks = [[6, '1 MB'], [7, ''], [8, ''], [9, '1 GB'], [10, ''], [11, ''], [12, '1 TB'], [13, ''], [14, ''], [15, '1 PB'], [16, '']]
+  let g = ticks.map(([e, t]) => `<line x1="${x(10 ** e)}" x2="${x(10 ** e)}" y1="${padT - 6}" y2="${H - 8}" stroke="var(--grid)" stroke-width="1"/>`
+    + (t ? `<text x="${x(10 ** e)}" y="${padT - 10}" text-anchor="middle" fill="var(--text-muted)" font-size="11">${t}</text>` : '')).join('')
+  rows.forEach((r, i) => {
+    const y0 = padT + i * rowH
+    g += `<text x="${padL - 8}" y="${y0 + rowH / 2 + 4}" text-anchor="end" fill="var(--text-primary)" font-size="12">${esc(r.product)}</text>`
+    STORE_CATS.forEach((c, j) => {
+      const lo = r.raw[c.lo] * c.s, hi = r.raw[c.hi] * c.s
+      const y = y0 + 6 + j * 6.5
+      const x0 = x(lo), x1 = Math.max(x(hi), x0 + 0.01)
+      const tip = `${esc(r.product)} — ${esc(c.label)}: ${esc(r[c.k])}`
+      g += `<g class="st-mark" data-tip="${tip}"><rect x="${x0 - 8}" y="${y - 4}" width="${x1 - x0 + 16}" height="8" fill="transparent"/>`
+        + `<line x1="${x0}" x2="${x1}" y1="${y}" y2="${y}" stroke="var(--s${j + 1})" stroke-width="4" stroke-linecap="round"/></g>`
+    })
+  })
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:${W}px" role="img" aria-label="Storage volume per product, log scale">${g}</svg>`
+}
+
+function renderStorage() {
+  const el = document.getElementById('view-storage')
+  const t = STORAGE.totals
+  const lab = Object.fromEntries(STORAGE.rows.map((r) => [r.key, r.product]))
+  const fg = STORAGE.fullgrid.map((f) => `<tr><td>${esc(lab[f.product] || f.product)}</td><td>${f.boxes || 'full grid'}</td><td>${esc(f.start).slice(0, 4)}</td><td>${f.bytes_per_value.toFixed(2)}</td><td>${f.site_bpv_same_vars.toFixed(2)}</td></tr>`).join('')
+  el.innerHTML = `<div class="about" style="max-width:1400px">
+    <h2>Storage volume per product</h2>
+    <p class="note">Estimated bytes for each product in four forms. Ranges reflect uncertainty in file sizes, variable counts, the share of
+      pixels that hold data and compressibility. "Complete" means the product's whole record (first time step through the date extracted here;
+      GEOS-FP per 12 months). Column 4 is the site store scaled to the complete record. The last column is what this experiment actually stored
+      (2008 onward), measured on disk. Generated ${esc(STORAGE.generated)}.</p>
+    <div class="legend">${STORE_CATS.map((c, j) => `<span class="chip"><span class="swatch" style="border-top-width:4px;border-color:var(--s${j + 1})"></span>${esc(c.label)}</span>`).join('')}</div>
+    <div id="st-chart" style="position:relative">${storageChart()}</div>
+    <div style="overflow-x:auto"><table class="storage">
+      <tr><th>Product</th><th>Resolution</th><th>Record</th><th>1. Complete,<br>all vars (original)</th><th>2. Complete,<br>used vars (original)</th>
+        <th>3. Complete, used vars,<br>optimized Icechunk</th><th>4. As 3,<br>sites only</th><th>Measured<br>site store</th></tr>
+      ${STORAGE.rows.map((r, i) => `<tr class="st-row" data-i="${i}"><td><span class="st-toggle">▸</span> ${esc(r.product)}</td>
+        <td>${esc(r.resolution)}</td><td>${esc(r.record)}</td><td>${esc(r.all_orig)}</td><td>${esc(r.used_orig)}</td><td>${esc(r.used_opt)}</td><td>${esc(r.sites_full)}</td><td>${esc(r.sites_meas)}</td></tr>
+        <tr class="st-basis" data-i="${i}" hidden><td colspan="8"><div class="basis"><b>Original format:</b> ${esc(r.basis)}<br><b>Optimized bytes/value:</b> ${esc(r.opt_bpv)}<br>
+          <b>Variables:</b> ${r.n_src_used} source variables used, ${r.n_stored} stored; pixels with data: ${esc(r.data_frac)} of the grid</div></td></tr>`).join('')}
+      <tr class="total"><td>Total (excl. GEOS-FP)</td><td></td><td></td><td>${esc(t.all_orig)}</td><td>${esc(t.used_orig)}</td><td>${esc(t.used_opt)}</td><td>${esc(t.sites_full)}</td><td>${esc(t.sites_meas)}</td></tr>
+    </table></div>
+    <h3>How the numbers were made</h3>
+    <ul class="note" style="max-width:95ch">
+      <li><b>Original format (1, 2):</b> real file sizes (HTTP HEAD, bucket listings, GRIB <code>.idx</code> byte offsets) × the number of files in the record.
+        "Used" keeps only the source variables this experiment reads, prorated by their share of the bytes where a file holds many variables.
+        Where a size could not be measured (MERRA-2 3-D collections, GEOS-FP's other collections, the full ERA5 archive) the range is an order-of-magnitude estimate; click a product row for details.</li>
+      <li><b>Optimized Icechunk (3):</b> only the variables stored here, each quantized to an absolute step (e.g. 0.01 °C, 0.01 mm, 1e-5 m³ m⁻³), pcodec level 8,
+        chunks of 16×16 pixels × the full record so a point time series is one chunk read. Empty (no-data) chunks are not stored.
+        Bytes/value were measured by re-encoding random full-grid blocks (land and ocean) from the ARCO copies, plus one full year of gridMET:</li>
+    </ul>
+    <table style="margin-left:2rem"><tr><th>Product</th><th>Blocks</th><th>Year</th><th>Full grid, B/value</th><th>Site store, same vars, B/value</th></tr>${fg}</table>
+    <ul class="note" style="max-width:95ch">
+      <li>For products without an ARCO copy, column 3 uses the site-store bytes/value × the full-grid/site ratio measured for products with the same time step.</li>
+      <li><b>Sites only (4):</b> measured bytes of the site store (2×2 stencil of pixels around each of ~305 sites) scaled from the extracted period to the complete record.</li>
+      <li><b>Takeaways.</b> The variables used here are ~1 % of ERA5, MERRA-2 and the HRRR analysis archive, a third of ERA5-Land and NLDAS-2 forcing,
+        and nearly all of PRISM, Daymet and CHELSA. Quantized pcodec in time-series chunks stores the used variables 3–5× smaller than the GRIB/NetCDF
+        originals for ERA5, ERA5-Land, NLDAS-2, PRISM and CHIRPS, but only ~1.3× smaller for HRRR, whose GRIB2 is already well packed. For gridMET and
+        IMERG it is about the same size. For the 1 km daily products (Daymet, CHELSA) it is the same or larger, because their originals are 2-D compressed
+        images at 0.1-unit precision. There the CHELSA number is probably an overestimate (it borrows gridMET's full-grid ratio, and CHELSA is spatially
+        smoother). An Icechunk copy of those is for fast point reads, not for saving space. Keeping only the extracted sites shrinks each product
+        2.5–5 orders of magnitude, to 41 GB for everything.</li>
+    </ul></div>`
+  el.querySelectorAll('tr.st-row').forEach((tr) => (tr.onclick = () => {
+    const d = el.querySelector(`tr.st-basis[data-i="${tr.dataset.i}"]`)
+    d.hidden = !d.hidden; tr.querySelector('.st-toggle').textContent = d.hidden ? '▸' : '▾'
+  }))
+  const box = el.querySelector('#st-chart')
+  const tip = document.createElement('div'); tip.className = 'tt'; tip.style.display = 'none'; box.appendChild(tip)
+  box.querySelectorAll('.st-mark').forEach((m) => {
+    m.onmousemove = (e) => {
+      const b = box.getBoundingClientRect()
+      tip.textContent = m.dataset.tip; tip.style.display = 'block'
+      tip.style.left = Math.min(e.clientX - b.left + 12, b.width - tip.offsetWidth - 4) + 'px'; tip.style.top = (e.clientY - b.top - 34) + 'px'
+    }
+    m.onmouseleave = () => { tip.style.display = 'none' }
+  })
+}
+
 // ---- boot -------------------------------------------------------------------------------
 document.querySelectorAll('nav button').forEach((b) => (b.onclick = () => {
   document.querySelectorAll('nav button').forEach((x) => x.classList.toggle('active', x === b))
@@ -369,6 +461,6 @@ Promise.all([
   fetch(`${DATA}/scales.json`).then((r) => r.json()),
 ]).then(([s, p, m, sc]) => {
   SITES = s; PRODMETA = p; SUMMARY = m; SCALES = sc
-  initMap(); renderSummary(); renderAbout()
+  initMap(); renderSummary(); renderStorage(); renderAbout()
   window.__cpc = { selectSite, SITES }  // used by the headless smoke test
 })
