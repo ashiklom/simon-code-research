@@ -83,3 +83,7 @@ As above, but only at the extracted sites
 Develop against a local copy that is not persisted. But make it easy to switch from a local store to a copy in either an HTTPS store (Cloudfront + S3) or a direct S3 store, in case we create a copy of the data there later.
 
 Wire in the ability to update all datasets to the latest date on command, having l grabbing only the data you need for the update and skipping datasets that are already up to date.
+
+## Follow-up 4
+
+When everything is done, as a bonus, try to check the remote back ends using aws-emulator (https://github.com/aws/aws-emulator): Put a few subsets of example datasets into an emulated s3 bucket and check if access worked. Then, put an emulated cloudfront in front of the bucket it and try the HTTP endpoint. Report on how well this works.
