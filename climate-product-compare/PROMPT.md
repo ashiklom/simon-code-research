@@ -119,3 +119,7 @@ Commit the asset to https://github.com/ashiklom/simon-code-research-assets. For 
 ## Follow-up 5
 
 Update the excitement repo's root level instructions to note the existence of the assets repo. It is available as a last resort when other options fail (as is the case here). Avoid committing multiple versions of the same big binary files to the assets repo as much as possible by delaying pushing there until the very end of an experiment (to make sure you're done). If you need to update existing assets, use a force push.
+
+## Follow-up 6
+
+The storage size estimates are incomplete in the results, or at least I can't find them. Review my earlier prompt for the request: I also want estimates for each full product, variable subsets, etc. Add a page about this to the website.
