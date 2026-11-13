@@ -93,6 +93,7 @@ reasonably be pinned (e.g. CUDA drivers, credentials), list it in the README und
   raw results only when an interactive visualization reads them.
 - Rule of thumb: files over ~4 MB don't go in git. Put them in the release if the site needs
   them; otherwise leave them unpublished. Exceptions are fine; mention them when you make one.
+- If a release isn't possible, the assets repo is a last resort (see "Assets repo" below).
 
 ## Publishing (GitHub Pages)
 
@@ -140,6 +141,25 @@ dest = "figures/fig-results.png"  # path relative to <folder>/
 - **Ask me before creating a release or uploading to one.** List the files and their sizes.
 - Every uploaded asset must appear in `publish.toml`'s `[[assets]]`, and every listed asset
   must exist in the release.
+
+### Assets repo (last resort)
+
+[`ashiklom/simon-code-research-assets`](https://github.com/ashiklom/simon-code-research-assets)
+holds big files when the normal options fail. Example: a session that can't create releases, as
+in `climate-product-compare`.
+- **Use it only as a last resort.** Prefer committing small outputs or a release.
+- **Layout.** Put each experiment's files under `<folder>/` in that repo, with a short
+  `<folder>/README.md` saying what they are and what reads them.
+- **Pinning.** Pin the experiment to an assets-repo commit, e.g. a site that fetches from
+  `https://raw.githubusercontent.com/ashiklom/simon-code-research-assets/<sha>/<folder>/...`
+  (it serves CORS headers and byte ranges). Document the pin in the experiment's README.
+  Don't list these files in `publish.toml` `[[assets]]`, because those must come from the release.
+- **Push there only at the very end of an experiment**, once the results are final. That keeps
+  multiple versions of the same big binary files out of its history.
+- **To update existing assets, rewrite and force-push** (`git push --force-with-lease`) instead of
+  stacking new commits on top. Only rewrite your own experiment's commits, and update the pinned
+  commit in the experiment afterwards.
+- **Ask me before pushing to it**, as with releases. List the files and their sizes.
 
 ## Git workflow
 
