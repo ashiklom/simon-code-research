@@ -40,7 +40,7 @@ bilinear interpolation. All metrics are in `site-data.tar` (`summary.json`, per-
 | ERA5-Land | 1.79 | +1.8 | 0.73 | 0.59 | 0.98 |
 | MERRA-2 | 2.12 | +1.1 | 0.78 | 0.57 | 0.97 |
 | NLDAS-2 forcing | 2.35 | +2.0 | 0.90 | 0.72 | 0.97 |
-| CHELSA-daily | – | +2.0 | 0.70 | – | – |
+| CHELSA-daily | 1.94 | +2.0 | 0.67 | – | – |
 | IMERG Final (daily) | – | – | 0.76 | 0.53 | – |
 | IMERG Late | – | – | 0.74 | 0.53 | – |
 | CHIRPS v3 | – | – | 0.74 | 0.51 | – |
@@ -62,7 +62,7 @@ bilinear interpolation. All metrics are in `site-data.tar` (`summary.json`, per-
   temperature r 0.99, daily Tmax RMSE 1.2 °C. Its precipitation (0–1 h forecast) is 20 % low
   overall: total ratio 0.80.
 - **Precipitation from satellites and reanalyses is weak day to day but fine in aggregate.**
-  - Daily r is 0.70–0.78 for ERA5, ERA5-Land, MERRA-2, CHELSA, IMERG and CHIRPS, against
+  - Daily r is 0.67–0.78 for ERA5, ERA5-Land, MERRA-2, CHELSA, IMERG and CHIRPS, against
     0.90–0.98 for gauge-based products.
   - At monthly scale ERA5 reaches 0.84, IMERG Final 0.87, CHIRPS 0.91, NLDAS-2 0.93 and
     PRISM 0.99.
@@ -76,6 +76,26 @@ bilinear interpolation. All metrics are in `site-data.tar` (`summary.json`, per-
     below SURFRAD on average.
   - The gap grows over time, to −10 to −20 W m⁻² in the latest year
     (`results/uscrn_vs_surfrad_sw.csv`), which looks like sensor drift.
+- **GEOS-FP (12-month recent window, 2025-11..2026-10)** behaves like the other global
+  reanalyses: daily Tmax RMSE 1.96 °C, Tmin bias +1.5 °C, precipitation r 0.72, shortwave
+  +25 W m⁻² vs USCRN.
+  - Over the same window, HRRR (Tmax RMSE 1.15 °C) and PRISM (0.45 °C) remain best.
+  - ERA5 (free copy, ends 2026-06) covers only part of this window.
+- **CHELSA-daily** reproduces temperature well (Tmax RMSE 1.9 °C) but carries the reanalysis
+  warm-night bias (Tmin +2.0 °C). It is +45 W m⁻² high in shortwave and 10 % dry in RH
+  against USCRN, and has the weakest wind (r 0.45).
+- **At the 100 station-remote points**, there are no observations, so each product is
+  compared with the median of the other products' monthly values (common window). The
+  station-side patterns persist away from stations:
+  - **Night-time temperature.** PRISM, gridMET and Daymet are 1.5–1.8 °C cooler in Tmin than
+    the median of the others. NLDAS-2 and ERA5-Land are 1.0–1.4 °C warmer. That is the same
+    ~2–3 °C split seen against USCRN, where the station-based products are right.
+  - **Precipitation.** Monthly totals agree within ±10 % (r 0.89–0.96 with the others),
+    except HRRR (−25 %) and IMERG Late (r 0.83).
+  - **Shortwave.** It is the most product-dependent variable: CHELSA +29, MERRA-2 +7,
+    PRISM −14 and Daymet −23 W m⁻² relative to the others.
+  - Daily comparisons at these points mix day definitions (UTC vs 12 UTC vs local), so use
+    the monthly scale. Day-by-day medians of intermittent precipitation are also biased low.
 - **Day definitions matter, and two products don't match their documentation.**
   - Daymet and gridMET daily precipitation line up best with station days ending 12 UTC of
     the *next* day. r is 0.90 for both, against 0.87 (Daymet) and 0.83 (gridMET) on their

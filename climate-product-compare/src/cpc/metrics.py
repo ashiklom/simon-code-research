@@ -232,7 +232,9 @@ def remote_metrics(site: pd.Series, products: list[str], root: str | None = None
     """Each product vs the median of the OTHER products (leave-one-out), daily and monthly.
 
     Daily values use each product's own day definition (UTC days for hourly products), so part
-    of the daily spread is day-window mismatch; monthly values are nearly free of it.
+    of the daily spread is day-window mismatch; monthly values are nearly free of it. For
+    precipitation the daily median-of-others is biased low (intermittency), so totals should be
+    judged at the monthly scale, whose reference is the median of the others' monthly totals.
     """
     series: dict[str, dict[str, pd.Series]] = {v: {} for v in REMOTE_VARS}
     for name in products:
@@ -258,12 +260,16 @@ def remote_metrics(site: pd.Series, products: list[str], root: str | None = None
             continue
         D = pd.DataFrame(sdict)
         kind = "precip" if v == "pr" else "cont"
+        # monthly values per product first (labelled by the variable so monthly() sums precipitation):
+        # a day-by-day median of intermittent precipitation is biased low, so the monthly reference is
+        # the median of the other products' MONTHLY values
+        M = pd.DataFrame({c: A.monthly(D[[c]].rename(columns={c: v}))[v] for c in D.columns})
         for name in D.columns:
             others = D.drop(columns=name)
             ref = others.median(axis=1).where(others.notna().sum(axis=1) >= min_products - 1)
-            # label both series by the variable so monthly() sums precipitation (and averages the rest)
-            mp = A.monthly(D[[name]].rename(columns={name: v}))[v]
-            mo = A.monthly(ref.to_frame(v))[v]
+            mothers = M.drop(columns=name)
+            mp = M[name]
+            mo = mothers.median(axis=1).where(mothers.notna().sum(axis=1) >= min_products - 1)
             for sc, (pp, oo) in (("daily", (D[name], ref)), ("monthly", (mp, mo))):
                 for w in WINDOWS:
                     m = compute(_window(oo, w), _window(pp, w), kind, sc, MIN_N[sc])
