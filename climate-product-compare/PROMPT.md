@@ -103,3 +103,15 @@ When everything is done, as a bonus, try to check the remote back ends using aws
 
 1. Release: Create release + upload (Recommended)
 2. main: Fast-forward main + push
+
+## Claude: question (round 4)
+
+**Site data.** GitHub refused to create the release: 'Creating, editing, or deleting releases is not permitted for this session type' (HTTP 403), and there's no setting to change that mid-session. I've NOT pushed main yet, because publish.toml lists site-data.tar and the Pages build would fail on the missing release, which would also block deploys of the other experiments. The site data (576 MB, 1,224 files, none over 4 MB) exists only in this ephemeral container, and the Icechunk store isn't persisted, so regenerating it elsewhere means re-extracting everything (many hours). How should I get the site data published?
+- *Send me the tar; I'll release it.* I send site-data.tar to you through the app (split into ~100 MB parts if needed) with the exact gh commands. You create the release and upload it, then tell me and I push main.
+- *Commit data to git instead.* Commit site/public/data (576 MB) to the repo and drop the release asset from publish.toml, then push main. Exception to the 'don't commit data' rule. Adds ~576 MB to repo history permanently.
+- *Commit a slimmer version.* Drop hourly data (keep daily, monthly and all metrics; about 360 MB), commit that and push main. The hourly zoom feature is disabled until a release can be made.
+- *Push main without data for now.* Remove the asset from publish.toml and push main. The page deploys and the README renders, but the interactive site has no data until the release exists.
+
+## Answer (round 4)
+
+Commit the asset to https://github.com/ashiklom/simon-code-research-assets. For now, wire the website to retrieve it from there. Now
