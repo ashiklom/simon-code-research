@@ -119,7 +119,10 @@ bilinear interpolation. All metrics are in the published site data (`summary.jso
   adjustment is in the metrics (`wind_adj`).
 - **Storage.** Quantizing to fixed absolute steps before pcodec shrinks the store 2.5× vs
   lossless pcodec and 3.6× vs zstd (ERA5 0.81 vs 2.08 vs 2.89 bytes/value). Metrics move by at
-  most 0.0004 in r (`results/pilot/compression_*.csv`).
+  most 0.0004 in r (`results/pilot/compression_*.csv`). All site extracts take 13 GB (41 GB
+  if every product's complete record were extracted). Complete optimized copies of the used
+  variables would take ~90–150 TB; the original products with all variables take 1.8–5.9 PB
+  (see [Storage volume per complete product](#storage-volume-per-complete-product)).
 
 
 
@@ -257,8 +260,8 @@ and pcodec-encoded in Icechunk. Full table: `results/store_sizes.csv`.
 - **Hourly products** land at 0.5–0.9 bytes per value, as the plan assumed, which puts them
   inside the estimated range.
 - **Daily products** need 1.3–1.7 bytes per value, about twice the assumed 0.7–0.8.
-  Day-to-day series are less smooth than hour-to-hour ones, and each site's chunk is small,
-  so fixed per-chunk overhead counts for more.
+  Day-to-day series are less smooth than hour-to-hour ones. A full-grid store does better,
+  because pcodec can also use spatial smoothness (see below).
 - **Compression study** on 3 pilot sites (`results/pilot/compression_*.csv`):
   - Quantized pcodec stores 0.40–0.78× the bytes of lossless pcodec. ERA5: 0.81 vs 2.08
     bytes/value; zstd needs 2.89.
@@ -267,10 +270,79 @@ and pcodec-encoded in Icechunk. Full table: `results/store_sizes.csv`.
     bias ≤ 0.006 in the variable's units.
   - The first pass used a 1e-4 m³ m⁻³ soil-moisture step, which moved deep-layer r at a dry
     site by 0.02. That is why the step is 1e-5.
-- **Whole-product sizes** (the full archive, the used variables only, and an optimized
-  Icechunk copy of the used variables) are estimated in [PLAN.md](PLAN.md#storage-volume-estimates-per-product).
-  They range from tens of GB (PRISM, gridMET, CHIRPS) to petabytes (ERA5, HRRR archives).
 
+### Storage volume per complete product
+
+Four sizes per product, as requested: (1) the complete product in its original format with
+all variables; (2) only the variables used here, still in the original format; (3) those
+variables quantized + pcodec in Icechunk, chunked as 16×16 pixels × the full record; and
+(4) as 3, but only at the extracted sites, over the complete record. "Complete" runs from the
+product's first time step to the date extracted here; GEOS-FP is per 12 months. The last
+column is the measured site store from the table above (2008 onward). The same table, with
+the basis for each number, is the **Storage** tab of the
+[site](https://ashiklom.github.io/simon-code-research/climate-product-compare/). Data:
+`results/storage_estimates.csv`; code: `src/cpc/storage_estimates.py` (`mise run storage`).
+
+| Product | Record | 1. Complete, all vars (original) | 2. Complete, used vars (original) | 3. Complete, used vars, optimized Icechunk | 4. As 3, sites only (complete record) | Measured: our site store |
+|---|---|---|---|---|---|---|
+| ERA5 | 1940-01-01 – 2026-06-30 | 1.3–5 PB | 24–31 TB | 5.4–7.4 TB | 13 GB | 2.7 GB |
+| ERA5-Land | 1950-01-01 – 2026-11-04 | 118–187 TB | 40–64 TB | 11–17 TB | 11 GB | 2.7 GB |
+| MERRA-2 | 1980-01-01 – 2026-10-02 | 200–450 TB | 1.8–2.8 TB | 837 GB–1.1 TB | 6.6 GB | 2.6 GB |
+| NLDAS-2 forcing | 1979-01-01 – 2026-11-08 | 1.3–1.4 TB | 427–507 GB | 118–202 GB | 3.2 GB | 1.3 GB |
+| NLDAS-2 Noah | 1979-01-01 – 2026-11-07 | 2.9–3.1 TB | 483–821 GB | 94–161 GB | 2.5 GB | 1 GB |
+| NLDAS-2 VIC | 1979-01-01 – 2026-11-07 | 2.4 TB | 181–283 GB | 42–72 GB | 1.1 GB | 452 MB |
+| NLDAS-2 Mosaic | 1979-01-01 – 2026-11-07 | 2.4 TB | 205–320 GB | 36–61 GB | 973 MB | 383 MB |
+| GEOS-FP (per 12 months) | 12 months | 20–30 TB | 200–400 GB | 107–168 GB | 276 MB | 284 MB |
+| HRRR (analysis) | 2014-10-01 – 2026-11-12 | 85–123 TB | 1.1–1.4 TB | 743 GB–1 TB | 903 MB | 903 MB |
+| PRISM 4 km | 1981-01-01 – 2026-11-11 | 268–348 GB | 268–348 GB | 71–109 GB | 258 MB | 106 MB |
+| gridMET | 1979-01-01 – 2026-11-10 | 46–115 GB | 26–65 GB | 51–75 GB | 234 MB | 92 MB |
+| Daymet V4R1 | 1980-01-01 – 2025-12-31 | 2.9–4.5 TB | 2.9–4.5 TB | 2.7–5.1 TB | 200 MB | 78 MB |
+| CHELSA-daily | 1941-01-01 – 2025-09-18 | 50–67 TB | 48–65 TB | 68–120 TB | 531 MB | 44 MB |
+| CHIRPS v3 | 1981-01-01 – 2026-09-30 | 389–531 GB | 168–186 GB | 41–67 GB | 21 MB | 8.6 MB |
+| IMERG Final V07 (HH + daily) | 1998-06-01 – 2025-09-30 | 3.8–4.7 TB | 424 GB–1.1 TB | 408–564 GB | 316 MB | 15 MB |
+| IMERG Late V07 | 1998-06-01 – 2026-11-12 | 3.9–4.5 TB | 374 GB–1 TB | 356–481 GB | 91 MB | 60 MB |
+| **Total** (excl. GEOS-FP) | | **1.8–5.9 PB** | **120–172 TB** | **90–153 TB** | **41 GB** | **13 GB** (incl. GEOS-FP) |
+
+How the numbers were made:
+
+- **Original format (1, 2).** Real file sizes × the number of files in the record. Sizes come
+  from HTTP HEAD requests, bucket listings and GRIB `.idx` byte offsets, sampled 2026-11-13.
+  "Used" keeps only the source variables read here, prorated by their share of the bytes when
+  a file holds many variables.
+  - Three numbers are order-of-magnitude estimates, not measurements: MERRA-2's 3-D
+    collections, GEOS-FP's other collections, and ERA5 beyond its single and pressure levels.
+  - HRRR "all" counts the analysis (f00) files only. The whole AWS archive, with every
+    forecast hour, is several PB.
+- **Optimized (3).** Bytes/value were measured by re-encoding random full-grid blocks (16×16
+  pixels × 1 year, land and ocean) from the ERA5, ERA5-Land, MERRA-2, HRRR, CHIRPS and IMERG
+  Late ARCO copies, plus one full year of gridMET tmmx and pr
+  (`results/storage_fullgrid_bpv.csv`). Each variable uses the better of two in-chunk layouts.
+  - Full-grid blocks need 0.57–0.98× the bytes/value of our site store. Storing a chunk in
+    (time, y, x) order lets pcodec use spatial smoothness (gridMET tmmx: 0.66 vs 1.13 B/value).
+    The site store has no spatial neighbours to exploit.
+  - Products without an ARCO copy use their site-store bytes/value × the ratio range measured
+    for products with the same time step.
+- **Sites only (4).** The measured site store, scaled from the extracted period to the
+  complete record.
+
+What it shows:
+
+- **Share of used variables.** About 1 % of ERA5, MERRA-2 and the HRRR analysis archive, a
+  third of ERA5-Land and NLDAS-2 forcing, and nearly all of PRISM, Daymet and CHELSA.
+- **Quantization vs the original files.**
+  - 3–5× smaller than the GRIB/NetCDF originals for ERA5, ERA5-Land, NLDAS-2, PRISM and
+    CHIRPS.
+  - ~1.3× smaller for HRRR (its GRIB2 is already well packed). About the same for gridMET and
+    IMERG.
+  - The same or larger for the 1 km daily products (Daymet, CHELSA). Their originals are 2-D
+    compressed images at 0.1-unit precision. The CHELSA figure is probably high: it borrows
+    gridMET's full-grid ratio, and CHELSA is spatially smoother.
+  - So for these products a time-series Icechunk copy buys fast point reads, not space.
+- **Sites only.** Each product shrinks by 2.5–5 orders of magnitude: 41 GB for all 17
+  products over their complete records, against ~90–150 TB for complete optimized copies.
+- **Against the plan.** These replace the rough plan-time estimates in
+  [PLAN.md](PLAN.md#storage-volume-estimates-per-product). The biggest revisions are
+  ERA5-Land (all variables 0.12–0.19 PB, not 0.3–0.6 PB) and CHELSA (50–67 TB, not 90–100 TB).
 
 ## How to reproduce
 
