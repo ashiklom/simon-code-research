@@ -248,3 +248,47 @@ Static Vite app built by `mise run site`. publish.toml builds it from committed 
   - Quantized vs lossless metrics.
 - **Update:** `mise run update -- --dry-run` on a freshly extracted store reports everything as current. After truncating one product's last 30 days, it fetches only those 30 days plus the revision window, and the result is bit-identical to a full extraction.
 - **End-to-end:** the pilot metrics are plausible (e.g. ERA5 T2m daily bias of order ±1–2 °C, r > 0.95). The site build passes locally, and in a headless Chromium (Playwright) you can click a site, load its series, and zoom into hourly data.
+
+## Finalization (after the container restart, 2026-11-13)
+
+**Context.** The container restarted while GEOS-FP was extracting. The local store survived (15 GB in
+`data/store`), and so did the partial metrics (`data/results`) and the trial site export.
+- Every product is complete except GEOS-FP, which reached 2026-10-27 of 2026-11-12.
+- Station metrics exist for all products except GEOS-FP.
+- Remote-point metrics must be recomputed: monthly precipitation was averaged instead of summed, now fixed in code.
+- The AWS Emulator check is done (`results/emulator_check.md`).
+
+Remaining steps, in order:
+
+1. **Finish GEOS-FP.** Run `uv run cpc extract geosfp --sites all`. It resumes from `site_end`, about 16 days (~15 min).
+   Then `uv run cpc compact` on all repos and `uv run cpc status` to confirm every product is current.
+2. **Metrics.**
+   - `cpc metrics geosfp --sites uscrn|tier2 --tag d`.
+   - Re-run `cpc metrics --sites remote` (all products, fixed monthly sums).
+   - `cpc merge-metrics`.
+3. **Figures and report.**
+   - `cpc figures`.
+   - `cpc report` to regenerate `results/pilot/pilot_report.md` with final per-product store sizes.
+   - Fill the README `<!-- STORAGE -->` section: measured MB/site and bytes/value per product vs the plan's estimates, plus the compression study.
+   - Add the remote-point results to Key results (monthly, leave-one-out median).
+   - Add a GEOS-FP line (recent window).
+4. **Site.**
+   - `cpc sitedata --sites all --metrics all --hourly-years 2` (~580 MB), then `mise run pack-site`, then `mise run site`.
+   - Headless Chromium smoke test (map, site panel, hourly, summary, remote point; no console errors).
+   - `uv run _helpers/build_site.py --only climate-product-compare --skip-assets` must pass.
+5. **Docs and records.**
+   - PROMPT.md: add Follow-up 4 (the aws-emulator request, verbatim).
+   - PLAN.md: overwrite with this plan file, i.e. the original plan plus this section.
+   - Root `README.md`: add the experiment line.
+   - TRANSCRIPT.md: `uv run _helpers/transcript.py -o climate-product-compare/TRANSCRIPT.md`, skimmed for anything sensitive.
+   - Commit (PROMPT/PLAN in their own commits) and push to `claude/climate-product-compare-75whba`.
+6. **Ask before anything outward-facing.**
+   - Creating the `climate-product-compare` release and uploading `site-data.tar`, with its size listed.
+   - Fast-forwarding/pushing `main`, since the session's branch rules conflict with CLAUDE.md's merge step.
+
+**Verification.**
+- `uv run pytest -q` passes.
+- `cpc status` shows every product at its available end.
+- `metrics_all.parquet` covers all 17 products and 264 sites with observations or remote points.
+- The site build passes and the smoke test shows no console errors.
+- README numbers are re-checked against `metrics_all.parquet`.
