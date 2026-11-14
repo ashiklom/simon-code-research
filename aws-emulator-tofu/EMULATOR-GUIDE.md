@@ -23,6 +23,9 @@ and the probes under `probes/`.
    the current provider; workarounds are below.
 7. Address data planes path-style: `https://127.0.0.1:9297/_aws/execute-api/<api-id>/<stage>/…`.
 8. Restarting the emulator wipes everything. Delete tofu state at the same time.
+9. Attach only AWS-managed policies the emulator knows (`aws iam get-policy` answers 200). An
+   unknown `arn:aws:iam::aws:policy/…` attaches silently and then **allows everything**, so deny
+   tests pass vacuously [iam-unknown-managed-policy-fails-open].
 
 ## 1. Install and run
 
@@ -42,6 +45,12 @@ curl --cacert ~/.aws/emulator/9297/ca.pem https://127.0.0.1:9297/__admin/health 
 `start`, `stop`, `restart`, `env`, `version-json`.
 
 - Docker is not needed. Lambda code runs inside the emulator process.
+- **macOS.** The `.deb` is Linux-only, but there is an arm64 build
+  (`…/LTS/latest/aws-emulator_arm64.deb`). Run it in a `debian:bookworm-slim` container with
+  `--network host` (Docker on colima forwards the port to the Mac's `127.0.0.1`). Set `HOME` to a
+  mounted directory under your macOS home, because colima mounts only `$HOME`. Then `ca.pem` and the
+  credentials file appear on the Mac and the certificate still matches `127.0.0.1`. Verified with
+  1.0.367 on Apple silicon.
 - The emulator writes `ca.pem`, `config` and `emulator_credentials` to `~/.aws/emulator/<port>/`.
   **The keys and the certificate are regenerated on every start.**
 - `EMULATOR_LISTENER_PORT_RANGE` controls the extra ports opened per resource: RDS cluster
@@ -176,13 +185,14 @@ Consequences for design:
 | **API Gateway REST** | Lambda proxy, REQUEST/TOKEN authorizers with policy evaluation (wildcard ARNs), `aws_lambda_permission` enforced, gateway responses, MOCK + CORS headers, binary media types | browsers on another site are refused by the front door (403) [front-door-cross-origin]; computed attrs come back `[]`/`{}`/`""` instead of null [apigw-computed-attr-drift] | hash only configured inputs in deployment `triggers` (normalise `authorizer_id` null/""); path-style URLs |
 | **API Gateway HTTP (v2)** | routing, Lambda proxy (payload 2.0), `$default` stage | **JWT authorizer doesn't verify signatures** [apigwv2-jwt-no-signature-check]; Lambda permission not checked [apigwv2-no-lambda-permission-check] | never rely on emulator results for v2 JWT security |
 | **CloudFront** | origin routing per path behaviour, cache policies and caching (`x-cache: Hit`), origin request policy header/query forwarding, **WAFv2 web ACL rules** | **`Authorization` never forwarded** [cloudfront-authorization-dropped]; **origin response headers dropped** (Content-Type kept since 1.0.336) [cloudfront-drops-origin-headers]; CloudFront Functions, Lambda@Edge, response-headers policies not run [cloudfront-no-functions]; http not redirected [cloudfront-viewer-protocol] | send bearer tokens in a custom header (e.g. `X-Auth-Token`) and accept it in your authorizer |
-| **Cognito** | user pools, groups, app clients, users with permanent passwords via `aws_cognito_user.password`, USER_PASSWORD_AUTH, REFRESH_TOKEN_AUTH, `cognito:groups` in access tokens | `iss` = host you called [cognito-iss-host]; pre-token trigger output ignored [cognito-pretoken-ignored]; no custom attrs in ID token, custom attrs read back without `custom:` (drift) [cognito-custom-attr-prefix]; no `/oauth2/*` or hosted UI [cognito-no-oauth-endpoints]; no SRP [cognito-no-srp] | allow both issuers; authorize on groups |
+| **Cognito** | user pools, groups, app clients, users with permanent passwords via `aws_cognito_user.password`, USER_PASSWORD_AUTH, REFRESH_TOKEN_AUTH, `cognito:groups` in access tokens; **identity pools**: group `role_arn` → `cognito:roles` → `GetCredentialsForIdentity` with `CustomRoleArn` (Token mapping, `aud`/`amr` trust checks, `server_side_token_check`) [cognito-identity-pool-roles] | `iss` = host you called [cognito-iss-host]; pre-token trigger output ignored [cognito-pretoken-ignored]; no custom attrs in ID token, custom attrs read back without `custom:` (drift) [cognito-custom-attr-prefix]; no `/oauth2/*` or hosted UI [cognito-no-oauth-endpoints]; no SRP [cognito-no-srp] | allow both issuers; authorize on groups |
 | **RDS / Aurora** | cluster/instance/subnet group APIs, managed master secret, Serverless v2 config, **Data API** CRUD | `aws_rds_cluster` unusable: DescribeGlobalClusters filter rejected [rds-describeglobalclusters-filter]; engine is SQLite: **no PostGIS**, no PL/pgSQL, 5 s / 64 MiB limits [rds-sqlite-no-postgis]; Data API and wire endpoint are **separate databases** [rds-dataapi-separate-store]; secret survives deletion [rds-managed-secret-outlives-cluster] | create the cluster with `terraform_data` + boto3 script, read it with `data "aws_rds_cluster"` (see `infra/modules/database`); store geometry as GeoJSON text + bbox columns |
 | **CloudFormation / Cloud Control** | stacks apply and report outputs | **RDS clusters reported CREATE_COMPLETE but never created** [cfn-rds-not-materialized] | don't use it as an escape hatch for RDS |
 | **S3** | buckets, policies (incl. `aws:SecureTransport` deny), SSE, versioning, lifecycle, notifications → Lambda, Range GET, presigned URLs | 64 MiB/bucket and 128 MiB total [s3-capacity-limits]; virtual-host addressing fails TLS [s3-virtual-host-tls] | small test data; path style. Use `source_hash`, not `etag`, for big objects (multipart ETag; same on AWS) |
 | **EC2 / VPC** | VPCs, subnets, AZ data source, instances (lifecycle only) | `aws_security_group` fails (the provider's revoke of the default egress rule, protocol -1 with ports 0/0, answers NotFound) [ec2-sg-default-egress]; `aws_instance` fails (empty Placement AZ rejected, then `DescribeTags` is a stub) [ec2-runinstances-empty-az, ec2-describetags-stub] | skip SGs and instances on the emulator |
 | **ECS** | clusters, task definitions, RunTask lifecycle | containers don't run [no-container-or-vm-execution] | use Lambda for code that must run |
-| **SQS, SNS, EventBridge, Step Functions, DynamoDB (+streams), KMS, Secrets Manager, Route 53, ACM, ELBv2, IAM** | event delivery, scheduled rules, executions, encryption, ALB→Lambda; ACM DNS validation via Route 53 issues certificates since 1.0.336; reserved TLDs (`.example`) are refused as on AWS | DynamoDB on-demand tables read back `max_*_request_units = -1` (drift) [dynamodb-ondemand-throughput-drift] | `ignore_changes` |
+| **IAM / STS** | identity policies with explicit and implicit deny, for Lambda roles, IAM users and STS sessions (`AssumeRoleWithWebIdentity` via identity pools) [iam-enforced-in-lambda]; the ~63 AWS-managed policies in its catalog | an AWS-managed ARN outside the catalog (e.g. `AWSBillingReadOnlyAccess`, or a typo) attaches without error and grants **full access** [iam-unknown-managed-policy-fails-open] | check `aws iam get-policy` first; keep other managed policies behind a variable the emulator run overrides |
+| **SQS, SNS, EventBridge, Step Functions, DynamoDB (+streams), KMS, Secrets Manager, Route 53, ACM, ELBv2** | event delivery, scheduled rules, executions, encryption, ALB→Lambda; ACM DNS validation via Route 53 issues certificates since 1.0.336; reserved TLDs (`.example`) are refused as on AWS | DynamoDB on-demand tables read back `max_*_request_units = -1` (drift) [dynamodb-ondemand-throughput-drift] | `ignore_changes` |
 
 ## 7. Drift traps
 
