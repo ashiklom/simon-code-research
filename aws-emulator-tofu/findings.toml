@@ -139,6 +139,21 @@ crates = ["services/common/src/iam_authorization.rs"]
 issues = []
 last_verified_version = "1.0.336"
 
+[[finding]]
+id = "iam-unknown-managed-policy-fails-open"
+title = "An attached AWS-managed policy ARN the emulator doesn't know grants full access"
+category = "IAM"
+severity = "major"
+emulator_only = true
+status = "gap"
+aws = "Every arn:aws:iam::aws:policy/* policy exists and grants exactly its document. AttachRolePolicy/AttachUserPolicy with an ARN that names no policy fails with NoSuchEntity, so a typo fails `tofu apply`."
+emulator = "The IAM catalog holds 63 AWS-managed policies (ListPolicies --scope AWS); those are enforced as documented (job-function/ViewOnlyAccess: list/describe allowed, iam:CreateUser and s3:PutObject denied). Real policies outside it (e.g. AWSBillingReadOnlyAccess) and made-up ARNs (arn:aws:iam::aws:policy/ProbeNoSuchManagedPolicy) are attached without error (GetPolicy on them: NoSuchEntity), and the principal they are attached to is then allowed EVERYTHING (iam:CreateUser, s3:PutObject, ...). Customer-managed ARNs that don't exist are refused correctly. Upstream issues for the phantom attachment and the missing catalog sit in things-that-now-work/, but both still reproduce on 1.0.367."
+workaround = "Attach only catalog policies on the emulator (check with `aws iam get-policy`); put others behind a variable the emulator run overrides, or deny checks pass vacuously. Treat any allow on the emulator as unproven when an unknown managed ARN is attached."
+evidence = ["probe:iam-managed-policy-catalog"]
+crates = ["services/service-com-amazonaws-iam-awsidentitymanagementv20100508/src", "services/common/src/iam_authorization.rs"]
+issues = ["20261103T132715Z-iam-accepts-aws-managed-policy-arns-with-a.md", "20261022T131025Z-iam-has-no-aws-managed-policy-catalog-getpolicy.md"]
+last_verified_version = "1.0.367"
+
 # ------------------------------------------------------------------------------- API Gateway
 [[finding]]
 id = "apigw-rest-authorizer-works"
@@ -416,6 +431,21 @@ evidence = ["e2e:token_minting", "e2e:extra_checks"]
 crates = ["services/service-com-amazonaws-cognitoidentityprovider-awscognitoidentityproviderservice/src/state.rs"]
 issues = []
 last_verified_version = "1.0.336"
+
+[[finding]]
+id = "cognito-identity-pool-roles"
+title = "Identity pools vend STS credentials for user pool group roles (Token mapping + CustomRoleArn)"
+category = "Cognito"
+severity = "info"
+emulator_only = false
+status = "works"
+aws = "Groups carry role_arn; the ID token lists them in cognito:roles; an identity pool with Token role mapping vends 1 h credentials for the role picked with CustomRoleArn and refuses roles outside the token; the role trust policy's cognito-identity.amazonaws.com:aud/amr conditions are checked; server_side_token_check rejects ID tokens from before AdminUserGlobalSignOut."
+emulator = "All of it matches: cognito:roles claim, assumed-role/<role>/CognitoIdentityCredentials sessions whose policies (explicit and implicit deny) are enforced on S3, InvalidIdentityPoolConfigurationException for a role outside the user's groups, NotAuthorizedException after global sign-out, no drift, clean destroy. Unverified against AWS: a CustomRoleArn naming the pool's own authenticated (fallback) role is vended even though it is not in the token."
+workaround = "none needed (give the fallback role no permissions anyway)"
+evidence = ["probe:cognito-identity-pool-roles"]
+crates = ["services/service-com-amazonaws-cognitoidentity-awscognitoidentityservice/src", "services/common/src/iam_authorization.rs"]
+issues = []
+last_verified_version = "1.0.367"
 
 # -------------------------------------------------------------------------------- RDS / Aurora
 [[finding]]
