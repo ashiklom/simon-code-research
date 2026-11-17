@@ -5,6 +5,7 @@
     results/summary_by_network.csv   medians by network (bilinear)
     results/geoscf_v1_vs_v2.csv      GEOS-CF v1 and v2 over their overlap (v1v2 window)
     results/sensor_vs_monitor.csv    low-cost sensors vs co-located monitors
+    results/summary_by_setting.csv   Tier 1 AQS medians by AQS location setting (urban/suburban/rural; bilinear)
 """
 
 import sys
@@ -34,6 +35,10 @@ med(b, ["network", "product", "var", "scale", "window"]).to_csv(out / "summary_b
 g = b[b["product"].str.startswith("geoscf") & (b.window == "v1v2")]
 if len(g):
     med(g, ["tier", "product", "var", "scale"]).to_csv(out / "geoscf_v1_vs_v2.csv", index=False)
+aqs = pd.read_csv(out / "sites" / "aqs.csv", usecols=["site_id", "setting"]).rename(columns={"site_id": "site"})
+a = b[b.network == "AQS"].merge(aqs, on="site", how="left")
+a["setting"] = a.setting.fillna("unknown").str.split(" ").str[0].str.lower()
+med(a, ["setting", "product", "var", "scale", "window"]).to_csv(out / "summary_by_setting.csv", index=False)
 p = m[m.method == "point"]
 if len(p):
     cols = ["site", "reference_site", "product", "scale", "n", "mean_obs", "mean_prod", "bias", "nmb", "r"]
