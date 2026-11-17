@@ -1,0 +1,11 @@
+# Builds the static site from committed code plus the site-data release asset (no analysis is re-run).
+build = "mise install && mise run site"
+output = "_site"
+
+models = ["claude-opus-5-5"]
+tools = ["python", "uv", "icechunk", "zarr", "xarray", "pcodec", "h5py", "rasterio", "gribberish", "pandas", "vite", "leaflet", "uplot", "hyparquet"]
+
+# Per-site Parquet/JSON for the website, packed by `mise run pack-site`.
+[[assets]]
+name = "site-data.tar"
+dest = "site/site-data.tar"
