@@ -632,6 +632,21 @@ crates = []
 issues = []
 last_verified_version = "1.0.336"
 
+[[finding]]
+id = "s3-getobjectattributes-no-getobject-check"
+title = "GetObjectAttributes is allowed without s3:GetObject"
+category = "S3"
+severity = "minor"
+emulator_only = true
+status = "partial"
+aws = "GetObjectAttributes requires s3:GetObject as well as s3:GetObjectAttributes (s3:GetObjectVersion + s3:GetObjectVersionAttributes for versions). A metadata-only role (ListBucket + GetObjectAttributes, no GetObject) gets AccessDenied: '... no identity-based policy allows the s3:GetObject action' (observed on AWS, 2026-11-14)."
+emulator = "Only s3:GetObjectAttributes is checked: the same role gets ObjectSize/StorageClass back. GetObject itself is correctly denied."
+workaround = "Don't grant GetObjectAttributes to roles meant to see metadata only; ListObjectsV2 / ListObjectVersions already return Size, LastModified and StorageClass."
+evidence = ["probe:s3-getobjectattributes-permission"]
+crates = ["services/service-com-amazonaws-s3-amazons3/src", "services/common/src/iam_authorization.rs"]
+issues = []
+last_verified_version = "1.0.367"
+
 # ----------------------------------------------------------------------------- EC2 / compute
 [[finding]]
 id = "ec2-sg-default-egress"
