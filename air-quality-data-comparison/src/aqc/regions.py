@@ -9,6 +9,8 @@ BOXES = [
     ("North America", 14.5, 84, -170, -50),
     ("Latin America", -60, 14.5, -120, -30),
     ("Latin America", 14.5, 33, -120, -86),  # Mexico/Central America west of the Gulf
+    ("Africa", 35, 37.2, -1.5, 11.5),  # Algerian/Tunisian coast north of 35N (Almeria, Cartagena stay Europe)
+    ("Africa", 35, 35.95, -6.5, -1.5),  # Moroccan Mediterranean coast (Tarifa is 36.0N)
     ("Europe", 35, 72, -25, 40),
     ("Middle East", 12, 42, 42.5, 63),  # Arabian Peninsula, Iraq, Iran
     ("Africa", -36, 22, -20, 52),

@@ -41,7 +41,7 @@ REM:038,Remote,4,Russia/North | 10-25,63.75,130.25,,,Russia/North,remote,,,ACAG 
 REM:039,Remote,4,Russia/North | 10-25,57.75,97.75,,,Russia/North,remote,,,ACAG 2019-23 mean 12.3 ug m-3; 104 km to nearest known monitor
 REM:040,Remote,4,Russia/North | 10-25,62.25,97.75,,,Russia/North,remote,,,ACAG 2019-23 mean 13.3 ug m-3; 452 km to nearest known monitor
 REM:041,Remote,4,Europe | 10-25,51.25,39.75,,,Europe,remote,,,ACAG 2019-23 mean 10.0 ug m-3; 204 km to nearest known monitor
-REM:042,Remote,4,Europe | 10-25,35.25,2.75,,,Europe,remote,,,ACAG 2019-23 mean 13.0 ug m-3; 170 km to nearest known monitor
+REM:042,Remote,4,Europe | 10-25,35.25,2.75,,,Africa,remote,,,ACAG 2019-23 mean 13.0 ug m-3; 170 km to nearest known monitor
 REM:043,Remote,4,Europe | 10-25,37.25,9.75,,,Europe,remote,,,ACAG 2019-23 mean 10.6 ug m-3; 104 km to nearest known monitor
 REM:044,Remote,4,Central Asia | 10-25,44.25,71.75,,,Central Asia,remote,,,ACAG 2019-23 mean 15.0 ug m-3; 277 km to nearest known monitor
 REM:045,Remote,4,Central Asia | 10-25,45.75,83.25,,,Central Asia,remote,,,ACAG 2019-23 mean 10.4 ug m-3; 573 km to nearest known monitor
@@ -52,7 +52,7 @@ REM:049,Remote,4,Oceania | 5-10,-22.75,150.25,,,Oceania,remote,,,ACAG 2019-23 me
 REM:050,Remote,4,Europe | 5-10,58.25,35.75,,,Europe,remote,,,ACAG 2019-23 mean 7.4 ug m-3; 156 km to nearest known monitor
 REM:051,Remote,4,Europe | 5-10,42.75,-3.75,,,Europe,remote,,,ACAG 2019-23 mean 6.6 ug m-3; 107 km to nearest known monitor
 REM:052,Remote,4,Europe | 5-10,55.75,25.75,,,Europe,remote,,,ACAG 2019-23 mean 8.9 ug m-3; 145 km to nearest known monitor
-REM:053,Remote,4,Middle East | 25-50,14.75,35.25,,,Middle East,remote,,,ACAG 2019-23 mean 28.2 ug m-3; 108 km to nearest known monitor
+REM:053,Remote,4,Middle East | 25-50,14.75,35.25,,,Africa,remote,,,ACAG 2019-23 mean 28.2 ug m-3; 108 km to nearest known monitor
 REM:054,Remote,4,Middle East | 25-50,31.75,43.75,,,Middle East,remote,,,ACAG 2019-23 mean 35.6 ug m-3; 183 km to nearest known monitor
 REM:055,Remote,4,Middle East | 25-50,37.75,44.75,,,Middle East,remote,,,ACAG 2019-23 mean 25.8 ug m-3; 270 km to nearest known monitor
 REM:056,Remote,4,Russia/North | <5,66.75,63.25,,,Russia/North,remote,,,ACAG 2019-23 mean 3.6 ug m-3; 570 km to nearest known monitor

@@ -5,7 +5,7 @@ EMB:Abuja,Embassy,2,Abuja,9.041648,7.477374,,NI,Africa,urban,1.0,pm25,U.S. Depar
 EMB:Accra,Embassy,2,Accra,5.580642,-0.170724,,GH,Africa,urban,0.0,pm25,U.S. Department of State Ghana - Accra
 EMB:AddisAbabaCentral,Embassy,2,Addis Ababa Central,9.058498,38.761641,,ET,Africa,urban,3.0,pm25,U.S. Department of State Ethiopia - Addis Ababa
 EMB:AddisAbabaJacros,Embassy,2,Addis Ababa Jacros,9.011444,38.820909,,ET,Africa,urban,3.0,pm25,U.S. Department of State Ethiopia - Addis Ababa
-EMB:Algiers,Embassy,2,Algiers,36.755798,3.039114,,AG,Europe,urban,1.0,pm25,U.S. Department of State Algeria - Algiers
+EMB:Algiers,Embassy,2,Algiers,36.755798,3.039114,,AG,Africa,urban,1.0,pm25,U.S. Department of State Algeria - Algiers
 EMB:Almaty,Embassy,2,Almaty,43.252855,76.93118,,KZ,Central Asia,urban,6.0,pm25,U.S. Department of State Kazakhstan - Almaty
 EMB:Amman,Embassy,2,Amman,31.945021,35.880501,,JO,Middle East,urban,2.0,pm25,U.S. Department of State Jordan - Amman
 EMB:Antananarivo,Embassy,2,Antananarivo,-18.90848,47.53751,,MA,Africa,urban,3.0,pm25,U.S. Department of State Madagascar- Antananarivo
@@ -43,7 +43,7 @@ EMB:Hyderabad,Embassy,2,Hyderabad,17.38405,78.45636,,IN,South Asia,urban,5.5,pm2
 EMB:Islamabad,Embassy,2,Islamabad,33.725614,73.11602,,PK,South Asia,urban,5.0,pm25,U.S. Department of State Pakistan - Islamabad
 EMB:JakartaCentral,Embassy,2,Jakarta Central,-6.182536,106.834235,,ID,Southeast Asia,urban,7.0,pm25,U.S. Department of State Indonesia - Jakarta
 EMB:JakartaSouth,Embassy,2,Jakarta South,-6.236704,106.793244,,ID,Southeast Asia,urban,7.0,pm25,U.S. Department of State Indonesia - Jakarta
-EMB:Jeddah,Embassy,2,Jeddah,21.543486,39.172989,,SA,Middle East,urban,3.0,pm25,U.S. Department of State Saudi Arabia - Jeddah
+EMB:Jeddah,Embassy,2,Jeddah,21.543486,39.172989,,SA,Africa,urban,3.0,pm25,U.S. Department of State Saudi Arabia - Jeddah
 EMB:Kabul,Embassy,2,Kabul,34.554384,69.204597,,AF,South Asia,urban,4.5,pm25,U.S. Department of State Afghanistan - Kabul
 EMB:Kampala,Embassy,2,Kampala,0.300225,32.591554,,UG,Africa,urban,3.0,pm25,U.S. Department of State Uganda - Kampala
 EMB:Karachi,Embassy,2,Karachi,24.8415,67.0091,,PK,South Asia,urban,5.0,pm25,U.S. Department of State Pakistan - Karachi
