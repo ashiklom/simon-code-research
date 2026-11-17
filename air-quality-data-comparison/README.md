@@ -339,7 +339,8 @@ session that built this experiment, so the data lives in
 under `air-quality-data-comparison/data/`.
 
 - **How the site reads it.** The browser fetches the files from `raw.githubusercontent.com` at
-  the commit pinned in `site/.env.production` (`VITE_DATA_BASE`). raw.githubusercontent.com serves
+  the commit pinned in `site/.env.production` (`VITE_DATA_BASE`), currently
+  [`d9d0f12`](https://github.com/ashiklom/simon-code-research-assets/tree/d9d0f1229235b73c2a226c77174becccfae63af3/air-quality-data-comparison). raw.githubusercontent.com serves
   CORS headers and byte ranges, which the in-browser Parquet reader uses. CI only builds the
   JavaScript bundle.
 - **Local builds.** Without that variable (`npm run dev`), the site reads the local `./data`.
