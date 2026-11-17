@@ -12,8 +12,8 @@ description = "Build site tables (results/sites/*.csv): AQS, IMPROVE/CSN, embass
 run = "uv run aqc sites --networks aqs,speciation,embassy,spartan,lowcost,remote"
 
 [tasks.obs]
-description = "Ingest observations into the store (AQS, IMPROVE/CSN, embassies, SPARTAN, Sensor.Community)"
-run = "uv run aqc obs --networks aqs,speciation,embassy,spartan,lowcost"
+description = "Ingest observations into the store (AQS, AirNow, IMPROVE/CSN, embassies, SPARTAN, Sensor.Community)"
+run = "uv run aqc obs --networks aqs,airnow,speciation,embassy,spartan,lowcost"
 
 [tasks.extract]
 description = "Extract products at sites: mise run extract -- <product...> --sites pilot|tier1|...|all"
@@ -28,7 +28,12 @@ run = "uv run pytest -q"
 
 [tasks.metrics]
 description = "Skill metrics for all sites (data/results/metrics_all.parquet) and the committed summary"
-run = ["uv run aqc metrics --sites all --workers 2", "uv run python scripts/summarize.py"]
+run = [
+  "uv run aqc metrics --sites all --workers 2",
+  "uv run python scripts/summarize.py",
+  "uv run python scripts/key_tables.py",
+  "uv run python scripts/lagcheck.py 40",
+]
 
 [tasks.figures]
 run = "uv run aqc figures"
