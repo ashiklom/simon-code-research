@@ -144,9 +144,23 @@ def site_obs(site: pd.Series, root: str | None = None) -> dict:
                     h = h[~h.index.duplicated()]
                 else:
                     h = an
+        if h is not None and not h.empty and site.network == "SensorCommunity" and "pm25_raw" in h:
+            # primary low-cost value: raw optical PM with hours above 75 % RH dropped; the
+            # kappa-Koehler-corrected value is kept as pm25_kappa (it pushed these sensors, already
+            # ~40 % low against co-located monitors, further down)
+            from .obs.lowcost import KAPPA
+
+            aw = (h["rh"] / 100).clip(upper=0.99)
+            growth = 1 + KAPPA * aw / (1 - aw)
+            h = h.copy()
+            h["pm25_kappa"] = h["pm25"]
+            ok = h["rh"] <= 75
+            h["pm25"] = h["pm25_raw"].where(ok)
+            if "pm10" in h:
+                h["pm10"] = (h["pm10"] * growth).where(ok)
         if h is not None and not h.empty:
             out["hourly"] = h
-            d = A.daily(h.drop(columns=[c for c in h if c in ("o3", "rh", "pm25_raw")], errors="ignore"), off)
+            d = A.daily(h.drop(columns=[c for c in h if c in ("o3", "rh")], errors="ignore"), off)
             if "o3" in h:
                 d["o3_mda8"] = A.mda8(h["o3"], off)
             out["daily"] = d
@@ -278,7 +292,7 @@ def site_metrics(site: pd.Series, products: list[str], root: str | None = None) 
         ref_net = "AQS" if ref_id.startswith("AQS:") else ("Embassy" if ref_id.startswith("EMB:") else "SPARTAN")
         ref = A.obs_series(ref_net, ref_id, "1h", root)
         if ref is not None and "pm25" in ref:
-            for v in ("pm25", "pm25_raw"):
+            for v in ("pm25", "pm25_raw", "pm25_kappa"):
                 if v in obs["hourly"]:
                     for w in ("full",):
                         for sc, o, p in (("hourly", ref["pm25"], obs["hourly"][v]),

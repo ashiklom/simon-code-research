@@ -14,7 +14,10 @@ QC and correction, per 2.5-5 min record -> hourly mean:
 * drop hours with RH > 75 % (optical sensors swell particles; uncorrectable above ~80 %);
 * hygroscopic growth correction (kappa-Koehler, Crilley et al. 2018/2020 style):
   PM_dry = PM_raw / (1 + kappa * aw / (1 - aw)), aw = RH/100, kappa = 0.4.
-Raw and corrected hourly values are both stored (pm25_raw, pm25). Site ids: ``SC:<location id>``.
+Raw and corrected hourly values are both stored (pm25_raw, pm25). The analysis (metrics.site_obs)
+uses the RH-filtered RAW value as the sensor's PM2.5/PM10 and keeps the corrected one as
+``pm25_kappa``: against co-located monitors the raw SDS011 values were already low, so the growth
+correction made them worse. Site ids: ``SC:<location id>``.
 """
 
 from __future__ import annotations

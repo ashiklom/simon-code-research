@@ -77,6 +77,8 @@ def read_points(url: str, var: str, iy: np.ndarray, ix: np.ndarray, workers: int
 
 
 class ACAG(FieldProduct):
+    per_tile_reads = True  # reads only the chunks under the sites' stencils: keep start groups separate
+
     name = "acag"
     title = "ACAG V6.GL.03 (+V6.NA.01 composition)"
     freq = "1d"
