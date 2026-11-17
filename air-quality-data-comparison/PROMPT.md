@@ -66,3 +66,20 @@ Do the datasets that work with no user intervention (API keys, license/data use 
 (Sent as feedback when the plan was submitted for approval, and again as a message.)
 
 For GEOS-CF, also try the Zarr stores here: s3://smce-geos-cf-public/geos-cf-v2-fcst-latest.zarr/ (and other data you find in that bucket). If that's not enough or only has a small subset or doesn't work at all, do the original plan
+
+## Claude: questions (publishing)
+
+1. **Site data.** air-quality-data-comparison is finished and pushed to branch ccr-10acad54-bjhr7u. The website needs its data: site/site-data.tar, 439.5 MB, holding 6,688 per-site Parquet/JSON files, 433 MB unpacked. This session's GitHub tools can't create releases or upload to them, the same blocker climate-product-compare hit. How should the site data be published?
+   - *You make the release.* You run `gh release create air-quality-data-comparison` and `gh release upload air-quality-data-comparison air-quality-data-comparison/site/site-data.tar` from your machine after re-running `mise run sitedata pack-site` (the data/ store isn't persisted, so you'd need to re-extract), OR I attach the tar somewhere you can fetch it. publish.toml already lists it.
+   - *Assets repo (Recommended).* I push the 6,688 small files (433 MB) to ashiklom/simon-code-research-assets under air-quality-data-comparison/, in one commit at the end. The site then reads them from raw.githubusercontent at a pinned commit, as climate-product-compare does, and the release asset is dropped from publish.toml.
+   - *Hold for now.* Leave the site data unpublished. The site would build but show no data until a later session publishes it.
+2. **Push main.** After the site data is settled, may I rebase the branch onto origin/main, fast-forward main and push main? That publishes the experiment to GitHub Pages.
+   - *Yes, push main.* Rebase onto origin/main, fast-forward main, push. The session branch stays as required by this environment.
+   - *Not yet.* Leave everything on branch ccr-10acad54-bjhr7u for you to review first.
+
+## Answer (publishing)
+
+1. Site data: Assets repo (Recommended)
+2. Push main: Yes, push main
+
+(The updated plan for these steps was then approved in plan mode.)
