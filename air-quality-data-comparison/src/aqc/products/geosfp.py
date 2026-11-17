@@ -70,7 +70,7 @@ class GEOSFPAer(FieldProduct):
                 continue
             hrs = sorted(int(h) for h in re.findall(r"tavg3_2d_aer_Nx\.\d{8}_(\d{2})30\.V01\.nc4", r.text))
             if hrs:
-                return d + pd.Timedelta(hours=hrs[-1] + 1.5)
+                return d + pd.Timedelta(hours=hrs[-1] + 2)  # file HH:30 covers HH-1:30..HH+1:30
         raise RuntimeError("no recent GEOS-FP aer files found")
 
     def _read(self, args):

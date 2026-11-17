@@ -72,6 +72,12 @@ def run(name: str, sites: pd.DataFrame, *, t_end: pd.Timestamp | None = None, t_
     session = repo.writable_session("main")
     w = store.GroupWriter(session, path, product.freq, has_px=True, attrs=product.meta(), t_origin=origin)
     work = plan(product, sites, dict(w.g.attrs), t_end, t_start)
+    from .products.base import FieldProduct
+
+    if isinstance(product, FieldProduct) and len(work) > 1 and not getattr(product, "per_tile_reads", False):
+        # whole-field reads cost the same for 1 or 2000 sites: one pass from the earliest start
+        # (re-writing already-extracted spans is idempotent)
+        work = {min(work): [s for v in work.values() for s in v]}
     n_sites = sum(len(v) for v in work.values())
     summary = {"product": name, "available_end": str(avail), "t_end": str(t_end), "sites_to_fetch": n_sites,
                "spans": {str(k): len(v) for k, v in work.items()}}

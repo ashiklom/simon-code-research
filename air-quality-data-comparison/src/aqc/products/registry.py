@@ -19,7 +19,7 @@ PRODUCTS = {
     "merra2": "merra2:MERRA2",
     "merra2_cnn": "merra2:MERRA2CNN",
     "merra2_gmi": "merra2gmi:MERRA2GMI",
-    "merra2_gmi_gas": "merra2gmi:MERRA2GMIGas",
+    # "merra2_gmi_gas": "merra2gmi:MERRA2GMIGas",  # daily-mean lowest-level O3/NO2; ~40 h per pass, not run
     "geosfp_aer": "geosfp:GEOSFPAer",
 }
 

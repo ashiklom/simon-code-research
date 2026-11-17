@@ -40,6 +40,7 @@ class _GEOSCF(FieldProduct):
     freq = "1h"
     block_workers = 2
     tile_workers = 16
+    per_tile_reads = True  # cost scales with the tiles holding the sites, so keep groups separate
 
     def grid(self) -> Grid:
         g = _group(self.store_name)
