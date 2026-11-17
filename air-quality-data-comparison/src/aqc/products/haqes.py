@@ -102,6 +102,8 @@ class HAQES(FieldProduct):
                 return var, None
             if b[:3] == b"CDF" or b[:4] == b"\x89HDF":
                 break
+            if b"404 - Not Found" in b:  # GES DISC serves its 404 page with status 200 after the redirect
+                return var, None
             time.sleep(10 * (attempt + 1))
         else:
             print(f"[haqes] {url}: not a netCDF file after 3 tries, day skipped", flush=True)
