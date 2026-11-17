@@ -244,6 +244,10 @@ def site_metrics(site: pd.Series, products: list[str], root: str | None = None) 
                             if v in pdf and v in od:
                                 pairs.append((od[v], pdf[v], v, "daily"))
                                 pairs.append((A.monthly(od[[v]])[v], A.monthly(pdf[[v]])[v], v, "monthly"))
+                    if name == "hrrr_smoke" and od is not None and "pm25_smoke" in pdf and "pm25" in od:
+                        # smoke-only PM vs total PM: compared on smoke days only (see the loop below),
+                        # where smoke dominates; the product omits the non-smoke background
+                        pairs.append((od["pm25"], pdf["pm25_smoke"], "pm25", "daily"))
                     if obs["frm"] is not None and "pm25" in pdf:
                         pairs.append((obs["frm"]["pm25_frm"], pdf["pm25"], "pm25_frm", "filter"))
                     if obs["species"] is not None and not spp.empty:
@@ -268,7 +272,7 @@ def site_metrics(site: pd.Series, products: list[str], root: str | None = None) 
                             if v in osm:
                                 pairs.append((osm[v], spp[v], f"spec_{v}", "monthly"))
                 for o, p, v, sc in pairs:
-                    wins = _windows_for(name)
+                    wins = [] if name == "hrrr_smoke" else _windows_for(name)
                     if smoke is not None and len(smoke) and sc in ("daily", "filter") and v in ("pm25", "pm25_frm"):
                         wins = wins + ["smoke"]
                     for w in wins:
