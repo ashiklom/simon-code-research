@@ -17,6 +17,7 @@ per day with 8 three-hourly steps (00..21 UTC) on a 12 km Lambert conformal CMAQ
 from __future__ import annotations
 
 import functools
+import time
 from concurrent.futures import ThreadPoolExecutor
 
 import netCDF4
@@ -94,9 +95,16 @@ class HAQES(FieldProduct):
 
     def _file(self, day: pd.Timestamp, var: str, jy, jx):
         url = f"{BASE}/{COLLECTIONS[var]}.1/{day:%Y}/HAQES_NA_v1.0_3h_{var}.{day:%Y%m%d}.nc"
-        try:
-            b = _get(url)
-        except FileNotFoundError:
+        for attempt in range(3):  # occasionally a truncated body / HTML error page comes back
+            try:
+                b = _get(url)
+            except FileNotFoundError:
+                return var, None
+            if b[:3] == b"CDF" or b[:4] == b"\x89HDF":
+                break
+            time.sleep(10 * (attempt + 1))
+        else:
+            print(f"[haqes] {url}: not a netCDF file after 3 tries, day skipped", flush=True)
             return var, None
         with netCDF4.Dataset("mem", memory=b) as d:
             tt = d["TIME"]
