@@ -25,8 +25,8 @@ def cmd_obs(a):
         if net == "aqs":
             from .obs import aqs
             st = sites.load("aqs")
-            frames = {v: aqs.hourly(st, v, log=_log).rename(columns={}) for v in ("pm25", "pm10", "o3", "no2")}
-            ingest.write("AQS", "1h", frames, store_url=a.store, log=_log)
+            for v in ("pm25", "pm10", "o3", "no2"):  # one variable at a time keeps memory bounded
+                ingest.write("AQS", "1h", {v: aqs.hourly(st, v, log=_log)}, store_url=a.store, log=_log)
             frm = aqs.daily_frm(st).rename(columns={"date": "time"})
             ingest.write("AQS", "1d", {"pm25_frm": frm}, attrs={"day": "local standard day"}, store_url=a.store, log=_log)
         elif net == "embassy":
@@ -35,6 +35,18 @@ def cmd_obs(a):
         elif net == "spartan":
             from .obs import spartan
             ingest.write("SPARTAN", "1h", {"pm25": spartan.hourly(sites.load("spartan"))}, store_url=a.store, log=_log)
+        elif net == "lowcost":
+            from .obs import lowcost
+            ingest.write("SensorCommunity", "1h", lowcost.hourly(sites.load("sensorcommunity"), log=_log),
+                         attrs={"correction": "RH<=75%, kappa-Koehler kappa=0.4"}, store_url=a.store, log=_log)
+        elif net == "speciation":
+            from .obs import speciation
+            data, _ = speciation.load()
+            ids = set(sites.load(["improve", "csn", "aqs"]).site_id)
+            data = data[data.site_id.isin(ids)]
+            frames = {v: data[["site_id", "date", v]].rename(columns={"date": "time", v: "value"})
+                      for v in data.columns if v.startswith("pm25_")}
+            ingest.write("SPEC", "1d", frames, attrs={"day": "local standard day"}, store_url=a.store, log=_log)
         else:
             raise SystemExit(f"unknown network {net}")
 
@@ -53,6 +65,59 @@ def cmd_extract(a):
             import traceback
             traceback.print_exc()
             _log(f"[{n}] FAILED: {e!r}")
+
+
+def _metrics_one(args):
+    site, products, root = args
+    from . import metrics
+    try:
+        if site["tier"] == 4:
+            return metrics.remote_metrics(__import__("pandas").Series(site), products, root)
+        return metrics.site_metrics(__import__("pandas").Series(site), products, root)
+    except Exception as e:  # one bad site must not stop the run
+        return [{"site": site["site_id"], "error": repr(e)}]
+
+
+def cmd_metrics(a):
+    from concurrent.futures import ProcessPoolExecutor
+
+    import pandas as pd
+
+    from . import analysis, config, sites
+    st = sites.load(a.sites)
+    products = a.products or analysis.available_products(a.store)
+    _log(f"metrics: {len(st)} sites x {len(products)} products: {products}")
+    rows, errs = [], []
+    jobs = [(r._asdict() if hasattr(r, "_asdict") else dict(r), products, a.store) for _, r in st.iterrows()]
+    import multiprocessing as mp
+
+    # spawn: icechunk's runtime threads do not survive fork
+    with ProcessPoolExecutor(a.workers, mp_context=mp.get_context("spawn")) as ex:
+        for k, res in enumerate(ex.map(_metrics_one, jobs, chunksize=4)):
+            for r in res:
+                (errs if "error" in r else rows).append(r)
+            if k % 200 == 0:
+                _log(f"metrics: {k}/{len(jobs)} sites, {len(rows)} rows")
+    df = pd.DataFrame(rows)
+    out = config.DATA / "results"
+    out.mkdir(parents=True, exist_ok=True)
+    df.to_parquet(out / f"metrics_{a.tag}.parquet", index=False)
+    if errs:
+        pd.DataFrame(errs).to_csv(out / f"metrics_{a.tag}_errors.csv", index=False)
+    _log(f"metrics: {len(df)} rows, {len(errs)} site errors -> {out / f'metrics_{a.tag}.parquet'}")
+
+
+def cmd_figures(a):
+    from . import figures
+    figures.run(log=_log)
+
+
+def cmd_sitedata(a):
+    import pandas as pd
+
+    from . import config, export_site, sites
+    m = pd.read_parquet(config.DATA / "results" / "metrics_all.parquet")
+    export_site.export(sites.load(a.sites), m, root=a.store, log=_log)
 
 
 def cmd_status(a):
@@ -84,8 +149,16 @@ def main(argv=None):
         s.add_argument("--dry-run", action="store_true")
         s.set_defaults(fn=cmd_extract)
     s = sub.add_parser("status"); s.set_defaults(fn=cmd_status)
+    s = sub.add_parser("figures"); s.set_defaults(fn=cmd_figures)
+    s = sub.add_parser("sitedata"); s.add_argument("--sites", default="all"); s.set_defaults(fn=cmd_sitedata)
+    s = sub.add_parser("metrics")
+    s.add_argument("products", nargs="*", default=[])
+    s.add_argument("--sites", default="all")
+    s.add_argument("--workers", type=int, default=2)
+    s.add_argument("--tag", default="all")
+    s.set_defaults(fn=cmd_metrics)
     a = p.parse_args(argv)
-    if getattr(a, "products", None) == []:
+    if getattr(a, "products", None) == [] and a.cmd in ("extract", "update"):
         a.products = ["all"]
     a.fn(a)
 

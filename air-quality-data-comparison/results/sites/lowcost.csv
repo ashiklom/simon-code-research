@@ -1,0 +1,61 @@
+site_id,network,tier,name,lat,lon,elev,country,region,setting,utc_offset,params,note,pm_sensor,pm_type,rh_sensor,rh_type
+SC:35400,SensorCommunity,3,SDS011 node 35400 (US),45.472,-122.822,,US,North America,,0.0,"pm25,pm10",co-located with AQS:41-067-0111 (0.48 km),6374,SDS011,6375,DHT22
+SC:27734,SensorCommunity,3,SDS011 node 27734 (MD),47.028,28.82,,MD,Europe,,0.0,"pm25,pm10",co-located with EMB:Chisinau (0.72 km),42066,SDS011,42067,BME280
+SC:21086,SensorCommunity,3,SDS011 node 21086 (BA),44.78,17.194,,BA,Europe,,0.0,"pm25,pm10",co-located with EMB:BanjaLuka (1.07 km),34876,SDS011,34877,DHT22
+SC:36218,SensorCommunity,3,SDS011 node 36218 (US),37.69280180281,-121.76657356105,,US,North America,,0.0,"pm25,pm10",co-located with AQS:06-001-0007 (1.66 km),50313,SDS011,50314,DHT22
+SC:37112,SensorCommunity,3,SDS011 node 37112 (US),45.892,-123.962,,US,North America,,0.0,"pm25,pm10",sparse,51066,SDS011,51067,BME280
+SC:49820,SensorCommunity,3,SDS011 node 49820 (PK),33.966,73.39,,PK,South Asia,,0.0,"pm25,pm10",sparse,63664,SDS011,63665,BME280
+SC:80671,SensorCommunity,3,SDS011 node 80671 (ID),-2.9566803,104.708312,,ID,Southeast Asia,,0.0,"pm25,pm10",sparse,31476,SDS011,31477,DHT22
+SC:90098,SensorCommunity,3,SDS011 node 90098 (BR),-29.765956,-51.03231,,BR,Latin America,,0.0,"pm25,pm10",sparse,61875,SDS011,61876,SHT31
+SC:41524,SensorCommunity,3,PMS5003 node 41524 (JP),35.624,139.698,,JP,East Asia,,0.0,"pm25,pm10",sparse,53658,PMS5003,53659,BME280
+SC:51113,SensorCommunity,3,SDS011 node 51113 (CA),53.646,-113.674,,CA,North America,,0.0,"pm25,pm10",sparse,64686,SDS011,64687,BME280
+SC:48550,SensorCommunity,3,SDS011 node 48550 (AZ),40.588,49.684,,AZ,Middle East,,0.0,"pm25,pm10",sparse,60370,SDS011,60371,BME280
+SC:10147,SensorCommunity,3,SDS011 node 10147 (TH),16.402,102.848,,TH,Southeast Asia,,0.0,"pm25,pm10",sparse,19971,SDS011,19972,DHT22
+SC:38667,SensorCommunity,3,SDS011 node 38667 (KG),42.872,74.622,,KG,Central Asia,,0.0,"pm25,pm10",sparse,52798,SDS011,52799,DHT22
+SC:29320,SensorCommunity,3,PMS5003 node 29320 (AU),-19.26119192157,146.81744284615,,AU,Oceania,,0.0,"pm25,pm10",sparse,43720,PMS5003,43721,BME280
+SC:35753,SensorCommunity,3,SDS011 node 35753 (AR),-36.6479175253,-64.27683770657,,AR,Latin America,,0.0,"pm25,pm10",sparse,31778,SDS011,31779,DHT22
+SC:62504,SensorCommunity,3,SDS011 node 62504 (AX),46.07,14.492,,AX,Europe,,0.0,"pm25,pm10",sparse,64688,SDS011,64689,DHT22
+SC:10636,SensorCommunity,3,SDS011 node 10636 (MX),19.39,-99.256,,MX,North America,,0.0,"pm25,pm10",sparse,20954,SDS011,20955,BME280
+SC:73873,SensorCommunity,3,SDS011 node 73873 (TR),40.084,32.908,,TR,Europe,,0.0,"pm25,pm10",sparse,72584,SDS011,72585,BME280
+SC:40756,SensorCommunity,3,PMS5003 node 40756 (AU),-37.95,145.008,,AU,Oceania,,0.0,"pm25,pm10",sparse,54869,PMS5003,54870,BME280
+SC:8990,SensorCommunity,3,SDS011 node 8990 (US),33.226,-97.15,,US,North America,,0.0,"pm25,pm10",sparse,17739,SDS011,17740,DHT22
+SC:66042,SensorCommunity,3,SDS011 node 66042 (CA),51.09,-115.34,,CA,North America,,0.0,"pm25,pm10",sparse,74538,SDS011,74540,SHT31
+SC:17847,SensorCommunity,3,SDS011 node 17847 (PK),31.524,74.366,,PK,South Asia,,0.0,"pm25,pm10",sparse,31224,SDS011,31225,BME280
+SC:35210,SensorCommunity,3,PMS5003 node 35210 (US),41.606,-87.602,,US,North America,,0.0,"pm25,pm10",sparse,49343,PMS5003,49342,BME280
+SC:22171,SensorCommunity,3,SDS011 node 22171 (AR),-37.38167,-64.603843,,AR,Latin America,,0.0,"pm25,pm10",sparse,31776,SDS011,31777,DHT22
+SC:60933,SensorCommunity,3,SDS011 node 60933 (CA),46.398,-63.798,,CA,North America,,0.0,"pm25,pm10",sparse,66702,SDS011,66703,BME280
+SC:52490,SensorCommunity,3,SDS011 node 52490 (BR),-26.77204127273,-53.05919319391,,BR,Latin America,,0.0,"pm25,pm10",sparse,63452,SDS011,64135,SHT31
+SC:51427,SensorCommunity,3,SDS011 node 51427 (AU),-27.442,153.014,,AU,Oceania,,0.0,"pm25,pm10",sparse,64915,SDS011,64916,BME280
+SC:62589,SensorCommunity,3,SDS011 node 62589 (TH),12.568,99.958,,TH,Southeast Asia,,0.0,"pm25,pm10",sparse,74229,SDS011,74230,BME280
+SC:46644,SensorCommunity,3,SDS011 node 46644 (AU),-33.8054459,150.7930718,,AU,Oceania,,0.0,"pm25,pm10",sparse,60823,SDS011,60824,DHT22
+SC:62652,SensorCommunity,3,PMS5003 node 62652 (US),42.274,-71.436,,US,North America,,0.0,"pm25,pm10",sparse,64861,PMS5003,64862,BME280
+SC:50435,SensorCommunity,3,PMS5003 node 50435 (CA),43.7,-79.318,,CA,North America,,0.0,"pm25,pm10",sparse,64138,PMS5003,64139,BME280
+SC:23062,SensorCommunity,3,SDS011 node 23062 (TH),13.952,100.608,,TH,Southeast Asia,,0.0,"pm25,pm10",sparse,37169,SDS011,37170,BME280
+SC:39406,SensorCommunity,3,PMS5003 node 39406 (AU),-35.006,138.538,,AU,Oceania,,0.0,"pm25,pm10",sparse,39286,PMS5003,39287,BME280
+SC:61637,SensorCommunity,3,SDS011 node 61637 (US),47.76,-122.022,,US,North America,,0.0,"pm25,pm10",sparse,73421,SDS011,73422,BME280
+SC:35423,SensorCommunity,3,PMS5003 node 35423 (US),37.32,-121.762,,US,North America,,0.0,"pm25,pm10",sparse,49528,PMS5003,49529,BME280
+SC:8375,SensorCommunity,3,SDS011 node 8375 (US),33.594,-117.718,,US,North America,,0.0,"pm25,pm10",sparse,16524,SDS011,16525,BME280
+SC:26635,SensorCommunity,3,SDS011 node 26635 (AU),-35.248,149.138,,AU,Oceania,,0.0,"pm25,pm10",sparse,39930,SDS011,39931,DHT22
+SC:31189,SensorCommunity,3,PMS5003 node 31189 (US),38.79,-77.084,,US,North America,,0.0,"pm25,pm10",sparse,45440,PMS5003,45441,BME280
+SC:51715,SensorCommunity,3,PMS5003 node 51715 (US),39.43279,-77.51822,,US,North America,,0.0,"pm25,pm10",sparse,65012,PMS5003,65013,BME280
+SC:60343,SensorCommunity,3,SDS011 node 60343 (AU),-32.03,115.88,,AU,Oceania,,0.0,"pm25,pm10",sparse,72369,SDS011,72370,BME280
+SC:63749,SensorCommunity,3,SDS011 node 63749 (DE),49.186,9.222,,DE,Europe,,0.0,"pm25,pm10",europe,75169,SDS011,75170,SHT31
+SC:3728,SensorCommunity,3,SDS011 node 3728 (BG),42.266,24.944,,BG,Europe,,0.0,"pm25,pm10",europe,7375,SDS011,7376,BME280
+SC:54120,SensorCommunity,3,SDS011 node 54120 (RU),53.504,49.426,,RU,Central Asia,,0.0,"pm25,pm10",europe,67191,SDS011,67192,HTU21D
+SC:28746,SensorCommunity,3,SDS011 node 28746 (NL),51.7042228,5.9749275,,NL,Europe,,0.0,"pm25,pm10",europe,43136,SDS011,43137,DHT22
+SC:2896,SensorCommunity,3,SDS011 node 2896 (DE),53.5,10.02,,DE,Europe,,0.0,"pm25,pm10",europe,5742,SDS011,5743,DHT22
+SC:46248,SensorCommunity,3,SDS011 node 46248 (EE),58.364,25.582,,EE,Europe,,0.0,"pm25,pm10",europe,59766,SDS011,59767,BME280
+SC:9330,SensorCommunity,3,SDS011 node 9330 (PL),52.21,21.174,,PL,Europe,,0.0,"pm25,pm10",europe,18407,SDS011,18408,DHT22
+SC:29777,SensorCommunity,3,SDS011 node 29777 (FR),46.7934784749,1.44602715969,,FR,Europe,,0.0,"pm25,pm10",europe,44114,SDS011,44115,DHT22
+SC:64313,SensorCommunity,3,SDS011 node 64313 (DE),51.018,13.742,,DE,Europe,,0.0,"pm25,pm10",europe,75698,SDS011,75699,BME280
+SC:47645,SensorCommunity,3,SDS011 node 47645 (IT),45.288,12.038,,IT,Europe,,0.0,"pm25,pm10",europe,61739,SDS011,61740,BME280
+SC:66127,SensorCommunity,3,SDS011 node 66127 (HU),48.15977379411,21.14886760731,,HU,Europe,,0.0,"pm25,pm10",europe,77154,SDS011,77155,BME280
+SC:61527,SensorCommunity,3,PMS5003 node 61527 (IE),53.33258046406,-6.53269279026,,IE,Europe,,0.0,"pm25,pm10",europe,73303,PMS5003,73304,BME280
+SC:6861,SensorCommunity,3,SDS011 node 6861 (CH),46.17,7.222,,CH,Europe,,0.0,"pm25,pm10",europe,13580,SDS011,13581,BME280
+SC:32107,SensorCommunity,3,SDS011 node 32107 (GB),52.82639730789,-1.19103223085,,GB,Europe,,0.0,"pm25,pm10",europe,46401,SDS011,46402,DHT22
+SC:36654,SensorCommunity,3,SDS011 node 36654 (RU),45.042,38.994,,RU,Europe,,0.0,"pm25,pm10",europe,50683,SDS011,50684,BME280
+SC:54219,SensorCommunity,3,SDS011 node 54219 (IT),37.55323958551,15.04660111257,,IT,Europe,,0.0,"pm25,pm10",europe,65435,SDS011,65436,DHT22
+SC:33483,SensorCommunity,3,SDS011 node 33483 (AT),48.294,16.388,,AT,Europe,,0.0,"pm25,pm10",europe,47725,SDS011,47726,BME280
+SC:28372,SensorCommunity,3,SDS011 node 28372 (RU),56.832,60.658,,RU,Russia/North,,0.0,"pm25,pm10",europe,42726,SDS011,42727,BME280
+SC:33180,SensorCommunity,3,SDS011 node 33180 (RS),44.7912813,20.47285622644,,RS,Europe,,0.0,"pm25,pm10",europe,47427,SDS011,47428,DHT22
+SC:19763,SensorCommunity,3,SDS011 node 19763 (RU),55.798,37.782,,RU,Europe,,0.0,"pm25,pm10",europe,33421,SDS011,33422,BME280

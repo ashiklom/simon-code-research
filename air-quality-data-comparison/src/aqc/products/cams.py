@@ -1,0 +1,211 @@
+"""CAMS (ECMWF) global composition from the Atmosphere Data Store (ADS) API.
+
+    cams-global-reanalysis-eac4                    0.75 deg, 3-hourly, 2003 -> ~1 year ago
+    cams-global-atmospheric-composition-forecasts  0.4 deg, hourly leads; 00 UTC run, leads 1-24 h
+
+Auth: env ``CDSAPI_KEY`` (ECMWF personal access token, shared by CDS and ADS) against
+``https://ads.atmosphere.copernicus.eu/api``. The account must have accepted the ADS terms of
+use and data-protection statement (and the dataset licences) on the ADS website, else the API
+answers 403 "user didn't accept all required site policies".
+
+Variables: surface PM2.5/PM10 (kg m-3 -> ug m-3; CAMS PM is computed from the aerosol tracers
+at ambient RH... see the CAMS documentation; recorded as attr rh_basis="ambient (CAMS)") and O3/NO2
+mass mixing ratio at the LOWEST model level (EAC4 level 60 of 60, forecasts level 137 of 137;
+kg kg-1 -> ppb with molar masses 48.00 / 46.0055 and air 28.9644). Fields are instantaneous and
+stamped at their valid time (UTC). One request per month (EAC4: surface and model-level are two
+requests) or per day (forecasts); each global NetCDF is sampled at all sites and deleted.
+"""
+
+from __future__ import annotations
+
+import functools
+import os
+import tempfile
+import zipfile
+from pathlib import Path
+
+import numpy as np
+import pandas as pd
+import xarray as xr
+
+from .. import config
+from ..http import get
+from .base import FieldProduct, Grid, Var, sample_field, scale
+
+ADS = "https://ads.atmosphere.copernicus.eu/api"
+M_AIR = 28.9644
+CACHE = config.CACHE / "cams"
+
+_pm = scale(1e9)  # kg m-3 -> ug m-3
+_o3 = scale(M_AIR / 48.00 * 1e9)  # kg kg-1 -> ppb
+_no2 = scale(M_AIR / 46.0055 * 1e9)
+
+
+@functools.cache
+def _client():
+    import cdsapi
+
+    key = os.environ.get("ADSAPI_KEY") or os.environ.get("CDSAPI_KEY")
+    if not key:
+        raise RuntimeError("set CDSAPI_KEY (ECMWF personal access token) for the ADS")
+    return cdsapi.Client(url=ADS, key=key, quiet=True, progress=False)
+
+
+def catalogue_end(dataset: str) -> pd.Timestamp:
+    j = get(f"{ADS}/catalogue/v1/collections/{dataset}").json()
+    return pd.Timestamp(j["extent"]["temporal"]["interval"][0][1]).tz_localize(None)
+
+
+def _retrieve(dataset: str, request: dict) -> list[Path]:
+    CACHE.mkdir(parents=True, exist_ok=True)
+    fd, tmp = tempfile.mkstemp(dir=CACHE, suffix=".download")
+    os.close(fd)
+    _client().retrieve(dataset, request, tmp)
+    p = Path(tmp)
+    if zipfile.is_zipfile(p):
+        out = []
+        with zipfile.ZipFile(p) as z:
+            for n in z.namelist():
+                if n.endswith(".nc"):
+                    q = CACHE / f"{p.stem}_{Path(n).name}"
+                    q.write_bytes(z.read(n))
+                    out.append(q)
+        p.unlink()
+        return out
+    q = p.with_suffix(".nc")
+    p.rename(q)
+    return [q]
+
+
+def _fields(paths: list[Path], st, lat_ref: np.ndarray) -> tuple[pd.DatetimeIndex, dict[str, np.ndarray]]:
+    """Open the returned NetCDF(s); -> valid times and raw[var] (nsite, 4, ntime)."""
+    out, times = {}, None
+    try:
+        for p in paths:
+            with xr.open_dataset(p, engine="netcdf4") as ds:
+                ds = ds.squeeze(drop=False)
+                if "forecast_reference_time" in ds.dims or "forecast_period" in ds.dims:
+                    if "forecast_reference_time" not in ds.dims:
+                        ds = ds.expand_dims("forecast_reference_time")
+                    ds = ds.stack(t=("forecast_reference_time", "forecast_period"))
+                    vt = (pd.to_datetime(ds.forecast_reference_time.values)
+                          + pd.to_timedelta(ds.forecast_period.values))
+                    tdim = "t"
+                else:
+                    tdim = "valid_time" if "valid_time" in ds.dims else "time"
+                    vt = pd.to_datetime(ds[tdim].values)
+                lat = ds.latitude.values
+                if lat[0] < lat[-1]:
+                    ds = ds.isel(latitude=slice(None, None, -1))
+                lon = ds.longitude.values
+                if lon.min() < 0:  # -> 0..360 order
+                    ds = ds.roll(longitude=int((lon < 0).sum()), roll_coords=True)
+                if ds.sizes["latitude"] != len(lat_ref):
+                    raise ValueError(f"unexpected grid {dict(ds.sizes)}")
+                for v in ds.data_vars:
+                    da = ds[v]
+                    extra = [d for d in da.dims if d not in (tdim, "latitude", "longitude")]
+                    if extra:
+                        da = da.isel({d: -1 for d in extra})  # lowest model level is the last
+                    da = da.transpose(tdim, "latitude", "longitude")
+                    out[v] = sample_field(da.values.astype("f4"), st)  # (nsite, 4, nt)
+                times = pd.DatetimeIndex(vt)
+    finally:
+        for p in paths:
+            p.unlink(missing_ok=True)
+    order = np.argsort(times)
+    return times[order], {k: v[..., order] for k, v in out.items()}
+
+
+class _CAMS(FieldProduct):
+    dataset = ""
+    dlat = 0.75
+    block_workers = 2
+
+    def grid(self) -> Grid:
+        n = int(round(180 / self.dlat)) + 1
+        lat = np.round(90 - self.dlat * np.arange(n), 4)
+        lon = np.round(self.dlat * np.arange(int(round(360 / self.dlat))), 4)
+        return Grid(y=lat, x=lon, x_periodic=360.0, lon360=True)
+
+
+class CAMSEAC4(_CAMS):
+    name = "cams_eac4"
+    title = "CAMS global reanalysis EAC4"
+    dataset = "cams-global-reanalysis-eac4"
+    freq = "3h"
+    dlat = 0.75
+    start = pd.Timestamp("2018-01-01")
+    source = "ADS API cams-global-reanalysis-eac4 (CDSAPI_KEY)"
+    notes = "0.75 deg, 3-hourly instantaneous; PM at surface, O3/NO2 at the lowest model level (60); assimilates satellite AOD/O3/NO2/CO only"
+    variables = {
+        "pm25": Var(["pm2p5"], "pm", "ug m-3", _pm, attrs={"rh_basis": "ambient (CAMS)", "instantaneous": True}),
+        "pm10": Var(["pm10"], "pm", "ug m-3", _pm, attrs={"rh_basis": "ambient (CAMS)", "instantaneous": True}),
+        "o3": Var(["go3"], "ppb", "ppb", _o3, attrs={"level": "model level 60", "instantaneous": True}),
+        "no2": Var(["no2"], "ppb", "ppb", _no2, attrs={"level": "model level 60", "instantaneous": True}),
+    }
+
+    def available_end(self) -> pd.Timestamp:
+        return catalogue_end(self.dataset).normalize() + pd.Timedelta(hours=21)
+
+    def blocks(self, t0, t1):
+        return list(pd.date_range(pd.Timestamp(t0).replace(day=1).normalize(), t1, freq="MS"))
+
+    def read_block(self, m, st):
+        end = min(m + pd.offsets.MonthEnd(0), self.available_end().normalize())
+        date = f"{m:%Y-%m-%d}/{end:%Y-%m-%d}"
+        hours = [f"{h:02d}:00" for h in range(0, 24, 3)]
+        lat = self.grid().y
+        t1, raw = _fields(_retrieve(self.dataset, {
+            "variable": ["particulate_matter_2.5um", "particulate_matter_10um"], "date": date, "time": hours,
+            "data_format": "netcdf"}), st, lat)
+        t2, raw2 = _fields(_retrieve(self.dataset, {
+            "variable": ["ozone", "nitrogen_dioxide"], "model_level": ["60"], "date": date, "time": hours,
+            "data_format": "netcdf"}), st, lat)
+        if not t1.equals(t2):
+            raw2 = {k: _align(t2, v, t1) for k, v in raw2.items()}
+        return t1, {**raw, **raw2}
+
+
+class CAMSForecast(_CAMS):
+    name = "cams_fcst"
+    title = "CAMS global composition forecast (00 UTC, +1..24 h)"
+    dataset = "cams-global-atmospheric-composition-forecasts"
+    freq = "1h"
+    dlat = 0.4
+    start = pd.Timestamp("2025-08-01 01:00")
+    source = "ADS API cams-global-atmospheric-composition-forecasts, 00 UTC run, leads 1-24 h (CDSAPI_KEY)"
+    notes = "0.4 deg hourly instantaneous; PM at surface, O3/NO2 at the lowest model level (137)"
+    variables = {
+        "pm25": Var(["pm2p5"], "pm", "ug m-3", _pm, attrs={"rh_basis": "ambient (CAMS)", "instantaneous": True}),
+        "pm10": Var(["pm10"], "pm", "ug m-3", _pm, attrs={"rh_basis": "ambient (CAMS)", "instantaneous": True}),
+        "o3": Var(["go3"], "ppb", "ppb", _o3, attrs={"level": "model level 137", "instantaneous": True}),
+        "no2": Var(["no2"], "ppb", "ppb", _no2, attrs={"level": "model level 137", "instantaneous": True}),
+    }
+
+    def available_end(self) -> pd.Timestamp:
+        return catalogue_end(self.dataset).normalize() + pd.Timedelta(hours=24)
+
+    def blocks(self, t0, t1):
+        # run date d covers valid times d 01:00 .. d+1 00:00
+        return list(pd.date_range((pd.Timestamp(t0) - pd.Timedelta(hours=1)).normalize(),
+                                  (pd.Timestamp(t1) - pd.Timedelta(hours=1)).normalize(), freq="D"))
+
+    def read_block(self, d, st):
+        lat = self.grid().y
+        req = {"date": f"{d:%Y-%m-%d}/{d:%Y-%m-%d}", "time": ["00:00"], "type": ["forecast"],
+               "leadtime_hour": [str(h) for h in range(1, 25)], "data_format": "netcdf"}
+        t1, raw = _fields(_retrieve(self.dataset, {**req, "variable": ["particulate_matter_2.5um",
+                                                                       "particulate_matter_10um"]}), st, lat)
+        t2, raw2 = _fields(_retrieve(self.dataset, {**req, "variable": ["ozone", "nitrogen_dioxide"],
+                                                    "model_level": ["137"]}), st, lat)
+        if not t1.equals(t2):
+            raw2 = {k: _align(t2, v, t1) for k, v in raw2.items()}
+        return t1, {**raw, **raw2}
+
+
+def _align(t_src: pd.DatetimeIndex, v: np.ndarray, t_dst: pd.DatetimeIndex) -> np.ndarray:
+    idx = t_src.get_indexer(t_dst)
+    out = np.full(v.shape[:-1] + (len(t_dst),), np.nan)
+    out[..., idx >= 0] = v[..., idx[idx >= 0]]
+    return out

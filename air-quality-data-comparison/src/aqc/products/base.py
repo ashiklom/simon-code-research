@@ -231,10 +231,17 @@ class FieldProduct(Product):
         keys = self.blocks(t0, t1)
 
         def one(key):
-            try:
-                return self.read_block(key, st)
-            except FileNotFoundError:
-                return None
+            import time as _t
+
+            for attempt in range(4):  # transient network errors should not kill a long run
+                try:
+                    return self.read_block(key, st)
+                except FileNotFoundError:
+                    return None
+                except Exception:
+                    if attempt == 3:
+                        raise
+                    _t.sleep(15 * 2 ** attempt)
 
         ids = list(sites.site_id)
         for res in bounded_map(one, keys, self.block_workers):

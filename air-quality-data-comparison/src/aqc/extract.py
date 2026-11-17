@@ -52,7 +52,7 @@ def plan(product, sites: pd.DataFrame, writer_attrs: dict, t_end: pd.Timestamp, 
 
 def run(name: str, sites: pd.DataFrame, *, t_end: pd.Timestamp | None = None, t_start: pd.Timestamp | None = None,
         store_url: str | None = None, dry_run: bool = False, commit_every: int = 50, commit_seconds: float = 120,
-        log=print) -> dict:
+        compact_every: int = 6, log=print) -> dict:
     product = registry.get(name)
     grid = product.grid()
     st_all = grid.stencil(sites.lat.values, sites.lon.values)
@@ -87,6 +87,7 @@ def run(name: str, sites: pd.DataFrame, *, t_end: pd.Timestamp | None = None, t_
     specs = product.specs()
     t_wall = time.time()
     nbytes = 0
+    n_commits = 0
     pos = {s: i for i, s in enumerate(sites.site_id)}
     for t0, sids in sorted(work.items()):
         # keep store order so multi-site blocks are one contiguous region write
@@ -107,6 +108,12 @@ def run(name: str, sites: pd.DataFrame, *, t_end: pd.Timestamp | None = None, t_
                 _record(w, finished)
                 session.commit(f"{name}: {len(finished)} site(s) to {blk.times[-1]}")
                 log(f"[{name}] committed {len(finished)} site(s) to {blk.times[-1]} ({time.time() - t_wall:.0f} s)")
+                n_commits += 1
+                if n_commits % compact_every == 0:  # superseded chunk versions pile up otherwise
+                    try:
+                        store.compact(store.repo_name("products", name), store_url, keep_minutes=5)
+                    except Exception as e:
+                        log(f"[{name}] compact failed: {e!r}")
                 session = repo.writable_session("main")
                 w = store.GroupWriter(session, path, product.freq, has_px=True, t_origin=origin)
                 finished, n_since, t_commit = {}, 0, time.time()

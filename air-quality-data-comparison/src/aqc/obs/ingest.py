@@ -18,7 +18,9 @@ def write(network: str, freq: str, frames: dict[str, pd.DataFrame], attrs: dict 
     repo = store.open_repo(store.repo_name("obs", network), store_url)
     path = store.group_path("obs", network, freq)
     dt = pd.Timedelta(seconds=store.FREQ_SECONDS[freq])
+    now = pd.Timestamp.now().floor("h")
     frames = {k: v.dropna(subset=["value"]) for k, v in frames.items() if len(v)}
+    frames = {k: v[(v.time >= config.START) & (v.time <= now)] for k, v in frames.items()}
     if not frames:
         return
     t0 = min(v.time.min() for v in frames.values())

@@ -5,7 +5,8 @@
     GroupByProduct/FilterBased/ChemSpecPM25/FilterBased_ChemSpecPM25_<SITE>.csv
         filter (multi-day integrated) PM2.5 mass and composition
 
-Times are local standard time; the UTC offset comes from the site's IANA time zone
+Times are local standard time (labelled by the next full UTC hour after the interval end when
+the offset is fractional); the UTC offset comes from the site's IANA time zone
 (timezonefinder) at standard time. Site ids: ``SPARTAN:<code>``. Please cite SPARTAN per its
 data policy when using these data.
 """
@@ -85,7 +86,7 @@ def hourly(site_table: pd.DataFrame) -> pd.DataFrame:
                             errors="coerce")
         t = lt - pd.Timedelta(hours=float(s.utc_offset)) + pd.Timedelta(hours=1)
         v = pd.to_numeric(d.Value, errors="coerce")
-        dd = pd.DataFrame({"site_id": s.site_id, "time": t.dt.round("h"), "value": v}).dropna()
+        dd = pd.DataFrame({"site_id": s.site_id, "time": t.dt.ceil("h"), "value": v}).dropna()
         out.append(dd[(dd.value >= 0) & (dd.time >= config.START)])
     d = pd.concat(out)
     return d.groupby(["site_id", "time"])["value"].mean().reset_index()

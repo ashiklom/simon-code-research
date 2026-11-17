@@ -10,8 +10,10 @@ BOXES = [
     ("Latin America", -60, 14.5, -120, -30),
     ("Latin America", 14.5, 33, -120, -86),  # Mexico/Central America west of the Gulf
     ("Europe", 35, 72, -25, 40),
-    ("Middle East", 12, 42, 34, 63),
-    ("Africa", -36, 37.5, -20, 52),
+    ("Middle East", 12, 42, 42.5, 63),  # Arabian Peninsula, Iraq, Iran
+    ("Africa", -36, 22, -20, 52),
+    ("Africa", 22, 37.5, -20, 34.2),  # North Africa incl. Egypt west of Sinai
+    ("Middle East", 22, 42, 34.2, 42.5),  # Levant, Sinai, Hejaz
     ("Central Asia", 35, 56, 46, 88),
     ("South Asia", 5, 37, 60, 98),
     ("East Asia", 18, 55, 98, 146),

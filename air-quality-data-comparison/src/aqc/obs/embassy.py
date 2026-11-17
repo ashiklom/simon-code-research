@@ -3,7 +3,8 @@
     s3://files.airnowtech.org/airnow/EmbassyHistorical/<Folder>/<YYYY>/<Folder>_PM2.5_<YYYY>_YTD.csv
 
 Anonymous HTTPS (S3 website-style listing). Hourly raw PM2.5 ("Raw Conc.", QC "Valid" only),
-local standard time, hour-beginning. Coordinates and UTC offsets come from AirNow's
+local standard time, hour-beginning. With half-hour UTC offsets (India, Nepal, ...) the
+hour is labelled by the next full UTC hour after its end (``ceil``), i.e. up to 45 min late. Coordinates and UTC offsets come from AirNow's
 ``Monitoring_Site_Locations_V2.dat`` (agency "U.S. Department of State ..."), matched by site
 name. Site ids: ``EMB:<Folder>``.
 """
@@ -133,7 +134,7 @@ def hourly(site_table: pd.DataFrame, years=YEARS) -> pd.DataFrame:
             v = pd.to_numeric(d["Raw Conc."], errors="coerce")
             lt = pd.to_datetime(dict(year=d.Year, month=d.Month, day=d.Day, hour=d.Hour), errors="coerce")
             t = lt - pd.Timedelta(hours=float(s.utc_offset)) + pd.Timedelta(hours=1)
-            dd = pd.DataFrame({"site_id": s.site_id, "time": t.dt.round("h"), "value": v})
+            dd = pd.DataFrame({"site_id": s.site_id, "time": t.dt.ceil("h"), "value": v})
             out.append(dd[(dd.value >= 0) & (dd.value < 2000)].dropna())
     d = pd.concat(out)
     return d.groupby(["site_id", "time"])["value"].mean().reset_index()

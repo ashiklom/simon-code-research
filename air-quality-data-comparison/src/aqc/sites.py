@@ -14,7 +14,7 @@ from . import config
 from .regions import region
 
 DIR = config.RESULTS / "sites"
-NETWORKS = ["aqs", "embassy", "spartan", "openaq", "lowcost", "remote"]
+NETWORKS = ["aqs", "speciation", "embassy", "spartan", "openaq", "lowcost", "remote"]
 
 
 def build(networks=("aqs", "embassy", "spartan"), log=print) -> pd.DataFrame:
@@ -23,6 +23,16 @@ def build(networks=("aqs", "embassy", "spartan"), log=print) -> pd.DataFrame:
         if n == "aqs":
             from .obs import aqs as m
             df = m.select_sites()
+        elif n == "speciation":
+            from .obs import speciation as m
+            df = m.sites(log=log)
+        elif n == "lowcost":
+            from .obs import lowcost as m
+            ref = load()
+            df = m.sites(ref[ref.tier.isin([1, 2])], log=log)
+        elif n == "remote":
+            from . import remote as m
+            df = m.sample(load(), log=log)
         elif n == "embassy":
             from .obs import embassy as m
             df = m.sites(log=log)
@@ -31,7 +41,8 @@ def build(networks=("aqs", "embassy", "spartan"), log=print) -> pd.DataFrame:
             df = m.sites(log=log)
         else:
             raise ValueError(n)
-        df["region"] = region(df.lat, df.lon)
+        if n != "remote":
+            df["region"] = region(df.lat, df.lon)
         df.to_csv(DIR / f"{n}.csv", index=False)
         log(f"[sites] {n}: {len(df)}")
     return load()
@@ -44,6 +55,7 @@ def load(which: str | list[str] = "all") -> pd.DataFrame:
         if p.exists():
             parts.append(pd.read_csv(p, dtype={"site_id": str}))
     df = pd.concat(parts, ignore_index=True).drop_duplicates("site_id")
+    df["region"] = region(df.lat.values, df.lon.values)
     if which == "all":
         return df
     if isinstance(which, str):

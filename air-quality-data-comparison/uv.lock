@@ -119,6 +119,8 @@ dependencies = [
     { name = "earthaccess" },
     { name = "eccodes" },
     { name = "fsspec" },
+    { name = "global-land-mask" },
+    { name = "gribberish" },
     { name = "h5netcdf" },
     { name = "h5py" },
     { name = "icechunk" },
@@ -152,6 +154,8 @@ requires-dist = [
     { name = "earthaccess", specifier = ">=0.19.0" },
     { name = "eccodes", specifier = ">=2.50.1" },
     { name = "fsspec", specifier = ">=2026.9.0" },
+    { name = "global-land-mask", specifier = ">=1.0.0" },
+    { name = "gribberish", specifier = ">=1.5" },
     { name = "h5netcdf", specifier = ">=1.8.3" },
     { name = "h5py", specifier = ">=3.16.0" },
     { name = "icechunk", specifier = ">=2.3.1" },
@@ -533,6 +537,15 @@ wheels = [
 ]
 
 [[package]]
+name = "global-land-mask"
+version = "1.0.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/6e/cd/d06fe252cbe41b85c7a1a54e4d4214c79b770eb5d6c6fa3b03e56371a6da/global-land-mask-1.0.0.tar.gz", hash = "sha256:956bf02e8b05bfc9f3a29cbc6e97d5ba4151c0732504acc73c2db9ea325ecff3", size = 1825546, upload-time = "2020-10-05T13:15:30.119Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/e6/e9/eaac67e39b68f64828a164f8dbfcf13baccd7382704ea120152af475f520/global_land_mask-1.0.0-py3-none-any.whl", hash = "sha256:07751fbb4e3834ee508a84ea64d9bd5340fbd0a8c951e24b43c323fcc670bb62", size = 1836944, upload-time = "2020-10-05T13:15:20.322Z" },
+]
+
+[[package]]
 name = "google-crc32c"
 version = "1.9.0"
 source = { registry = "https://pypi.org/simple" }
@@ -543,6 +556,26 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/f0/18/bee0dd59ae622482dc6463636c79e4bde7c954d061c859c9256362c9931a/google_crc32c-1.9.0-cp313-cp313-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:4488f1553a9ab7e86cdedc833374a7e904031803b995dc0bd0be48c271fa6556", size = 37776, upload-time = "2026-09-24T21:38:11.056Z" },
     { url = "https://files.pythonhosted.org/packages/fd/b6/e76e80fed5f2558273c7839e622f98095c9b36c719c7147e38e3c055cb70/google_crc32c-1.9.0-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:0568b17ed90ac596f29400d99e243fd0cc6276766183def888d1bf8d1dc13827", size = 36350, upload-time = "2026-09-24T21:38:12.138Z" },
     { url = "https://files.pythonhosted.org/packages/87/34/165542bfa99dfef91a76471cc48cce74b8ff4e295722896087ab2b8e8611/google_crc32c-1.9.0-cp313-cp313-win_amd64.whl", hash = "sha256:8583ec21d56b565d68ab2963cc7e21b3b271247c29b04286068255ef65f221bd", size = 35090, upload-time = "2026-09-24T21:39:29.764Z" },
+]
+
+[[package]]
+name = "gribberish"
+version = "1.9.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "numpy" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/6d/c0/be0e5f1e36888e28c783a7032f8809c29644dd57307c995260d9946c7e7c/gribberish-1.9.0.tar.gz", hash = "sha256:06dd18d0d7a063c0a4a188eb68642b19feea0fc60404947d40588e109a5aa245", size = 3298992, upload-time = "2026-10-22T19:12:58.994Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/f3/6b/f75597e3b4801dada2d84ad93e43d413826d35b685fe8f89c67671530e5f/gribberish-1.9.0-cp312-abi3-macosx_10_12_x86_64.whl", hash = "sha256:961614214dfb8116220f6c38517e05cb444328687510ba0d2e2a228bbc5992d8", size = 783671, upload-time = "2026-10-22T19:12:32.598Z" },
+    { url = "https://files.pythonhosted.org/packages/3c/00/a0b9602464c4c3816b9857eca7d3e73f755d22172414b9bbefb64eec578d/gribberish-1.9.0-cp312-abi3-macosx_11_0_arm64.whl", hash = "sha256:d4808d0972b3d5962a4e687a82e68f8a15345919d6813ad7c5351d7a023e27d6", size = 722897, upload-time = "2026-10-22T19:12:26.523Z" },
+    { url = "https://files.pythonhosted.org/packages/30/db/103c5a0fc6f5e43b87847ecfdba8385e1eefce0e70d2988507d072ecc34a/gribberish-1.9.0-cp312-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:82c0b12658223be01c7b8f58ffe34976422759db084bacf286cfbdcf928da0d3", size = 762019, upload-time = "2026-10-22T19:12:07.862Z" },
+    { url = "https://files.pythonhosted.org/packages/29/a4/084ea61f14f1ce7b55885cf3f5d0177bf22da50ee7620f5bba502206720b/gribberish-1.9.0-cp312-abi3-manylinux_2_17_armv7l.manylinux2014_armv7l.whl", hash = "sha256:21310954faedab2cd41baccb75ae7716139539979c8fd9f79a49eee26d2fece9", size = 782413, upload-time = "2026-10-22T19:12:13.99Z" },
+    { url = "https://files.pythonhosted.org/packages/28/e6/dbb5cce6883e601eb381a8d5e98f1fc7947f94178d1c35c197e8f2b88682/gribberish-1.9.0-cp312-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:3e80a63aedb6a49f51208456a09f58235303ba27be814417e46e381a4797ad4a", size = 815803, upload-time = "2026-10-22T19:12:20.454Z" },
+    { url = "https://files.pythonhosted.org/packages/7b/f3/c7ce49a776dabdfdef3ee21e6b2691931a7aa286ee004f02d4bddbc4bd48/gribberish-1.9.0-cp312-abi3-musllinux_1_2_aarch64.whl", hash = "sha256:c6463d80c6b48fdc44123fcfa05e6ce971b362dcc3fb2631c9a3f0533f78458a", size = 948025, upload-time = "2026-10-22T19:12:38.735Z" },
+    { url = "https://files.pythonhosted.org/packages/8f/76/7f7464cf6b0437ea48527f65e2daf8ca039b68e80cb4d9b929609986680f/gribberish-1.9.0-cp312-abi3-musllinux_1_2_armv7l.whl", hash = "sha256:a6e19f0ceb2ec07f008345e1faf40106eebd7774f392409f6e2c2c26e81ed2fd", size = 1061258, upload-time = "2026-10-22T19:12:45.169Z" },
+    { url = "https://files.pythonhosted.org/packages/c3/49/5f4de180307200ece57f5ba8996fae8c458587548c4b68186f5853616542/gribberish-1.9.0-cp312-abi3-musllinux_1_2_x86_64.whl", hash = "sha256:4d92995044c309fff8f59d957932fc59cc2d502bde914d890679902335da36ce", size = 1031301, upload-time = "2026-10-22T19:12:51.906Z" },
+    { url = "https://files.pythonhosted.org/packages/9d/54/0356fa09caee1cf50f548f76abb71294b156266b139690cc92bc1654b4e0/gribberish-1.9.0-cp312-abi3-win_amd64.whl", hash = "sha256:019f82ce9b2369b78594031f459fe17b638bc786d2c3ff22bcae4f36b6bc478c", size = 714917, upload-time = "2026-10-22T19:13:00.447Z" },
 ]
 
 [[package]]

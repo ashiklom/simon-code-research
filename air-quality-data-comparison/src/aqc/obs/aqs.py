@@ -104,9 +104,13 @@ def select_sites(min_years: int = 4, cell_deg: float = 0.25) -> pd.DataFrame:
 def _hourly_year(param: int, year: int, site_ids: set[str]) -> pd.DataFrame:
     cols = ["State Code", "County Code", "Site Num", "POC", "Date GMT", "Time GMT", "Sample Measurement",
             "Units of Measure", "Method Name"]
-    d = read_zip_csv(f"hourly_{param}_{year}", usecols=cols, dtype={"State Code": str, "County Code": str, "Site Num": str})
+    with zipfile.ZipFile(download(f"hourly_{param}_{year}")) as z:
+        d = pd.read_csv(z.open(z.namelist()[0]), usecols=cols, engine="pyarrow",
+                        dtype={"State Code": str, "County Code": str, "Site Num": str, "Date GMT": str,
+                               "Time GMT": str, "Units of Measure": str, "Method Name": str})
     d["site_id"] = site_id(d)
     d = d[d.site_id.isin(site_ids)]
+    d["site_id"] = d["site_id"].astype("category")
     # AQS hours are labelled by their start; stamp at the end of the hour (UTC)
     d["time"] = pd.to_datetime(d["Date GMT"] + " " + d["Time GMT"]) + pd.Timedelta(hours=1)
     d["value"] = d["Sample Measurement"] * d["Units of Measure"].map(UNIT_SCALE).fillna(1.0)
@@ -116,7 +120,9 @@ def _hourly_year(param: int, year: int, site_ids: set[str]) -> pd.DataFrame:
         has_corr = d[t640 & corr].groupby(["site_id", "time"]).size()
         key = pd.MultiIndex.from_frame(d[["site_id", "time"]])
         d = d[~(t640 & ~corr & key.isin(has_corr.index))]
-    return d.groupby(["site_id", "time"])["value"].mean().reset_index()
+    out = d.groupby(["site_id", "time"], observed=True)["value"].mean().reset_index()
+    out["value"] = out["value"].astype("f4")
+    return out
 
 
 def hourly(sites: pd.DataFrame, var: str, years=YEARS, log=print) -> pd.DataFrame:
@@ -135,9 +141,14 @@ def hourly(sites: pd.DataFrame, var: str, years=YEARS, log=print) -> pd.DataFram
             parts.append(d)
         if parts:
             d = pd.concat(parts).sort_values("prio").drop_duplicates(["site_id", "time"]).drop(columns="prio")
+            d["site_id"] = d["site_id"].astype(str).astype("category")
             out.append(d)
             log(f"[AQS] {var} {y}: {len(d):,} site-hours")
-    return pd.concat(out) if out else pd.DataFrame(columns=["site_id", "time", "value"])
+    if not out:
+        return pd.DataFrame(columns=["site_id", "time", "value"])
+    d = pd.concat(out, ignore_index=True)
+    d["site_id"] = d["site_id"].astype(str)
+    return d
 
 
 def daily_frm(sites: pd.DataFrame, years=YEARS) -> pd.DataFrame:

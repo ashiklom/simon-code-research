@@ -1,0 +1,235 @@
+site_id,network,tier,name,lat,lon,elev,country,region,setting,utc_offset,params,note
+AQS:01-073-0023,CSN,1,North Birmingham,33.553056,-86.815,,US,North America,,,species,Alabama
+AQS:01-073-2003,CSN,1,Wylam,33.499722,-86.924167,,US,North America,,,species,Alabama
+AQS:01-079-0002,IMPROVE,1,Sipsey Wilderness,34.342904,-87.33973,,US,North America,rural,,species,Alabama
+AQS:02-013-0002,IMPROVE,1,Simeonof,55.324675,-160.508331,,US,North America,rural,,species,Alaska
+AQS:02-068-0003,IMPROVE,1,Denali Np,63.7232,-148.9676,,US,North America,rural,,species,Alaska
+AQS:02-090-0034,CSN,1,Ncore,64.84569,-147.727413,,US,North America,,,species,Alaska
+AQS:02-090-0035,CSN,1,Hurst Road,64.762641,-147.310279,,US,North America,,,species,Alaska
+AQS:02-122-9000,IMPROVE,1,Kenai Penisula Borough,60.012315,-151.711491,,US,North America,rural,,species,Alaska
+AQS:02-170-0011,IMPROVE,1,Trapper Creek,62.314754,-150.317909,,US,North America,rural,,species,Alaska
+AQS:02-185-9000,IMPROVE,1,Toolik Lake Field Station,68.637233,-149.590949,,US,North America,rural,,species,Alaska
+AQS:04-001-8001,IMPROVE,1,Mount Baldy,34.058475,-109.441259,,US,North America,rural,,species,Arizona
+AQS:04-003-8001,IMPROVE,1,Chiricahua Nm,32.00941,-109.38906,,US,North America,rural,,species,Arizona
+AQS:04-005-8102,IMPROVE,1,Hance Camp At Grand Canyon Np,35.973117,-111.984846,,US,North America,rural,,species,Arizona
+AQS:04-005-9000,IMPROVE,1,Sycamore Canyon,35.1639,-111.9823,,US,North America,rural,,species,Arizona
+AQS:04-007-0010,IMPROVE,1,Tonto Nm,33.6547,-111.1074,,US,North America,rural,,species,Arizona
+AQS:04-013-9997,IMPROVE,1,Jlg Supersite,33.503833,-112.095767,,US,North America,rural,,species,Arizona
+AQS:04-017-0119,IMPROVE,1,Petrified Forest Np,34.82251,-109.89249,,US,North America,rural,,species,Arizona
+AQS:04-019-0005,IMPROVE,1,Organ Pipe Nm,31.95,-112.801,,US,North America,rural,,species,Arizona
+AQS:04-019-0021,IMPROVE,1,Saguaro Np,32.174538,-110.737116,,US,North America,rural,,species,Arizona
+AQS:04-019-1028,CSN,1,Children'S Park Ncore,32.29515,-110.9823,,US,North America,,,species,Arizona
+AQS:04-019-9000,IMPROVE,1,Saguaro West,32.248712,-111.218494,,US,North America,rural,,species,Arizona
+AQS:04-023-9000,IMPROVE,1,Nogales,31.33745,-110.93715,,US,North America,rural,,species,Arizona
+AQS:05-101-9000,IMPROVE,1,Upper Buffalo Wilderness,35.825893,-93.203187,,US,North America,rural,,species,Arkansas
+AQS:05-113-0003,IMPROVE,1,Eagle Mountain,34.454514,-94.143521,,US,North America,rural,,species,Arkansas
+AQS:05-119-0007,CSN,1,Parr,34.756189,-92.281296,,US,North America,,,species,Arkansas
+AQS:06-015-0002,IMPROVE,1,Redwood Np,41.560952,-124.083964,,US,North America,rural,,species,California
+AQS:06-017-9001,IMPROVE,1,Lake Tahoe Community College,38.9248,-119.97,,US,North America,rural,,species,California
+AQS:06-017-9002,IMPROVE,1,Bliss Sp (Trpa),38.98,-120.1,,US,North America,rural,,species,California
+AQS:06-019-0011,CSN,1,Fresno - Garland,36.78538,-119.77321,,US,North America,,,species,California
+AQS:06-019-9000,IMPROVE,1,Kaiser,37.22064,-119.155557,,US,North America,rural,,species,California
+AQS:06-027-0002,IMPROVE,1,Wmrc/Ncore,37.360684,-118.330783,,US,North America,rural,,species,California
+AQS:06-029-0014,CSN,1,Bakersfield-California,35.356615,-119.062613,,US,North America,,,species,California
+AQS:06-029-9001,IMPROVE,1,Lebec-Peace Valley/Frazier Park Roads,34.821922,-118.887598,,US,North America,rural,,species,California
+AQS:06-037-1103,CSN,1,Los Angeles-North Main Street,34.06659,-118.22688,,US,North America,,,species,California
+AQS:06-037-9034,IMPROVE,1,Lebec,34.813034,-118.884819,,US,North America,rural,,species,California
+AQS:06-041-0002,IMPROVE,1,Point Reyes National Seashore,38.122979,-122.90944,,US,North America,rural,,species,California
+AQS:06-043-0003,IMPROVE,1,Yosemite Np,37.71325,-119.7062,,US,North America,rural,,species,California
+AQS:06-051-9000,IMPROVE,1,Hoover,38.088023,-119.178069,,US,North America,rural,,species,California
+AQS:06-065-8001,CSN,1,Rubidoux,33.99958,-117.41601,,US,North America,,,species,California
+AQS:06-065-9000,IMPROVE,1,Agua Tibia,33.463644,-116.971457,,US,North America,rural,,species,California
+AQS:06-067-0006,CSN,1,Sacramento-Del Paso Manor,38.613779,-121.368014,,US,North America,,,species,California
+AQS:06-069-0003,IMPROVE,1,Pinnacles Np,36.48324,-121.15688,,US,North America,rural,,species,California
+AQS:06-071-9002,IMPROVE,1,Joshua Tree Np,34.06957,-116.38893,,US,North America,rural,,species,California
+AQS:06-071-9010,IMPROVE,1,San Gorgonio Wilderness,34.193925,-116.914063,,US,North America,rural,,species,California
+AQS:06-073-1022,CSN,1,El Cajon - Lexington Elementary School,32.789565,-116.944308,,US,North America,,,species,California
+AQS:06-083-9000,IMPROVE,1,San Rafael,34.733889,-120.008349,,US,North America,rural,,species,California
+AQS:06-085-0005,CSN,1,San Jose - Jackson,37.348497,-121.894898,,US,North America,,,species,California
+AQS:06-089-3003,IMPROVE,1,Lassen Volcanic Np,40.53999,-121.57646,,US,North America,rural,,species,California
+AQS:06-093-0005,IMPROVE,1,Lava Beds National Monument,41.711825,-121.509993,,US,North America,rural,,species,California
+AQS:06-105-9000,IMPROVE,1,Trinity,40.786247,-122.805707,,US,North America,rural,,species,California
+AQS:06-107-1001,IMPROVE,1,Sequoia Np,36.498835,-118.824821,,US,North America,rural,,species,California
+AQS:08-003-9000,IMPROVE,1,Great Sand Dunes Np,37.724919,-105.519073,,US,North America,rural,,species,Colorado
+AQS:08-031-0026,CSN,1,La Casa,39.77949,-105.00518,,US,North America,,,species,Colorado
+AQS:08-057-9000,IMPROVE,1,Mount Zirkel Wilderness,40.5383,-106.6766,,US,North America,rural,,species,Colorado
+AQS:08-067-1004,IMPROVE,1,Shamrock Mine,37.30389,-107.484167,,US,North America,rural,,species,Colorado
+AQS:08-069-0007,IMPROVE,1,Rocky Mountain Np,40.27813,-105.54564,,US,North America,rural,,species,Colorado
+AQS:08-083-0101,IMPROVE,1,Mesa Verde Np,37.1984,-108.49046,,US,North America,rural,,species,Colorado
+AQS:08-097-0002,IMPROVE,1,White River Nf,39.154,-106.821,,US,North America,rural,,species,Colorado
+AQS:08-103-9000,IMPROVE,1,Flat Tops,39.9153,-107.6345,,US,North America,rural,,species,Colorado
+AQS:08-111-9000,IMPROVE,1,Weminuche Wilderness,37.659409,-107.800541,,US,North America,rural,,species,Colorado
+AQS:09-005-0005,IMPROVE,1,Mohawk Mt-Cornwall,41.821342,-73.297257,,US,North America,rural,,species,Connecticut
+AQS:09-009-0027,CSN,1,Criscuolo Park-New Haven,41.3014,-72.902871,,US,North America,,,species,Connecticut
+AQS:10-003-2004,CSN,1,Mlk  Corner Of Mlk Blvd And Justison St,39.739441,-75.557534,,US,North America,,,species,Delaware
+AQS:11-001-0043,CSN,1,Mcmillan  Ncore-Pams,38.921847,-77.013178,,US,North America,,,species,District Of Columbia
+AQS:12-011-0034,CSN,1,Daniela Banu Ncore,26.053889,-80.256944,,US,North America,,,species,Florida
+AQS:12-017-9000,IMPROVE,1,Chassahowitzka Nwr,28.748678,-82.554769,,US,North America,rural,,species,Florida
+AQS:12-057-3002,CSN,1,Sydney,27.965744,-82.230596,,US,North America,,,species,Florida
+AQS:12-086-0030,IMPROVE,1,Everglades Np,25.39122,-80.680819,,US,North America,rural,,species,Florida
+AQS:12-129-0001,IMPROVE,1,St. Marks Wildlife Refuge,30.0925,-84.161111,,US,North America,rural,,species,Florida
+AQS:13-021-0007,CSN,1,Macon-Alllied,32.777465,-83.640996,,US,North America,,,species,Georgia
+AQS:13-049-9000,IMPROVE,1,Okefenokee Nwr,30.740718,-82.128154,,US,North America,rural,,species,Georgia
+AQS:13-069-0002,CSN,1,General Coffee,31.513097,-82.749971,,US,North America,,,species,Georgia
+AQS:13-089-0002,CSN,1,South Dekalb,33.6878,-84.2905,,US,North America,,,species,Georgia
+AQS:13-115-0003,CSN,1,Rome,34.2605,-85.3232,,US,North America,,,species,Georgia
+AQS:13-213-0003,IMPROVE,1,Fort Mountain,34.785219,-84.626423,,US,North America,rural,,species,Georgia
+AQS:13-245-0091,CSN,1,Augusta,33.4339,-82.0224,,US,North America,,,species,Georgia
+AQS:15-001-0005,IMPROVE,1,Hawaii Volcanoes Np - Kilauea Visitors Center,19.4308,-155.2578,,US,North America,rural,,species,Hawaii
+AQS:15-003-0010,CSN,1,Kapolei,21.323745,-158.088613,,US,North America,,,species,Hawaii
+AQS:15-009-9001,IMPROVE,1,Haleakala Crater,20.7585,-156.24789,,US,North America,rural,,species,Hawaii
+AQS:16-001-0010,CSN,1,Meridian - St. Luke'S,43.600699,-116.347853,,US,North America,,,species,Idaho
+AQS:16-023-0101,IMPROVE,1,Craters Of The Moon Nm,43.460556,-113.562222,,US,North America,rural,,species,Idaho
+AQS:16-037-0002,IMPROVE,1,Sawtooth Nf,44.170385,-114.928034,,US,North America,rural,,species,Idaho
+AQS:17-019-1001,IMPROVE,1,Isws Climate Station,40.05278,-88.37251,,US,North America,rural,,species,Illinois
+AQS:17-031-0076,CSN,1,Com Ed Maintenance Bldg,41.7514,-87.713488,,US,North America,,,species,Illinois
+AQS:17-031-4201,CSN,1,Northbrook Water Plant,42.139996,-87.799227,,US,North America,,,species,Illinois
+AQS:18-037-2001,CSN,1,Jasper Po,38.391799,-86.929668,,US,North America,,,species,Indiana
+AQS:18-065-0003,CSN,1,Mechanicsburg- Shenandoah Hs/ Behind The Football Field,40.009544,-85.52347,,US,North America,,,species,Indiana
+AQS:18-097-0078,CSN,1,Indpls- Washington Park/  In Parking Lot Next To Police Station,39.810833,-86.114444,,US,North America,,,species,Indiana
+AQS:19-137-0002,IMPROVE,1,Viking Lake State Park,40.969112,-95.044951,,US,North America,rural,,species,Iowa
+AQS:19-163-0015,CSN,1,"Davenport, Jefferson Sch.",41.530011,-90.587611,,US,North America,,,species,Iowa
+AQS:19-177-0006,IMPROVE,1,Lake Sugema State Park Ii,40.695078,-92.006318,,US,North America,rural,,species,Iowa
+AQS:20-017-0001,IMPROVE,1,Tallgrass,38.434141,-96.5605,,US,North America,rural,,species,Kansas
+AQS:20-195-0001,IMPROVE,1,Cedar Bluff,38.770081,-99.763424,,US,North America,rural,,species,Kansas
+AQS:20-209-0021,CSN,1,Jfk,39.117219,-94.635605,,US,North America,,,species,Kansas
+AQS:21-061-0501,IMPROVE,1,Mammoth Cave Np,37.13179,-86.142953,,US,North America,rural,,species,Kentucky
+AQS:21-111-0067,CSN,1,Cannons Lane,38.22876,-85.65452,,US,North America,,,species,Kentucky
+AQS:22-033-0009,CSN,1,Capitol,30.461981,-91.179219,,US,North America,,,species,Louisiana
+AQS:22-071-9000,IMPROVE,1,Breton Island,30.108633,-89.761683,,US,North America,rural,,species,Louisiana
+AQS:23-003-1020,IMPROVE,1,Presque Isle,46.69634,-68.032614,,US,North America,rural,,species,Maine
+AQS:23-005-9002,IMPROVE,1,Casco Bay,43.832458,-70.063815,,US,North America,rural,,species,Maine
+AQS:23-009-0103,IMPROVE,1,Mcfarland Hill Air Pollutant Research Site,44.37705,-68.2609,,US,North America,rural,,species,Maine
+AQS:23-019-9000,IMPROVE,1,Penobscot,44.94798,-68.64788,,US,North America,rural,,species,Maine
+AQS:23-029-1004,IMPROVE,1,Moosehorn Nwr,45.125837,-67.265408,,US,North America,rural,,species,Maine
+AQS:24-005-3001,CSN,1,Essex,39.310833,-76.474444,,US,North America,,,species,Maryland
+AQS:24-023-0002,IMPROVE,1,Piney Run,39.70595,-79.012,,US,North America,rural,,species,Maryland
+AQS:24-033-0030,CSN,1,Hu-Beltsville,39.055277,-76.878333,,US,North America,,,species,Maryland
+AQS:25-001-0002,IMPROVE,1,Truro National Seashore,41.975804,-70.023598,,US,North America,rural,,species,Massachusetts
+AQS:25-007-0001,IMPROVE,1,"1 Herring Creek Rd, Aquinnah (Wampanoag Tribal Site)",41.330469,-70.785225,,US,North America,rural,,species,Massachusetts
+AQS:25-013-0008,CSN,1,Westover Afb,42.19438,-72.555112,,US,North America,,,species,Massachusetts
+AQS:25-025-0042,CSN,1,Dudley Square Roxbury,42.3295,-71.0826,,US,North America,,,species,Massachusetts
+AQS:26-081-0020,CSN,1,Gr-Monroe,42.984173,-85.671339,,US,North America,,,species,Michigan
+AQS:26-083-9000,IMPROVE,1,Isle Royale Np,47.9167,-89.150075,,US,North America,rural,,species,Michigan
+AQS:26-153-0001,IMPROVE,1,"Seney National Wildlife Refuge, Germfask, Mi",46.288877,-85.950227,,US,North America,rural,,species,Michigan
+AQS:26-163-0001,CSN,1,Allen Park,42.228611,-83.208333,,US,North America,,,species,Michigan
+AQS:27-003-1002,CSN,1,Anoka County Airport,45.13768,-93.207615,,US,North America,,,species,Minnesota
+AQS:27-053-0963,CSN,1,Andersen School,44.95366,-93.25821,,US,North America,,,species,Minnesota
+AQS:27-075-0005,IMPROVE,1,Boundary Waters,47.948622,-91.495574,,US,North America,rural,,species,Minnesota
+AQS:27-137-0034,IMPROVE,1,Voyageurs Np #2,48.41252,-92.829225,,US,North America,rural,,species,Minnesota
+AQS:27-169-9000,IMPROVE,1,Great River Bluffs,43.937299,-91.405348,,US,North America,rural,,species,Minnesota
+AQS:28-049-0020,CSN,1,Jackson Ncore,32.329111,-90.182722,,US,North America,,,species,Mississippi
+AQS:29-207-0001,IMPROVE,1,Mingo,36.970052,-90.1401,,US,North America,rural,,species,Missouri
+AQS:29-213-0003,IMPROVE,1,Hercules-Glades,36.613879,-92.92228,,US,North America,rural,,species,Missouri
+AQS:29-510-0085,CSN,1,Blair Street,38.656429,-90.198348,,US,North America,,,species,Missouri
+AQS:30-027-9000,IMPROVE,1,Ul Bend,47.582225,-108.720383,,US,North America,rural,,species,Montana
+AQS:30-029-8001,IMPROVE,1,Glacier Np,48.5103,-113.99681,,US,North America,rural,,species,Montana
+AQS:30-047-9000,IMPROVE,1,Flathead,47.773283,-114.269975,,US,North America,rural,,species,Montana
+AQS:30-049-0004,CSN,1,Ncore - Sieben Flats,46.8505,-111.987164,,US,North America,,,species,Montana
+AQS:30-049-9000,IMPROVE,1,Gates Of The Mountains,46.826103,-111.711573,,US,North America,rural,,species,Montana
+AQS:30-077-9000,IMPROVE,1,Monture,47.122091,-113.155326,,US,North America,rural,,species,Montana
+AQS:30-081-9000,IMPROVE,1,Sula Peak,45.859686,-114.001032,,US,North America,rural,,species,Montana
+AQS:30-085-9000,IMPROVE,1,Fort Peck,48.30795,-105.102866,,US,North America,rural,,species,Montana
+AQS:30-087-0762,IMPROVE,1,Northern Cheyenne,45.648328,-106.557247,,US,North America,rural,,species,Montana
+AQS:30-089-9000,IMPROVE,1,Cabinet Mountains,47.954771,-115.671925,,US,North America,rural,,species,Montana
+AQS:30-091-9000,IMPROVE,1,Medicine Lake,48.487054,-104.476346,,US,North America,rural,,species,Montana
+AQS:31-055-0019,CSN,1,4102 Woolworth Ave. On Healthcenter Warehouse,41.247486,-95.973142,,US,North America,,,species,Nebraska
+AQS:31-171-9000,IMPROVE,1,Nebraska Nf,41.888789,-100.339141,,US,North America,rural,,species,Nebraska
+AQS:32-003-0540,CSN,1,Jerome Mack-Ncore,36.141875,-115.078742,,US,North America,,,species,Nevada
+AQS:32-007-9000,IMPROVE,1,Jarbidge Wilderness,41.892499,-115.427015,,US,North America,rural,,species,Nevada
+AQS:32-031-0031,CSN,1,Reno4,39.521933,-119.7954,,US,North America,,,species,Nevada
+AQS:32-033-0101,IMPROVE,1,Great Basin Np,39.00512,-114.21593,,US,North America,rural,,species,Nevada
+AQS:33-007-4002,IMPROVE,1,"Camp Dodge, Greens Grant",44.308132,-71.217639,,US,North America,rural,,species,New Hampshire
+AQS:33-011-5001,IMPROVE,1,Miller State Park,42.86183,-71.878626,,US,North America,rural,,species,New Hampshire
+AQS:33-015-0018,IMPROVE,1,Moosehill School,42.862531,-71.38014,,US,North America,rural,,species,New Hampshire
+AQS:34-001-0006,IMPROVE,1,Brigantine,39.464872,-74.448736,,US,North America,rural,,species,New Jersey
+AQS:34-013-0003,CSN,1,Newark Firehouse,40.720989,-74.192892,,US,North America,,,species,New Jersey
+AQS:34-023-0011,CSN,1,Rutgers University,40.462182,-74.429439,,US,North America,,,species,New Jersey
+AQS:34-039-0004,CSN,1,Elizabeth Lab,40.64144,-74.208365,,US,North America,,,species,New Jersey
+AQS:35-001-0023,CSN,1,Del Norte High School,35.1343,-106.5852,,US,North America,,,species,New Mexico
+AQS:35-003-9000,IMPROVE,1,Gila Wilderness,33.220502,-108.235719,,US,North America,rural,,species,New Mexico
+AQS:35-005-9000,IMPROVE,1,Salt Creek,33.459914,-104.404711,,US,North America,rural,,species,New Mexico
+AQS:35-015-3001,IMPROVE,1,Carlsbad Caverns,32.1783,-104.4406,,US,North America,rural,,species,New Mexico
+AQS:35-027-9000,IMPROVE,1,White Mountain,33.468809,-105.535444,,US,North America,rural,,species,New Mexico
+AQS:35-028-1002,IMPROVE,1,Bandelier Nm,35.804193,-106.298639,,US,North America,rural,,species,New Mexico
+AQS:35-039-9000,IMPROVE,1,San Pedro Parks,36.013945,-106.845299,,US,North America,rural,,species,New Mexico
+AQS:35-053-9000,IMPROVE,1,Bosque Del Apache,33.869593,-106.852584,,US,North America,rural,,species,New Mexico
+AQS:35-055-9000,IMPROVE,1,Wheeler Peak,36.58544,-105.452563,,US,North America,rural,,species,New Mexico
+AQS:36-005-0110,CSN,1,Is 52,40.816,-73.902,,US,North America,,,species,New York
+AQS:36-029-0005,CSN,1,Buffalo,42.876907,-78.809526,,US,North America,,,species,New York
+AQS:36-055-1007,CSN,1,Rochester 2,43.14618,-77.54817,,US,North America,,,species,New York
+AQS:36-081-0124,CSN,1,Queens College 2,40.73614,-73.82153,,US,North America,,,species,New York
+AQS:36-101-0003,CSN,1,Pinnacle State Park,42.09142,-77.20978,,US,North America,,,species,New York
+AQS:37-011-0002,IMPROVE,1,Linville Falls,35.972347,-81.933072,,US,North America,rural,,species,North Carolina
+AQS:37-087-0035,IMPROVE,1,Frying Pan Mountain,35.379167,-82.7925,,US,North America,rural,,species,North Carolina
+AQS:37-095-9000,IMPROVE,1,Swanquarter,35.45109,-76.207165,,US,North America,rural,,species,North Carolina
+AQS:37-119-0041,CSN,1,Garinger High School,35.2401,-80.785683,,US,North America,,,species,North Carolina
+AQS:37-183-0014,CSN,1,Millbrook School,35.856111,-78.574167,,US,North America,,,species,North Carolina
+AQS:38-007-0002,IMPROVE,1,Painted Canyon,46.8943,-103.37853,,US,North America,rural,,species,North Dakota
+AQS:38-013-0004,IMPROVE,1,Lostwood Nwr,48.64193,-102.4018,,US,North America,rural,,species,North Dakota
+AQS:38-015-0003,CSN,1,Bismarck Residential,46.825425,-100.76821,,US,North America,,,species,North Dakota
+AQS:39-035-0060,CSN,1,Gt Craig Ncore Pams,41.492117,-81.678449,,US,North America,,,species,Ohio
+AQS:39-061-0040,CSN,1,Taft Ncore Pams,39.12886,-84.50404,,US,North America,,,species,Ohio
+AQS:39-113-0038,CSN,1,Sinclair,39.755969,-84.198674,,US,North America,,,species,Ohio
+AQS:39-121-8001,IMPROVE,1,Quaker City,39.940029,-81.3387,,US,North America,rural,,species,Ohio
+AQS:39-135-1001,CSN,1,Preble Ncore,39.83562,-84.720524,,US,North America,,,species,Ohio
+AQS:40-001-9009,IMPROVE,1,Stilwell,35.750735,-94.669697,,US,North America,rural,,species,Oklahoma
+AQS:40-031-9000,IMPROVE,1,Wichita Mountains,34.732404,-98.713351,,US,North America,rural,,species,Oklahoma
+AQS:40-053-9000,IMPROVE,1,Southern Great Plains,36.61,-97.49,,US,North America,rural,,species,Oklahoma
+AQS:40-143-1127,CSN,1,Tulsa Central,36.204902,-95.976537,,US,North America,,,species,Oklahoma
+AQS:41-005-0102,IMPROVE,1,Government Camp - Multorpor/Ski Bowl (Mul),45.28845,-121.782775,,US,North America,rural,,species,Oregon
+AQS:41-033-0010,IMPROVE,1,Cave Junction - Illinois Valley Airport (Iva),42.104278,-123.681083,,US,North America,rural,,species,Oregon
+AQS:41-035-8001,IMPROVE,1,Crater Lake Np,42.909851,-122.140861,,US,North America,rural,,species,Oregon
+AQS:41-039-0070,IMPROVE,1,Three Sisters Wilderness,44.19982,-122.044547,,US,North America,rural,,species,Oregon
+AQS:41-051-0080,CSN,1,Portland - Se Lafayette St (Sel),45.496641,-122.602877,,US,North America,,,species,Oregon
+AQS:41-061-0010,IMPROVE,1,Starkey,45.224748,-118.513962,,US,North America,rural,,species,Oregon
+AQS:41-063-0002,IMPROVE,1,Hells Canyon,45.079864,-116.844808,,US,North America,rural,,species,Oregon
+AQS:42-003-0008,CSN,1,Lawrenceville,40.46542,-79.960757,,US,North America,,,species,Pennsylvania
+AQS:42-101-0048,CSN,1,North East Waste (New),39.991389,-75.080833,,US,North America,,,species,Pennsylvania
+AQS:44-007-1010,CSN,1, Francis School East Providence,41.841039,-71.36097,,US,North America,,,species,Rhode Island
+AQS:45-019-0046,IMPROVE,1,Cape Romain,32.941023,-79.657187,,US,North America,rural,,species,South Carolina
+AQS:45-079-0007,CSN,1,Parklane,34.093959,-80.962304,,US,North America,,,species,South Carolina
+AQS:46-033-0132,IMPROVE,1,Wind Cave,43.55764,-103.48386,,US,North America,rural,,species,South Dakota
+AQS:46-071-0001,IMPROVE,1,South Of Badlands Np Headquarters,43.74561,-101.941218,,US,North America,rural,,species,South Dakota
+AQS:47-009-0101,IMPROVE,1,Great Smoky Mountains Np,35.63348,-83.941606,,US,North America,rural,,species,Tennessee
+AQS:47-157-0075,CSN,1,Memphis Ncore Site,35.151699,-89.850249,,US,North America,,,species,Tennessee
+AQS:48-043-0101,IMPROVE,1,Big Bend Np,29.30265,-103.17781,,US,North America,rural,,species,Texas
+AQS:48-109-0101,IMPROVE,1,Guadalupe Mountain Np,31.83345,-104.810224,,US,North America,rural,,species,Texas
+AQS:48-113-0069,CSN,1,Dallas Hinton,32.820061,-96.860117,,US,North America,,,species,Texas
+AQS:48-141-0044,CSN,1,El Paso Chamizal,31.765684,-106.455227,,US,North America,,,species,Texas
+AQS:48-201-1039,CSN,1,Houston Deer Park #2,29.670552,-95.129933,,US,North America,,,species,Texas
+AQS:49-005-0007,CSN,1,Smithfield,41.842649,-111.852199,,US,North America,,,species,Utah
+AQS:49-011-0004,CSN,1,Bountiful Viewmont,40.902967,-111.884467,,US,North America,,,species,Utah
+AQS:49-017-0101,IMPROVE,1,Bryce Canyon Np,37.618383,-112.174368,,US,North America,rural,,species,Utah
+AQS:49-035-3006,CSN,1,Hawthorne,40.736389,-111.872222,,US,North America,,,species,Utah
+AQS:49-037-0101,IMPROVE,1,Canyonlands Np,38.45832,-109.82126,,US,North America,rural,,species,Utah
+AQS:49-047-9000,IMPROVE,1,Dinosaur Nm,40.44,-109.3,,US,North America,rural,,species,Utah
+AQS:49-049-4001,CSN,1,Lindon,40.341389,-111.713611,,US,North America,,,species,Utah
+AQS:49-053-0130,IMPROVE,1,Zion Canyon,37.1983,-113.1506,,US,North America,rural,,species,Utah
+AQS:49-055-9000,IMPROVE,1,Capitol Reef Np,38.302177,-111.293349,,US,North America,rural,,species,Utah
+AQS:50-007-0007,IMPROVE,1,Proctor Maple Research Ctr,44.52839,-72.86884,,US,North America,rural,,species,Vermont
+AQS:50-007-0012,CSN,1,Zampieri State Office Building,44.480278,-73.214444,,US,North America,,,species,Vermont
+AQS:50-025-9000,IMPROVE,1,Lye Brook Wilderness,42.9561,-72.9098,,US,North America,rural,,species,Vermont
+AQS:51-087-0014,CSN,1,Mathscience Innovation Center,37.55652,-77.40027,,US,North America,,,species,Virginia
+AQS:51-113-0003,IMPROVE,1,Shenandoah Np,38.5231,-78.43471,,US,North America,rural,,species,Virginia
+AQS:51-163-0003,IMPROVE,1,Natural Bridge Ranger Station,37.62668,-79.51257,,US,North America,rural,,species,Virginia
+AQS:53-009-0013,IMPROVE,1,Cheeka Peak,48.29786,-124.62491,,US,North America,rural,,species,Washington
+AQS:53-009-0020,IMPROVE,1,Olympic,48.006295,-122.973953,,US,North America,rural,,species,Washington
+AQS:53-033-0080,CSN,1,Seattle - Beacon Hill,47.568236,-122.308628,,US,North America,,,species,Washington
+AQS:53-037-0004,IMPROVE,1,Snoqualmie Pass,47.399815,-121.427096,,US,North America,rural,,species,Washington
+AQS:53-039-0003,IMPROVE,1,Columbia River Gorge,45.666204,-121.000708,,US,North America,rural,,species,Washington
+AQS:53-041-0007,IMPROVE,1,White Pass,46.624184,-121.388064,,US,North America,rural,,species,Washington
+AQS:53-047-0012,IMPROVE,1,Pasayten,48.387531,-119.928671,,US,North America,rural,,species,Washington
+AQS:53-053-0029,CSN,1,Tacoma - L Street,47.1864,-122.4517,,US,North America,,,species,Washington
+AQS:53-053-1010,IMPROVE,1,Mount Rainier Np,46.75838,-122.12429,,US,North America,rural,,species,Washington
+AQS:53-073-0022,IMPROVE,1,North Cascades,48.73142,-121.065815,,US,North America,rural,,species,Washington
+AQS:54-039-0020,CSN,1,Dixie St.,38.346258,-81.621161,,US,North America,,,species,West Virginia
+AQS:54-093-9000,IMPROVE,1,Dolly Sods Wilderness,39.105336,-79.425851,,US,North America,rural,,species,West Virginia
+AQS:55-027-0001,CSN,1,Horicon Wildlife Area,43.46611,-88.62111,,US,North America,,,species,Wisconsin
+AQS:55-041-0007,IMPROVE,1,Potawatomi,45.56498,-88.80859,,US,North America,rural,,species,Wisconsin
+AQS:56-021-0100,CSN,1,Cheyenne Ncore,41.182227,-104.778334,,US,North America,,,species,Wyoming
+AQS:56-029-9002,IMPROVE,1,North Absaroka,44.744723,-109.382366,,US,North America,rural,,species,Wyoming
+AQS:56-035-9000,IMPROVE,1,Bridger Wilderness,42.974831,-109.758655,,US,North America,rural,,species,Wyoming
+AQS:56-035-9001,IMPROVE,1,Boulder Lake,42.846483,-109.639733,,US,North America,rural,,species,Wyoming
+AQS:56-039-9000,IMPROVE,1,Yellowstone Np,44.565217,-110.400996,,US,North America,rural,,species,Wyoming
+AQS:78-020-0001,IMPROVE,1,Virgin Islands Np,18.334399,-64.795972,,US,North America,rural,,species,Virgin Islands
