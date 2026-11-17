@@ -153,7 +153,7 @@ function renderPanel() {
     </div>
     <div class="legend" id="legend"></div>
     <div class="chart" id="chart"></div>
-    <p class="note">Daily values are local-standard-time days (GHAP daily: UTC days). O3 daily = MDA8 (CAMS 3-hourly: daily max of instants).
+    <p class="note">Daily values are local-standard-time days (GHAP daily: UTC days). O3 daily = MDA8.
       Products are bilinear from the 4 surrounding pixels. ${state.agg === 'daily' ? 'The chart opens on the last three years: drag to zoom, double-click for the full record.' : 'Monthly means need ≥ 75 % of days; ACAG and GHAP-monthly are monthly products.'}</p>
     <div id="hourly"></div>
     <h3>Skill for this variable</h3>
@@ -246,7 +246,7 @@ function drawHourly(v) {
   const hv = { ...v, obs: [v.key === 'smoke' ? 'pm25' : v.hourly], prod: [v.hourly] }
   const srcs = sourcesFor(hv, cols)
   if (!srcs.length) { el.innerHTML = `<p class="muted">No hourly series for this variable in ${state.hourlyYear}.</p>`; return }
-  el.innerHTML = `<h3>Hourly, ${state.hourlyYear} (UTC, end of hour; CAMS/HAQES 3-hourly)</h3><div class="chart" id="hchart"></div>`
+  el.innerHTML = `<h3>Hourly, ${state.hourlyYear} (UTC, end of hour; HAQES and GEOS-FP 3-hourly)</h3><div class="chart" id="hchart"></div>`
   if (hplot) hplot.destroy()
   hplot = makePlot(el.querySelector('#hchart'), Array.from(t, (h) => h * 3600), srcs.map(({ col }) => cols[col]), srcs, v.units, true, 30)
 }
@@ -322,8 +322,8 @@ function renderAbout() {
     <h2>Sites</h2><ul class="note">
       <li><b>Tier 1</b>: US EPA AQS continuous monitors (PM2.5, PM10, O3, NO2; ≥ 75 % complete in ≥ 4 of 2018–2023; one per 0.25° cell), 24-h FRM PM2.5 filters, and IMPROVE/CSN speciation filters.</li>
       <li><b>Tier 2</b>: US State Department embassy/consulate PM2.5 monitors (AirNow) and SPARTAN (nephelometer-based hourly PM2.5).</li>
-      <li><b>Tier 3</b>: Sensor.Community low-cost optical sensors, 2023–2024, hours with RH > 75 % dropped, κ-Köhler humidity correction (κ = 0.4).</li>
-      <li><b>Tier 4</b>: ~90 land points far from known monitors, stratified by region × ACAG PM2.5 class; products vs the median of the others.</li>
+      <li><b>Tier 3</b>: Sensor.Community low-cost optical sensors, 2023–2024, raw PM2.5 with hours above 75 % RH dropped (a κ-Köhler correction, κ = 0.4, is kept as pm25_kappa; these sensors already read ~40 % low against co-located monitors).</li>
+      <li><b>Tier 4</b>: 92 land points far from known monitors, stratified by region × ACAG PM2.5 class; products vs the median of the others.</li>
     </ul><p class="note">See the experiment README for methods, caveats and how to reproduce.</p></div>`
 }
 
