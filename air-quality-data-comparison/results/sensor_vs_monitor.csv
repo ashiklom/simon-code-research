@@ -1,0 +1,13 @@
+site,reference_site,product,scale,n,mean_obs,mean_prod,bias,nmb,r
+SC:35400,AQS:41-067-0111,sensor_pm25,hourly,1516,5.07,2.581,-2.489,-0.491,0.978
+SC:35400,AQS:41-067-0111,sensor_pm25_raw,hourly,17378,4.466,2.767,-1.698,-0.38,0.907
+SC:35400,AQS:41-067-0111,sensor_pm25_raw,daily,722,4.456,2.756,-1.699,-0.381,0.95
+SC:35400,AQS:41-067-0111,sensor_pm25_kappa,hourly,1513,5.076,1.601,-3.475,-0.685,0.966
+SC:27734,EMB:Chisinau,sensor_pm25_raw,hourly,2372,24.362,14.175,-10.187,-0.418,0.837
+SC:27734,EMB:Chisinau,sensor_pm25_raw,daily,97,24.525,14.34,-10.185,-0.415,0.872
+SC:21086,EMB:BanjaLuka,sensor_pm25,hourly,1662,17.131,6.79,-10.341,-0.604,0.795
+SC:21086,EMB:BanjaLuka,sensor_pm25_raw,hourly,15928,32.759,10.813,-21.946,-0.67,0.802
+SC:21086,EMB:BanjaLuka,sensor_pm25_raw,daily,646,32.416,10.767,-21.65,-0.668,0.956
+SC:21086,EMB:BanjaLuka,sensor_pm25_kappa,hourly,1662,17.131,5.784,-11.347,-0.662,0.716
+SC:36218,AQS:06-001-0007,sensor_pm25_raw,hourly,7974,6.484,5.554,-0.93,-0.142,0.325
+SC:36218,AQS:06-001-0007,sensor_pm25_raw,daily,325,6.53,5.611,-0.919,-0.141,0.772
