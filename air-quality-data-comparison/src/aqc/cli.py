@@ -35,6 +35,13 @@ def cmd_obs(a):
         elif net == "spartan":
             from .obs import spartan
             ingest.write("SPARTAN", "1h", {"pm25": spartan.hourly(sites.load("spartan"))}, store_url=a.store, log=_log)
+        elif net == "airnow":
+            import pandas as pd
+
+            from .obs import airnow
+            frames = airnow.hourly(sites.load("aqs"), pd.Timestamp("2025-07-01"),
+                                   pd.Timestamp.now().floor("h") - pd.Timedelta(hours=2), log=_log)
+            ingest.write("AirNow", "1h", frames, attrs={"status": "preliminary (unvalidated)"}, store_url=a.store, log=_log)
         elif net == "lowcost":
             from .obs import lowcost
             ingest.write("SensorCommunity", "1h", lowcost.hourly(sites.load("sensorcommunity"), log=_log),

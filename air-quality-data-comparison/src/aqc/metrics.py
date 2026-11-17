@@ -19,7 +19,7 @@ from . import analysis as A
 from . import config
 
 WINDOWS = {"full": (None, None), "common": config.W_COMMON, "recent": config.W_RECENT, "v1v2": config.W_V1V2}
-MIN_N = {"hourly": 24 * 60, "daily": 60, "monthly": 12, "filter": 30}
+MIN_N = {"hourly": 24 * 60, "daily": 60, "monthly": 12, "filter": 30, "smoke": 5}
 GASES = ("o3", "no2")
 PM_THRESH = {"pm25": (15.0, 35.0), "pm25_frm": (15.0, 35.0), "o3_mda8": (70.0,)}
 AQI_PM25 = [0, 9.05, 35.45, 55.45, 125.45, 225.45, np.inf]  # US AQI 24-h PM2.5 breakpoints (2024)
@@ -109,7 +109,7 @@ def compute(o: pd.Series, p: pd.Series, scale: str, var: str) -> dict | None:
     if len(j) < MIN_N[scale]:
         return None
     m = _cont(j.o.values, j.p.values)
-    if scale in ("daily", "filter"):
+    if scale in ("daily", "filter", "smoke"):
         m.update(_exceed(j.o.values, j.p.values, var))
     m["n"] = len(j)
     m["start"], m["end"] = j.index[0], j.index[-1]
@@ -135,6 +135,15 @@ def site_obs(site: pd.Series, root: str | None = None) -> dict:
     out = {"hourly": None, "daily": None, "frm": None, "species": None}
     if net:
         h = A.obs_series(net, site.site_id, "1h", root)
+        if net == "AQS":  # preliminary AirNow fills the months AQS has not released yet
+            an = A.obs_series("AirNow", site.site_id, "1h", root)
+            if an is not None and not an.empty:
+                if h is not None and not h.empty:
+                    an = an[an.index > h.dropna(how="all").index.max()]
+                    h = pd.concat([h, an]).sort_index()
+                    h = h[~h.index.duplicated()]
+                else:
+                    h = an
         if h is not None and not h.empty:
             out["hourly"] = h
             d = A.daily(h.drop(columns=[c for c in h if c in ("o3", "rh", "pm25_raw")], errors="ignore"), off)
@@ -177,11 +186,23 @@ def _product_scales(df: pd.DataFrame, off: float):
     return [("daily", df)], ("UTC" if day_def.upper().startswith("UTC") else "LST")
 
 
+SMOKE_DAY = 20.0  # HRRR-Smoke daily-mean near-surface smoke (ug m-3) defining a smoke day
+
+
+def smoke_days(site: pd.Series, off: float, root: str | None = None) -> pd.DatetimeIndex | None:
+    s = A.product_series("hrrr_smoke", site.site_id, root, "bilinear")
+    if s is None or "pm25_smoke" not in s:
+        return None
+    d = A.daily(s[["pm25_smoke"]], off, 1.0, "instant")["pm25_smoke"]
+    return d.index[d >= SMOKE_DAY]
+
+
 def site_metrics(site: pd.Series, products: list[str], root: str | None = None) -> list[dict]:
     obs = site_obs(site, root)
     if all(v is None for v in obs.values()):
         return []
     off = A.site_offset(site)
+    smoke = smoke_days(site, off, root) if site.network == "AQS" else None
     obs_utc_daily = None
     rows = []
     for name in products:
@@ -233,8 +254,15 @@ def site_metrics(site: pd.Series, products: list[str], root: str | None = None) 
                             if v in osm:
                                 pairs.append((osm[v], spp[v], f"spec_{v}", "monthly"))
                 for o, p, v, sc in pairs:
-                    for w in _windows_for(name):
-                        m = compute(_window(o, w), _window(p, w), "filter" if sc == "filter" else sc, v)
+                    wins = _windows_for(name)
+                    if smoke is not None and len(smoke) and sc in ("daily", "filter") and v in ("pm25", "pm25_frm"):
+                        wins = wins + ["smoke"]
+                    for w in wins:
+                        if w == "smoke":
+                            oo, pp = o[o.index.isin(smoke)], p[p.index.isin(smoke)]
+                            m = compute(oo, pp, "smoke", v)
+                        else:
+                            m = compute(_window(o, w), _window(p, w), "filter" if sc == "filter" else sc, v)
                         if m is None:
                             continue
                         if sc == "filter":
