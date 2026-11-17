@@ -24,7 +24,92 @@ Site: https://ashiklom.github.io/simon-code-research/air-quality-data-comparison
 
 ## Key results
 
-KEY_RESULTS_PLACEHOLDER
+Unless stated otherwise, numbers are medians across sites. They use daily values, bilinear
+interpolation and the common window 2018–2023. The full tables, including the recent window,
+Tier 3 and components, are in [`results/key_tables.md`](results/key_tables.md). The other
+summaries are in `results/summary_by_{tier,region,network,setting}.csv`, and
+`data/results/metrics_all.parquet` (267,652 rows) has every site.
+
+![Median daily r and normalized mean bias at US reference monitors](results/figures/heatmap_tier1_common.png)
+
+**Tier 1, US reference monitors (774 AQS PM2.5 sites, 947 O3, 317 NO2).** ¹ marks products
+that use surface monitors (see [Dependence](#dependence)).
+
+| Product | PM2.5 r | PM2.5 NMB | PM2.5 RMSE (µg m⁻³) | CSI > 35 | AQI category agreement | Monthly PM2.5 r | O3 MDA8 r | O3 MDA8 NMB |
+|---|---|---|---|---|---|---|---|---|
+| GHAP ¹ (2018–2022) | **0.92** | +11 % | **2.4** | **0.50** | **0.88** | **0.96** | – | – |
+| ACAG V6 ¹ (monthly) | – | – | – | – | – | 0.79 | – | – |
+| NAQFC bias-corrected ¹ | 0.61 | +3 % | 5.3 | 0.12 | 0.79 | 0.92 | **0.79** | 0 % |
+| HAQES ¹ (2022 →) | 0.65 | −4 % | 5.1 | 0.20 | 0.77 | 0.74 | – | – |
+| MERRA-2 CNN ¹ | 0.60 | −18 % | 5.3 | 0.00 | 0.77 | 0.64 | – | – |
+| NAQFC raw | 0.52 | −4 % | 6.5 | 0.10 | 0.74 | 0.49 | 0.73 | +2 % |
+| MERRA-2 | 0.57 | +62 % | 9.3 | 0.14 | 0.58 | 0.70 | – | – |
+| MERRA-2 GMI | 0.48 | +51 % | 7.6 | 0.14 | 0.60 | 0.62 | – | – |
+| GEOS-CF v1 | 0.51 | +147 % | 18.0 | 0.02 | 0.42 | 0.51 | 0.68 | +24 % |
+
+- **Products trained on monitors score best, but on the same monitors.**
+  - **GHAP** reproduces daily PM2.5 at AQS almost perfectly: r 0.92 (0.96 against FRM
+    filters), RMSE 2.4 µg m⁻³. It was trained on these sites.
+  - At the embassies and SPARTAN, GHAP still leads (r 0.82, NMB +2 %), but many of those
+    monitors are in its training set too.
+  - **No independent model gets past daily r ≈ 0.6 for PM2.5 at US monitors.** GEOS-CF,
+    MERRA-2, GMI and raw NAQFC score r 0.48–0.57.
+- **GEOS-CF v1 PM2.5 is ~2.5× too high over the US.**
+  - NMB is +147 % at AQS (+175 % against FRM filters) and +211 % at the low-cost sensors.
+  - The bias is larger at rural (+166 %) than urban (+138 %) monitors, so it is not a
+    point-vs-grid effect.
+  - Elsewhere it is mixed: about 0 at the embassies in Africa and the Middle East,
+    +41 % in South Asia, +224 % in East Asia.
+- **GEOS-CF v2 fixes most of the PM2.5 bias.** Over their overlap (2025-08..2026-01,
+  `results/geoscf_v1_vs_v2.csv`), compared with v1:
+  - PM2.5 NMB +28 % against v1's +181 %; RMSE 5.1 against 16.0 µg m⁻³; r 0.62 against 0.59.
+  - O3 MDA8 r 0.83 against 0.76.
+  - NO2 flips from +27 % to −40 %.
+  - Its new PM10 is −46 % low.
+  - Components show where the remaining PM2.5 excess comes from: against IMPROVE/CSN,
+    nitrate is +153 % and ammonium +355 %, with sulfate +70 % and OM +50 %.
+- **The GOCART aerosol products (MERRA-2, GEOS-FP) overestimate US PM2.5 by 30–60 %**
+  (MERRA-2 +62 %; GEOS-FP +31 % over the recent window). They assimilate no surface PM.
+  - Against filters, the excess is mostly sulfate (MERRA-2 +171 %, GEOS-FP +197 %), sea
+    salt (+814 %, +395 %) and fine dust (+204 %, +121 %). MERRA-2 has no nitrate.
+  - MERRA-2 GMI adds nitrate (+13 %) but over-predicts ammonium (+239 %), and its PM2.5
+    NMB is +51 %.
+  - The bias-corrected **MERRA-2 CNN** removes most of the bias (−18 %) and raises r to 0.60.
+    It smooths peaks, though: at the median site it never reaches 35 µg m⁻³ when the
+    monitor does (CSI 0.00).
+- **Ozone: NAQFC is best.**
+  - MDA8 r is 0.79 with no bias for bias-corrected NAQFC, and 0.73 (+2 %) raw.
+  - GEOS-CF v1 is 0.68 with +24 % bias; it is high at most sites.
+  - The ozone exceedance skill at 70 ppb is in `summary_by_tier.csv` (`csi_70`).
+- **Smoke days** (AQS days with HRRR-Smoke ≥ 20 µg m⁻³; median 9–15 days per site, 412 sites):
+  - HRRR-Smoke's smoke-only PM2.5 matches total PM2.5 well: r 0.59, NMB +1 %.
+  - HAQES is the best non-GHAP product for exceedances (r 0.64, CSI 0.59 at 35 µg m⁻³).
+  - NAQFC under-predicts smoke (raw −37 %, bias-corrected −24 %). MERRA-2 CNN is −27 %.
+  - MERRA-2 (+142 %) and GEOS-CF v1 (+105 %) catch every exceedance but with many false alarms.
+- **Outside the US (Tier 2: 85 embassy and 19 SPARTAN monitors).**
+  - Independent models do about as well as in the US: daily r ≈ 0.3–0.5. GEOS-CF v1 is
+    0.51 with NMB +13 %; GEOS-CF v2 and GEOS-FP are 0.48 with −3 % and −2 %.
+  - Regional spread is large. GEOS-CF v1 r ranges from 0.30 in the Middle East to 0.71 in
+    East Asia. MERRA-2 CNN reaches 0.77 in South Asia.
+  - At the four Balkan/Moldovan embassies, every product is far too low: MERRA-2 CNN
+    −67 %, GHAP −43 %. Wintertime heating emissions are the likely gap.
+- **Low-cost sensors (Tier 3, 2023–2024).** Products look 15–210 % too high against the
+  Sensor.Community sensors, but most of that is the sensors. At 4 sensors near reference
+  monitors, the raw SDS011 reads 14–67 % low, with daily r 0.77–0.96
+  (`results/sensor_vs_monitor.csv`).
+- **Away from monitors (Tier 4, 92 remote points, monthly).** Products are compared with the
+  median of the others.
+
+  ![Tier 4 remote points](results/figures/heatmap_tier4_common.png)
+
+  - GEOS-CF v1 and MERRA-2 follow the ensemble's month-to-month variation best (r 0.80),
+    then GMI (0.76).
+  - The ML/satellite products diverge most. GHAP is 13 % below the others, ACAG 17 %
+    above, and MERRA-2 CNN 28 % below with the weakest agreement (r 0.51).
+  - Products agree on the timing of PM away from stations but disagree by ±15–30 % on its
+    level.
+- **Bilinear vs nearest pixel barely matters.** Bilinear gives lower daily PM2.5 RMSE at
+  55–74 % of AQS sites, by small margins.
 
 ## Data sources
 
@@ -35,7 +120,7 @@ Full rationale is in [PLAN.md](PLAN.md). All values are converted to UTC and sta
 |---|---|---|---|---|
 | GEOS-CF v1 (replay) | NASA SMCE public Zarr `s3://smce-geos-cf-public/geos-cf-rpl.zarr`, anonymous. Only the 50×50-pixel chunks holding sites are read | 0.25°, 1 h, 2018-01 → 2026-01-02 (end of v1) | PM2.5 (35 % RH), O3, NO2, CO | no |
 | GEOS-CF v2 (replay) | SMCE Zarr `geos-cf-v2-rpl.zarr` | 0.25°, 1 h, 2025-08-04 → 2026-11-01 | PM2.5, **PM10**, 8 PM2.5 components, O3, NO2, CO | no |
-| MERRA-2 aerosols | GES DISC `M2T1NXAER` daily files, HDF5 range reads of whole global fields (Earthdata login) | 0.5°×0.625°, 1 h, 2018-01 → 2026-0x | 7 GOCART species; PM2.5/PM10 computed (below) | no (AOD only) |
+| MERRA-2 aerosols | GES DISC `M2T1NXAER` daily files, HDF5 range reads of whole global fields (Earthdata login) | 0.5°×0.625°, 1 h, 2018-01 → 2026-10-01 | 7 GOCART species; PM2.5/PM10 computed (below) | no (AOD only) |
 | MERRA-2 GMI | NCCS portal `datashare/merra2_gmi` `tavg1_2d_aer_Nx` | 0.5°×0.625°, 1 h, 2018–2023 | PM2.5 incl. nitrate, NO3, NH4 | no |
 | MERRA-2 CNN (`MERRA2_CNN_HAQAST_PM25` V1) | GES DISC HAQAST daily files | 0.5°×0.625°, 1 h, 2018-01 → 2026-07 | bias-corrected PM2.5, QA flag | **yes**: trained on OpenAQ reference monitors (incl. AQS/AirNow, embassies) |
 | GEOS-FP aerosols | NCCS portal `tavg3_2d_aer_Nx` range reads | 0.3125°×0.25°, 3 h, 2025-08 → now | as MERRA-2, plus nitrate | no (MODIS AOD) |
@@ -83,7 +168,12 @@ Site lists are committed in `results/sites/`.
   - Station local times are converted with each site's standard UTC offset. Half-hour
     offsets (India, Myanmar, …) are rounded *up* to the hour.
 - **Lag check.** `results/lagcheck.csv` correlates hourly anomalies of each product with AQS at
-  lags of −3..+3 h. LAGCHECK_PLACEHOLDER
+  lags of −3..+3 h at 40 sites.
+  - O3, the variable with a sharp daily cycle, peaks at lag 0 for GEOS-CF v1, NAQFC and
+    NAQFC bias-corrected. GEOS-CF v2 is tied between −1 and 0.
+  - Hourly PM2.5 anomalies correlate only weakly (r 0.1–0.2), with flat peaks within ±1 h.
+  - HAQES (3-hourly instants) peaks at +1 h, as expected for an instant compared with the
+    hour ending at it. No timestamp errors were found.
 - **Daily values** are local-standard-time days with ≥ 18 of 24 hours, matching AQS daily
   summaries and the 24-h filters.
   - O3 uses the daily maximum 8-h average (MDA8). The 3-hourly products use the daily
@@ -150,7 +240,7 @@ observations at all.
 - **MERRA-2 GMI:**
   - Aerosols only, 2018–2023. Its gases were dropped: only daily-mean lowest-level O3/NO2
     are served, at ~40 h per pass.
-  - GMI_SKIPPED_PLACEHOLDER days whose files hold corrupt compressed chunks were skipped.
+  - 8 days whose files hold corrupt compressed chunks (repeatable zlib errors) were skipped.
 - **Other source changes:**
   - **IMPROVE/CSN** come from the AQS `daily_SPEC` files rather than FED (same data, no form
     interface).
@@ -202,11 +292,62 @@ Point everything at another backend with `--store` or `AQC_STORE`, for example
 
 ## Storage
 
-STORAGE_PLACEHOLDER
+- **Layout.** One Icechunk repository per product and per observation network
+  (`data/store/<kind>-<name>.icechunk`), Zarr v3.
+- **Arrays.** Each variable is an array `(site, stencil=4, time)` holding the four stencil
+  pixels plus their bilinear weights, chunked one site × one year (hourly).
+- **Compression.** Values are quantized to fixed absolute steps before pcodec:
+  - 0.01 µg m⁻³ for PM;
+  - 0.001 µg m⁻³ for components;
+  - 0.01 ppb for gases.
+- **Size.** All product extracts take **14 GB** for 11.8 × 10⁹ stored values (including
+  padding outside each product's span). The hourly products need 1.1–1.4 bytes per value:
+
+| Product | Variables | Size |
+|---|---|---|
+| MERRA-2 | 9 | 5.9 GB |
+| GEOS-CF v1 | 4 | 2.3 GB |
+| MERRA-2 GMI | 3 | 1.2 GB |
+| GEOS-CF v2 | 13 | 1.0 GB |
+| NAQFC raw / bias-corrected | 2 + 2 | 0.9 + 0.9 GB |
+| MERRA-2 CNN | 2 | 0.6 GB |
+| GEOS-FP (3 h, 15 months) | 10 | 0.4 GB |
+| HAQES (3 h) | 3 | 0.3 GB |
+| HRRR-Smoke | 1 | 0.2 GB |
+| GHAP, ACAG | 1, 9 | < 0.03 GB each (chunks) |
+
+- **Observations** take 200 MB: AQS 151 MB, AirNow 27 MB, the rest under 10 MB each.
+- **Local-filesystem overhead.** Icechunk's local storage keeps a copy of the repository
+  info file at every commit (`overwritten/`). GHAP's month-by-month runs made 2,800 commits,
+  so its 15 MB of chunks sit beside 130 MB of these copies. Object stores do not keep them.
+- **Extraction cost.** Wall time was:
+  - MERRA-2: 13.6 h, reading 17 GB of decoded fields;
+  - MERRA-2 GMI (2018–2023): about 6 h over several resumed runs;
+  - GEOS-FP: 2.7 h;
+  - HRRR-Smoke: 0.7 h per full pass;
+  - GEOS-CF: chunk reads for occupied tiles only.
+
+  Field products cost the same whatever the number of sites, because every site is
+  sampled from one read of each field.
 
 ## Publishing the site data
 
-PUBLISH_PLACEHOLDER
+The site's per-site Parquet and metrics JSON files (`mise run sitedata` → `site/public/data`)
+are not committed. `mise run pack-site` packs them into `site/site-data.tar`, which is uploaded
+as the asset of the GitHub release `air-quality-data-comparison` (listed in `publish.toml`).
+`mise run site` unpacks it before building, so CI only renders.
+
+Data files:
+
+| File | Content |
+|---|---|
+| `sites.json`, `products.json` | site and product metadata, with dependence notes |
+| `summary.json` | medians by tier, network and region |
+| `site/<id>/daily.parquet`, `monthly.parquet` | observations and every product, nearest and bilinear |
+| `site/<id>/hourly/2023.parquet` | one hourly year per site, loaded on demand |
+| `site/<id>/metrics.json` | all metrics for that site |
+
+Values are int32-scaled Parquet with delta encoding and ZSTD, read in the browser with hyparquet.
 
 ## Limitations
 
