@@ -14,6 +14,8 @@
 from __future__ import annotations
 
 import re
+import time
+import zlib
 
 import numpy as np
 import pandas as pd
@@ -59,9 +61,13 @@ class _GMI(_DailyFiles):
                 break
             except FileNotFoundError:
                 return None
-            except Exception:
+            except Exception as e:
                 if attempt == 3:
+                    if isinstance(e, zlib.error):  # a corrupt chunk in the file itself: skip the day
+                        print(f"[{self.name}] {url}: undecodable after 4 tries ({e}), day skipped", flush=True)
+                        return None
                     raise
+                time.sleep(10 * 2 ** attempt)
         raw = {s: sample_field(x[:, 0] if self.level else x, st).astype("f4") for s, x in a.items()}
         del a
         if self.freq == "1h":
