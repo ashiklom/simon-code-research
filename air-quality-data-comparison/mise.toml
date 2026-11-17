@@ -1,0 +1,8 @@
+[tools]
+python = "3.13"
+uv = "0.11"
+node = "22"
+
+[env]
+ICECHUNK_LOG = "error"
+UV_PYTHON_DOWNLOADS = "automatic"

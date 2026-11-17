@@ -1,0 +1,1310 @@
+site_id,network,tier,name,lat,lon,elev,country,region,setting,utc_offset,params,note
+AQS:04-013-0019,AQS,1,West Phoenix,33.48378,-112.14256,333.0,US,North America,suburban,-7,"pm25,pm10,o3,no2,pm25_frm",Arizona
+AQS:04-013-9997,AQS,1,Jlg Supersite,33.503833,-112.095767,346.0,US,North America,urban and center city,-7,"pm25,pm10,o3,no2,pm25_frm",Arizona
+AQS:06-025-0005,AQS,1,Calexico-Ethel Street,32.67618,-115.48307,1.0,US,North America,suburban,-8,"pm25,pm10,o3,no2,pm25_frm",California
+AQS:06-059-0007,AQS,1,Anaheim,33.83062,-117.93845,10.0,US,North America,suburban,-8,"pm25,pm10,o3,no2,pm25_frm",California
+AQS:06-065-8005,AQS,1,Mira Loma (Van Buren),33.99636,-117.4924,250.0,US,North America,suburban,-8,"pm25,pm10,o3,no2,pm25_frm",California
+AQS:11-001-0043,AQS,1,Mcmillan  Ncore-Pams,38.921847,-77.013178,50.0,US,North America,urban and center city,-5,"pm25,pm10,o3,no2,pm25_frm",District Of Columbia
+AQS:22-033-0009,AQS,1,Capitol,30.461981,-91.179219,14.0,US,North America,urban and center city,-6,"pm25,pm10,o3,no2,pm25_frm",Louisiana
+AQS:32-003-0540,AQS,1,Jerome Mack-Ncore,36.141875,-115.078742,610.0,US,North America,urban and center city,-8,"pm25,pm10,o3,no2,pm25_frm",Nevada
+AQS:35-001-0023,AQS,1,Del Norte High School,35.1343,-106.5852,1592.5,US,North America,urban and center city,-7,"pm25,pm10,o3,no2,pm25_frm",New Mexico
+AQS:37-067-0022,AQS,1,Hattie Avenue,36.11094,-80.224501,284.0,US,North America,urban and center city,-5,"pm25,pm10,o3,no2,pm25_frm",North Carolina
+AQS:39-035-0060,AQS,1,Gt Craig Ncore Pams,41.492117,-81.678449,206.0,US,North America,urban and center city,-5,"pm25,pm10,o3,no2,pm25_frm",Ohio
+AQS:39-061-0040,AQS,1,Taft Ncore Pams,39.12886,-84.50404,256.0,US,North America,urban and center city,-5,"pm25,pm10,o3,no2,pm25_frm",Ohio
+AQS:06-019-0011,AQS,1,Fresno - Garland,36.78538,-119.77321,96.0,US,North America,urban and center city,-8,"pm25,pm10,o3,no2,pm25_frm",California
+AQS:09-009-0027,AQS,1,Criscuolo Park-New Haven,41.3014,-72.902871,3.6,US,North America,urban and center city,-5,"pm25,pm10,o3,no2,pm25_frm",Connecticut
+AQS:13-089-0002,AQS,1,South Dekalb,33.6878,-84.2905,308.0,US,North America,suburban,-5,"pm25,pm10,o3,no2,pm25_frm",Georgia
+AQS:15-003-0010,AQS,1,Kapolei,21.323745,-158.088613,17.9,US,North America,suburban,-10,"pm25,pm10,o3,no2,pm25_frm",Hawaii
+AQS:18-089-0022,AQS,1,Gary-Iitri/ 1219.5 Meters East Of Tennessee St.- Old Ammuntion Bunker,41.606662,-87.304943,122.163,US,North America,urban and center city,-6,"pm25,pm10,o3,no2,pm25_frm",Indiana
+AQS:18-097-0078,AQS,1,Indpls- Washington Park/  In Parking Lot Next To Police Station,39.810833,-86.114444,230.0,US,North America,suburban,-5,"pm25,pm10,o3,no2,pm25_frm",Indiana
+AQS:21-111-0067,AQS,1,Cannons Lane,38.22876,-85.65452,127.0,US,North America,suburban,-5,"pm25,pm10,o3,no2,pm25_frm",Kentucky
+AQS:29-510-0085,AQS,1,Blair Street,38.656429,-90.198348,150.0,US,North America,urban and center city,-6,"pm25,pm10,o3,no2,pm25_frm",Missouri
+AQS:37-119-0041,AQS,1,Garinger High School,35.2401,-80.785683,232.0,US,North America,urban and center city,-5,"pm25,pm10,o3,no2,pm25_frm",North Carolina
+AQS:38-015-0003,AQS,1,Bismarck Residential,46.825425,-100.76821,580.0,US,North America,suburban,-6,"pm25,pm10,o3,no2,pm25_frm",North Dakota
+AQS:56-021-0100,AQS,1,Cheyenne Ncore,41.182227,-104.778334,15.0,US,North America,suburban,-7,"pm25,pm10,o3,no2,pm25_frm",Wyoming
+AQS:06-067-0010,AQS,1,Sacramento-1309 T Street,38.56844,-121.49311,0.0,US,North America,urban and center city,-8,"pm25,pm10,o3,no2,pm25_frm",California
+AQS:27-003-1002,AQS,1,Anoka County Airport,45.13768,-93.207615,280.0,US,North America,suburban,-6,"pm25,pm10,o3,no2,pm25_frm",Minnesota
+AQS:40-109-1037,AQS,1,Okc North,35.614131,-97.475083,353.84,US,North America,suburban,-6,"pm25,pm10,o3,no2,pm25_frm",Oklahoma
+AQS:40-143-1127,AQS,1,Tulsa Central,36.204902,-95.976537,198.12,US,North America,urban and center city,-6,"pm25,pm10,o3,no2,pm25_frm",Oklahoma
+AQS:20-209-0021,AQS,1,Jfk,39.117219,-94.635605,259.0,US,North America,urban and center city,-6,"pm25,pm10,o3,no2,pm25_frm",Kansas
+AQS:37-183-0014,AQS,1,Millbrook School,35.856111,-78.574167,100.0,US,North America,suburban,-5,"pm25,pm10,o3,no2,pm25_frm",North Carolina
+AQS:42-007-0014,AQS,1,Beaver Falls,40.747796,-80.316442,216.0,US,North America,urban and center city,-5,"pm25,pm10,o3,no2,pm25_frm",Pennsylvania
+AQS:42-101-0048,AQS,1,North East Waste (New),39.991389,-75.080833,22.0,US,North America,urban and center city,-5,"pm25,pm10,o3,no2,pm25_frm",Pennsylvania
+AQS:32-031-0031,AQS,1,Reno4,39.521933,-119.7954,1359.7128,US,North America,urban and center city,-8,"pm25,pm10,o3,no2,pm25_frm",Nevada
+AQS:06-029-0014,AQS,1,Bakersfield-California,35.356615,-119.062613,0.0,US,North America,urban and center city,-8,"pm25,o3,no2,pm25_frm",California
+AQS:18-163-0021,AQS,1,Evansville- Buena Vista,38.013333,-87.577222,116.0,US,North America,suburban,-6,"pm25,o3,no2,pm25_frm",Indiana
+AQS:51-087-0014,AQS,1,Mathscience Innovation Center,37.55652,-77.40027,58.5,US,North America,suburban,-5,"pm25,o3,no2,pm25_frm",Virginia
+AQS:06-037-1103,AQS,1,Los Angeles-North Main Street,34.06659,-118.22688,87.0,US,North America,urban and center city,-8,"pm25,o3,no2,pm25_frm",California
+AQS:06-101-0003,AQS,1,Yuba City,39.138773,-121.618549,20.0,US,North America,suburban,-8,"pm25,pm10,o3,no2",California
+AQS:33-015-0018,AQS,1,Moosehill School,42.862531,-71.38014,108.0,US,North America,suburban,-5,"pm25,o3,no2,pm25_frm",New Hampshire
+AQS:49-035-3006,AQS,1,Hawthorne,40.736389,-111.872222,1306.0,US,North America,suburban,-7,"pm25,o3,no2,pm25_frm",Utah
+AQS:49-049-4001,AQS,1,Lindon,40.341389,-111.713611,1442.0,US,North America,suburban,-7,"pm25,o3,no2,pm25_frm",Utah
+AQS:06-007-0008,AQS,1,Chico-East Avenue,39.76168,-121.84047,1.0,US,North America,suburban,-8,"pm25,pm10,o3,no2",California
+AQS:06-019-5001,AQS,1,Clovis-Villa,36.819449,-119.716433,86.0,US,North America,urban and center city,-8,"pm25,pm10,o3,no2",California
+AQS:09-003-1003,AQS,1,Mcauliffe Park,41.784722,-72.631667,15.0,US,North America,suburban,-5,"pm25,pm10,o3,no2",Connecticut
+AQS:25-025-0042,AQS,1,Dudley Square Roxbury,42.3295,-71.0826,6.0,US,North America,urban and center city,-5,"pm25,o3,no2,pm25_frm",Massachusetts
+AQS:48-201-1039,AQS,1,Houston Deer Park #2,29.670552,-95.129933,10.0,US,North America,urban and center city,-6,"pm25,o3,no2,pm25_frm",Texas
+AQS:01-073-0023,AQS,1,North Birmingham,33.553056,-86.815,177.0,US,North America,urban and center city,-6,"pm10,o3,no2,pm25_frm",Alabama
+AQS:04-019-1028,AQS,1,Children'S Park Ncore,32.29515,-110.9823,703.0,US,North America,urban and center city,-7,"pm25,o3,no2,pm25_frm",Arizona
+AQS:05-119-0007,AQS,1,Parr,34.756189,-92.281296,80.0,US,North America,urban and center city,-6,"pm25,o3,no2,pm25_frm",Arkansas
+AQS:06-023-1004,AQS,1,Jacobs,40.77678,-124.17949,21.0,US,North America,suburban,-8,"pm10,o3,no2,pm25_frm",California
+AQS:06-027-0002,AQS,1,Wmrc/Ncore,37.360684,-118.330783,1257.0,US,North America,rural,-8,"pm25,pm10,o3,pm25_frm",California
+AQS:06-037-0016,AQS,1,Glendora,34.14435,-117.85036,275.0,US,North America,suburban,-8,"pm25,pm10,o3,no2",California
+AQS:06-037-1201,AQS,1,Reseda,34.19925,-118.53276,226.0,US,North America,suburban,-8,"pm25,o3,no2,pm25_frm",California
+AQS:06-053-1003,AQS,1,Salinas 3,36.694261,-121.623271,21.6,US,North America,urban and center city,-8,"pm25,o3,no2,pm25_frm",California
+AQS:06-065-5001,AQS,1,Palm Springs,33.85275,-116.54101,171.0,US,North America,suburban,-8,"pm10,o3,no2,pm25_frm",California
+AQS:06-065-9001,AQS,1,Lake Elsinore,33.67649,-117.33098,1440.0,US,North America,suburban,-8,"pm25,pm10,o3,no2",California
+AQS:06-071-0306,AQS,1,Victorville-Park Avenue,34.510961,-117.32554,913.0,US,North America,suburban,-8,"pm25,pm10,o3,no2",California
+AQS:06-073-1022,AQS,1,El Cajon - Lexington Elementary School,32.789565,-116.944308,143.0,US,North America,suburban,-8,"pm25,o3,no2,pm25_frm",California
+AQS:06-077-3005,AQS,1,Tracy-Airport,37.682635,-121.442495,30.0,US,North America,suburban,-8,"pm25,pm10,o3,no2",California
+AQS:06-083-2004,AQS,1,Lompoc H Street,34.63782,-120.4575,41.0,US,North America,urban and center city,-8,"pm25,pm10,o3,no2",California
+AQS:06-085-0005,AQS,1,San Jose - Jackson,37.348497,-121.894898,31.0,US,North America,urban and center city,-8,"pm25,o3,no2,pm25_frm",California
+AQS:06-111-2002,AQS,1,Simi Valley-Cochran Street,34.276316,-118.683685,314.0,US,North America,suburban,-8,"pm25,pm10,o3,no2",California
+AQS:06-111-3001,AQS,1,El Rio-Rio Mesa School #2,34.25239,-119.143182,43.0,US,North America,rural,-8,"pm25,pm10,o3,no2",California
+AQS:08-031-0026,AQS,1,La Casa,39.77949,-105.00518,1602.0,US,North America,urban and center city,-7,"pm25,o3,no2,pm25_frm",Colorado
+AQS:12-011-0034,AQS,1,Daniela Banu Ncore,26.053889,-80.256944,2.7,US,North America,suburban,-5,"pm25,pm10,o3,pm25_frm",Florida
+AQS:12-103-0018,AQS,1,Azalea Park,27.791304,-82.739593,5.0,US,North America,suburban,-5,"pm25,pm10,o3,no2",Florida
+AQS:18-141-0015,AQS,1,South Bend-Shields Dr.,41.69666,-86.214722,181.0,US,North America,urban and center city,-5,"pm25,o3,no2,pm25_frm",Indiana
+AQS:19-177-0006,AQS,1,Lake Sugema State Park Ii,40.695078,-92.006318,207.0,US,North America,rural,-6,"pm25,o3,no2,pm25_frm",Iowa
+AQS:20-195-0001,AQS,1,Cedar Bluff,38.770081,-99.763424,670.0,US,North America,rural,-6,"pm25,pm10,o3,no2",Kansas
+AQS:21-037-3002,AQS,1,Northern Kentucky University (Nku),39.021881,-84.47445,251.0,US,North America,rural,-5,"pm25,o3,no2,pm25_frm",Kentucky
+AQS:22-055-0007,AQS,1,Lafayette / Usgs,30.22611,-92.042908,0.0,US,North America,suburban,-6,"pm25,pm10,o3,pm25_frm",Louisiana
+AQS:23-005-0029,AQS,1,Pdo - Portland Deering Oaks,43.660246,-70.268965,3.0,US,North America,urban and center city,-5,"pm25,o3,no2,pm25_frm",Maine
+AQS:28-049-0020,AQS,1,Jackson Ncore,32.329111,-90.182722,106.0,US,North America,urban and center city,-6,"pm25,pm10,o3,pm25_frm",Mississippi
+AQS:30-027-0006,AQS,1,Lewistown,47.048537,-109.455315,1253.0,US,North America,rural,-7,"pm25,pm10,o3,no2",Montana
+AQS:30-071-0010,AQS,1,Malta,48.317507,-107.862471,785.0,US,North America,rural,-7,"pm25,pm10,o3,no2",Montana
+AQS:30-083-0002,AQS,1,Sidney 201,47.8679,-104.676944,713.0,US,North America,rural,-7,"pm25,pm10,o3,no2",Montana
+AQS:31-055-0019,AQS,1,4102 Woolworth Ave. On Healthcenter Warehouse,41.247486,-95.973142,372.0,US,North America,suburban,-6,"pm25,pm10,o3,pm25_frm",Nebraska
+AQS:32-003-0075,AQS,1,Joe Neal,36.270592,-115.238282,709.0,US,North America,urban and center city,-8,"pm25,pm10,o3,no2",Nevada
+AQS:36-081-0124,AQS,1,Queens College 2,40.73614,-73.82153,25.0,US,North America,urban and center city,-5,"pm25,o3,no2,pm25_frm",New York
+AQS:38-013-0004,AQS,1,Lostwood Nwr,48.64193,-102.4018,696.0,US,North America,rural,-6,"pm25,pm10,o3,no2",North Dakota
+AQS:41-051-0080,AQS,1,Portland - Se Lafayette St (Sel),45.496641,-122.602877,69.0,US,North America,suburban,-8,"pm25,o3,no2,pm25_frm",Oregon
+AQS:44-007-1010,AQS,1, Francis School East Providence,41.841039,-71.36097,15.0,US,North America,suburban,-5,"pm25,o3,no2,pm25_frm",Rhode Island
+AQS:48-029-0032,AQS,1,San Antonio Northwest,29.515061,-98.620211,279.5,US,North America,suburban,-6,"pm25,o3,no2,pm25_frm",Texas
+AQS:48-201-0024,AQS,1,Houston Aldine,29.90103,-95.326147,24.1,US,North America,suburban,-6,"pm25,o3,no2,pm25_frm",Texas
+AQS:49-005-0007,AQS,1,Smithfield,41.842649,-111.852199,1.0,US,North America,rural,-7,"pm25,o3,no2,pm25_frm",Utah
+AQS:49-035-3010,AQS,1,Rose Park,40.78422,-111.931,1286.0,US,North America,suburban,-7,"pm25,o3,no2,pm25_frm",Utah
+AQS:49-045-0004,AQS,1,Erda,40.60055,-112.35578,1321.7,US,North America,rural,-7,"pm25,o3,no2,pm25_frm",Utah
+AQS:49-049-5010,AQS,1,Spanish Fork,40.136378,-111.657936,1380.0,US,North America,suburban,-7,"pm25,o3,no2,pm25_frm",Utah
+AQS:50-021-0002,AQS,1,State Of Vermont District Court Parking Lot,43.608056,-72.982778,165.0,US,North America,urban and center city,-5,"pm25,o3,no2,pm25_frm",Vermont
+AQS:55-027-0001,AQS,1,Horicon Wildlife Area,43.46611,-88.62111,286.5,US,North America,rural,-6,"pm25,pm10,o3,pm25_frm",Wisconsin
+AQS:56-013-0232,AQS,1,Spring Creek,43.081667,-107.549444,1372.0,US,North America,rural,-7,"pm25,pm10,o3,no2",Wyoming
+AQS:02-090-0034,AQS,1,Ncore,64.84569,-147.727413,132.0,US,North America,urban and center city,-9,"pm25,pm10,o3,pm25_frm",Alaska
+AQS:05-035-0005,AQS,1,Marion,35.197288,-90.193141,67.0,US,North America,rural,-6,"pm25,o3,no2,pm25_frm",Arkansas
+AQS:06-031-1004,AQS,1,Hanford-Irwin,36.31567,-119.643447,99.0,US,North America,suburban,-8,"pm25,pm10,o3,no2",California
+AQS:06-071-9004,AQS,1,San Bernardino,34.106678,-117.274063,0.0,US,North America,suburban,-8,"pm10,o3,no2,pm25_frm",California
+AQS:06-079-8002,AQS,1,Atascadero,35.49453,-120.66617,260.0,US,North America,suburban,-8,"pm25,pm10,o3,no2",California
+AQS:09-005-0005,AQS,1,Mohawk Mt-Cornwall,41.821342,-73.297257,505.0,US,North America,rural,-5,"pm25,pm10,o3,pm25_frm",Connecticut
+AQS:12-117-1002,AQS,1,Sanford (Seminole Community College),28.746111,-81.310556,18.0,US,North America,suburban,-5,"pm25,pm10,o3,pm25_frm",Florida
+AQS:17-031-0076,AQS,1,Com Ed Maintenance Bldg,41.7514,-87.713488,186.0,US,North America,suburban,-6,"pm25,o3,no2,pm25_frm",Illinois
+AQS:19-153-0030,AQS,1,Carpenter,41.603159,-93.643118,0.0,US,North America,urban and center city,-6,"pm25,o3,no2,pm25_frm",Iowa
+AQS:20-191-0002,AQS,1,Peck,37.47689,-97.366399,383.0,US,North America,rural,-6,"pm25,pm10,o3,no2",Kansas
+AQS:22-051-1001,AQS,1,Kenner,30.041238,-90.272826,3.0,US,North America,suburban,-6,"pm25,o3,no2,pm25_frm",Louisiana
+AQS:30-075-0001,AQS,1,Broadus,45.440295,-105.370283,943.0,US,North America,rural,-7,"pm25,pm10,o3,no2",Montana
+AQS:34-041-0007,AQS,1,Columbia,40.92458,-75.067815,146.0,US,North America,suburban,-5,"pm25,o3,no2,pm25_frm",New Jersey
+AQS:35-013-0021,AQS,1,6Zm Desert View,31.796218,-106.584434,1219.0,US,North America,suburban,-7,"pm10,o3,no2,pm25_frm",New Mexico
+AQS:46-071-0001,AQS,1,South Of Badlands Np Headquarters,43.74561,-101.941218,742.0,US,North America,rural,-6,"pm25,pm10,o3,no2",South Dakota
+AQS:48-113-0069,AQS,1,Dallas Hinton,32.820061,-96.860117,126.5,US,North America,urban and center city,-6,"pm25,o3,no2,pm25_frm",Texas
+AQS:48-201-1035,AQS,1,Clinton,29.733737,-95.257605,12.5,US,North America,urban and center city,-6,"pm25,o3,no2,pm25_frm",Texas
+AQS:55-133-0027,AQS,1,Waukesha - Cleveland Ave,43.020075,-88.21507,261.0,US,North America,urban and center city,-6,"pm25,pm10,o3,pm25_frm",Wisconsin
+AQS:06-013-0002,AQS,1,Concord,37.936013,-122.026154,26.0,US,North America,suburban,-8,"pm25,o3,no2,pm25_frm",California
+AQS:06-037-1302,AQS,1,Compton,33.901389,-118.205,27.0,US,North America,urban and center city,-8,"pm25,o3,no2,pm25_frm",California
+AQS:08-031-0002,AQS,1,Denver - Camp,39.751184,-104.987625,1593.0,US,North America,urban and center city,-7,"pm25,o3,no2,pm25_frm",Colorado
+AQS:09-001-1123,AQS,1,Western Conn State Univ,41.399167,-73.443056,116.0,US,North America,suburban,-5,"pm25,pm10,o3,pm25_frm",Connecticut
+AQS:16-001-0010,AQS,1,Meridian - St. Luke'S,43.600699,-116.347853,826.0,US,North America,urban and center city,-7,"pm25,o3,no2,pm25_frm",Idaho
+AQS:24-033-0030,AQS,1,Hu-Beltsville,39.055277,-76.878333,49.0,US,North America,suburban,-5,"pm25,o3,no2,pm25_frm",Maryland
+AQS:34-023-0011,AQS,1,Rutgers University,40.462182,-74.429439,19.0,US,North America,rural,-5,"pm25,o3,no2,pm25_frm",New Jersey
+AQS:36-005-0110,AQS,1,Is 52,40.816,-73.902,17.0,US,North America,urban and center city,-5,"pm25,o3,no2,pm25_frm",New York
+AQS:40-135-9021,AQS,1,Roland,35.40814,-94.524413,136.8491,US,North America,suburban,-6,"pm25,o3,no2,pm25_frm",Oklahoma
+AQS:45-045-0015,AQS,1,Greenville Esc,34.843895,-82.414585,308.0,US,North America,urban and center city,-5,"pm25,pm10,no2,pm25_frm",South Carolina
+AQS:48-141-0044,AQS,1,El Paso Chamizal,31.765684,-106.455227,1122.0,US,North America,urban and center city,-7,"pm25,o3,no2,pm25_frm",Texas
+AQS:49-057-1003,AQS,1,Harrisville,41.303614,-111.987871,1331.0,US,North America,rural,-7,"pm25,o3,no2,pm25_frm",Utah
+AQS:06-025-1003,AQS,1,El Centro-9Th Street,32.79222,-115.56306,0.0,US,North America,urban and center city,-8,"pm10,o3,no2,pm25_frm",California
+AQS:06-071-1004,AQS,1,Upland,34.10374,-117.62914,369.0,US,North America,urban and center city,-8,"pm25,pm10,o3,no2",California
+AQS:20-133-0003,AQS,1,Chanute,37.67696,-95.47594,308.0,US,North America,suburban,-6,"pm25,pm10,o3,no2",Kansas
+AQS:26-065-0018,AQS,1,Lansing - Filley,42.76138,-84.562867,0.5,US,North America,urban and center city,-5,"pm25,o3,no2,pm25_frm",Michigan
+AQS:42-045-0002,AQS,1,Chester,39.835556,-75.3725,3.0,US,North America,urban and center city,-5,"pm25,o3,no2,pm25_frm",Pennsylvania
+AQS:42-049-0003,AQS,1,Erie,42.14175,-80.038611,0.0,US,North America,suburban,-5,"pm25,pm10,o3,no2",Pennsylvania
+AQS:42-071-0007,AQS,1,Lancaster,40.046667,-76.283333,99.0,US,North America,suburban,-5,"pm25,pm10,o3,pm25_frm",Pennsylvania
+AQS:06-037-9033,AQS,1,Lancaster-Division Street,34.669739,-118.130511,725.0,US,North America,urban and center city,-8,"pm25,pm10,o3,no2",California
+AQS:10-003-2004,AQS,1,Mlk  Corner Of Mlk Blvd And Justison St,39.739441,-75.557534,0.0,US,North America,urban and center city,-5,"pm25,o3,no2,pm25_frm",Delaware
+AQS:38-025-0004,AQS,1,Lake Ilo,47.342423,-102.645864,683.66,US,North America,rural,-7,"pm25,pm10,o3,no2",North Dakota
+AQS:42-021-0011,AQS,1,Johnstown,40.309722,-78.915,361.0,US,North America,urban and center city,-5,"pm25,pm10,o3,no2",Pennsylvania
+AQS:06-065-0009,AQS,1,Pechanga,33.447867,-117.088649,366.093,US,North America,suburban,-8,"pm25,o3,no2,pm25_frm",California
+AQS:06-107-2002,AQS,1,Visalia-Church,36.332179,-119.291228,97.0,US,North America,urban and center city,-8,"pm25,pm10,o3,no2",California
+AQS:30-087-0001,AQS,1,Birney - Tongue River,45.366151,-106.48982,961.0,US,North America,rural,-7,"pm25,pm10,o3,no2",Montana
+AQS:26-081-0020,AQS,1,Gr-Monroe,42.984173,-85.671339,186.0,US,North America,urban and center city,-5,"pm25,o3,pm25_frm",Michigan
+AQS:51-650-0008,AQS,1,Nasa Langley Research Center,37.103733,-76.387017,2.0,US,North America,suburban,-5,"pm25,o3,no2",Virginia
+AQS:49-013-0002,AQS,1,Roosevelt,40.294178,-110.009732,1596.0,US,North America,suburban,-7,"pm25,o3,no2",Utah
+AQS:06-039-2010,AQS,1,Madera-City,36.953256,-120.034203,83.52,US,North America,suburban,-8,"pm25,pm10,o3",California
+AQS:06-099-0005,AQS,1,Modesto-14Th Street,37.642165,-120.994212,27.0,US,North America,urban and center city,-8,"pm25,pm10,o3",California
+AQS:21-067-0012,AQS,1,Lexington Primary,38.06503,-84.49761,302.0,US,North America,suburban,-5,"pm25,o3,no2",Kentucky
+AQS:38-053-0002,AQS,1,Trnp-Nu,47.5812,-103.2995,624.0,US,North America,rural,-7,"pm25,o3,no2",North Dakota
+AQS:39-081-0017,AQS,1,Steubenville,40.3663,-80.6158,222.0,US,North America,urban and center city,-5,"pm25,o3,pm25_frm",Ohio
+AQS:39-135-1001,AQS,1,Preble Ncore,39.83562,-84.720524,357.0,US,North America,rural,-5,"pm25,o3,pm25_frm",Ohio
+AQS:42-003-0008,AQS,1,Lawrenceville,40.46542,-79.960757,256.0,US,North America,suburban,-5,"pm25,o3,pm25_frm",Pennsylvania
+AQS:47-157-0075,AQS,1,Memphis Ncore Site,35.151699,-89.850249,87.0,US,North America,suburban,-6,"pm25,o3,pm25_frm",Tennessee
+AQS:48-203-0002,AQS,1,Karnack,32.669005,-94.167468,72.2,US,North America,rural,-6,"pm25,o3,no2",Texas
+AQS:51-161-1004,AQS,1,East Vinton Elementary School,37.28342,-79.88452,340.0,US,North America,suburban,-5,"pm25,o3,no2",Virginia
+AQS:53-033-0080,AQS,1,Seattle - Beacon Hill,47.568236,-122.308628,105.0,US,North America,urban and center city,-8,"pm25,o3,no2",Washington
+AQS:06-011-1002,AQS,1,Colusa-Sunrise Blvd,39.18919,-121.99887,17.0,US,North America,rural,-8,"pm25,pm10,o3",California
+AQS:06-099-0006,AQS,1,Turlock,37.488317,-120.836008,56.0,US,North America,suburban,-8,"pm25,o3,no2",California
+AQS:13-245-0091,AQS,1,Augusta,33.4339,-82.0224,46.0,US,North America,suburban,-5,"pm25,pm10,o3",Georgia
+AQS:26-163-0001,AQS,1,Allen Park,42.228611,-83.208333,181.0,US,North America,suburban,-5,"pm25,o3,pm25_frm",Michigan
+AQS:37-063-0015,AQS,1,Durham Armory,36.032955,-78.904037,118.0,US,North America,suburban,-5,"pm25,pm10,o3",North Carolina
+AQS:38-017-1004,AQS,1,Fargo Nw,46.933754,-96.85535,275.0,US,North America,suburban,-6,"pm25,o3,no2",North Dakota
+AQS:38-065-0002,AQS,1,Hannover,47.185833,-101.428056,697.0,US,North America,rural,-7,"pm25,o3,no2",North Dakota
+AQS:42-125-0005,AQS,1,Charleroi,40.146667,-79.902222,232.0,US,North America,suburban,-5,"pm25,o3,no2",Pennsylvania
+AQS:49-035-3013,AQS,1,Herriman #3,40.496392,-112.036298,1.0,US,North America,suburban,-7,"pm25,o3,no2",Utah
+AQS:49-047-1004,AQS,1,Vernal #4,40.46471,-109.561472,1.0,US,North America,urban and center city,-7,"pm25,o3,no2",Utah
+AQS:51-069-0010,AQS,1,Rest,39.28102,-78.08157,192.0,US,North America,rural,-5,"pm25,o3,pm25_frm",Virginia
+AQS:01-073-1010,AQS,1,Leeds,33.545278,-86.549167,195.0,US,North America,suburban,-6,"pm25,o3,pm25_frm",Alabama
+AQS:01-089-0014,AQS,1,Huntsville Old Airport,34.68547,-86.58816,183.0,US,North America,urban and center city,-6,"pm25,o3,pm25_frm",Alabama
+AQS:06-065-1016,AQS,1,Morongo Air Monitoring Station,33.944713,-116.830074,720.0,US,North America,rural,-8,"pm25,o3,pm25_frm",California
+AQS:06-083-2011,AQS,1,Goleta,34.44551,-119.8284,14.0,US,North America,suburban,-8,"pm25,pm10,o3",California
+AQS:19-163-0015,AQS,1,"Davenport, Jefferson Sch.",41.530011,-90.587611,213.0,US,North America,urban and center city,-6,"pm25,o3,pm25_frm",Iowa
+AQS:20-173-0010,AQS,1,Wichita Hd,37.702066,-97.314847,396.0,US,North America,urban and center city,-6,"pm10,o3,no2",Kansas
+AQS:21-019-0017,AQS,1,Ashland Primary (Fivco),38.45934,-82.64041,200.0,US,North America,suburban,-5,"pm25,o3,no2",Kentucky
+AQS:23-009-0103,AQS,1,Mcfarland Hill Air Pollutant Research Site,44.37705,-68.2609,158.5,US,North America,rural,-5,"pm25,o3,pm25_frm",Maine
+AQS:25-015-4002,AQS,1,Quabbin Res,42.298493,-72.334079,312.0,US,North America,rural,-5,"pm25,o3,no2",Massachusetts
+AQS:28-059-0006,AQS,1,Pascagoula,30.378287,-88.53393,0.0,US,North America,urban and center city,-6,"pm25,o3,no2",Mississippi
+AQS:38-057-0004,AQS,1,Beulah North,47.298611,-101.766944,630.0,US,North America,rural,-7,"pm25,o3,no2",North Dakota
+AQS:38-101-0003,AQS,1,Ryder,47.940861,-101.571583,639.0,US,North America,rural,-6,"pm25,o3,no2",North Dakota
+AQS:48-029-0059,AQS,1,Calaveras Lake,29.275371,-98.3117,150.9,US,North America,rural,-6,"pm25,o3,no2",Texas
+AQS:48-167-1034,AQS,1,Galveston 99Th Street,29.25447,-94.861278,5.0,US,North America,suburban,-6,"pm25,o3,no2",Texas
+AQS:01-073-2003,AQS,1,Wylam,33.499722,-86.924167,191.0,US,North America,suburban,-6,"pm25,pm10,pm25_frm",Alabama
+AQS:01-101-1002,AQS,1,"Moms, Adem",32.412811,-86.263394,76.2,US,North America,suburban,-6,"pm25,o3,pm25_frm",Alabama
+AQS:04-012-8000,AQS,1,Alamo Lake,34.2439,-113.5586,376.0,US,North America,rural,-7,"pm25,pm10,o3",Arizona
+AQS:04-013-1003,AQS,1,Mesa,33.41018,-111.86536,383.0,US,North America,suburban,-7,"pm25,pm10,o3",Arizona
+AQS:04-013-4011,AQS,1,Buckeye,33.36985,-112.62068,258.0,US,North America,rural,-7,"pm10,o3,no2",Arizona
+AQS:04-019-1030,AQS,1,Green Valley  -Replaces Site 0007 245 W Esperanza,31.87952,-110.99644,0.0,US,North America,suburban,-7,"pm25,pm10,o3",Arizona
+AQS:04-021-3015,AQS,1,Hidden Valley,32.884761,-112.03705,406.0,US,North America,rural,-7,"pm25,pm10,pm25_frm",Arizona
+AQS:04-023-0004,AQS,1,Nogales Post Office,31.337204,-110.936718,1176.0,US,North America,urban and center city,-7,"pm25,pm10,pm25_frm",Arizona
+AQS:04-027-8011,AQS,1,Yuma Supersite,32.690278,-114.61444,51.0,US,North America,urban and center city,-7,"pm25,pm10,o3",Arizona
+AQS:06-001-0007,AQS,1,Livermore,37.687526,-121.784217,137.0,US,North America,urban and center city,-8,"pm25,o3,no2",California
+AQS:06-001-0009,AQS,1,Oakland,37.743065,-122.169935,11.0,US,North America,urban and center city,-8,"pm25,o3,no2",California
+AQS:06-001-0011,AQS,1,Oakland West,37.814781,-122.282347,0.0,US,North America,urban and center city,-8,"pm25,o3,no2",California
+AQS:06-009-0001,AQS,1,San Andreas-Gold Strike Road,38.20185,-120.680277,0.0,US,North America,rural,-8,"pm25,pm10,o3",California
+AQS:06-027-1003,AQS,1,Keeler,36.487823,-117.871036,1097.0,US,North America,rural,-8,"pm25,pm10,pm25_frm",California
+AQS:06-041-0001,AQS,1,San Rafael,37.97231,-122.520004,3.0,US,North America,urban and center city,-8,"pm25,o3,no2",California
+AQS:06-047-0003,AQS,1,Merced-Coffee,37.281853,-120.433671,86.0,US,North America,rural,-8,"pm25,o3,no2",California
+AQS:06-053-0008,AQS,1,King City 2,36.209286,-121.126371,6.0,US,North America,urban and center city,-8,"pm25,pm10,o3",California
+AQS:06-069-0002,AQS,1,Hollister,36.843425,-121.3621,126.0,US,North America,rural,-8,"pm25,pm10,o3",California
+AQS:06-071-0001,AQS,1,Barstow,34.89405,-117.02471,697.0,US,North America,urban and center city,-8,"pm10,o3,no2",California
+AQS:06-071-1234,AQS,1,Trona - Athol/Telescope #2,35.77446,-117.3721,504.0,US,North America,rural,-8,"pm10,o3,no2",California
+AQS:06-073-1008,AQS,1,Camp Pendleton,33.217046,-117.396249,16.0,US,North America,suburban,-8,"pm25,o3,no2",California
+AQS:06-073-1014,AQS,1,Donovan,32.578165,-116.921374,199.0,US,North America,rural,-8,"pm25,o3,no2",California
+AQS:06-079-4002,AQS,1,Nipomo Regional Park (Nrp),35.03146,-120.50103,136.0,US,North America,rural,-8,"pm10,o3,no2",California
+AQS:06-083-0011,AQS,1,Santa Barbara,34.427775,-119.691218,20.0,US,North America,urban and center city,-8,"pm25,pm10,o3",California
+AQS:06-083-1025,AQS,1,Los Flores Canyon #1,34.48974,-120.04692,184.0,US,North America,rural,-8,"pm10,o3,no2",California
+AQS:06-095-0004,AQS,1,Vallejo,38.102507,-122.237976,6.0,US,North America,urban and center city,-8,"pm25,o3,no2",California
+AQS:06-113-0004,AQS,1,Davis-Ucd Campus,38.53445,-121.7734,0.0,US,North America,rural,-8,"pm25,o3,no2",California
+AQS:08-031-0027,AQS,1,I-25,39.73217,-105.0153,1583.0,US,North America,urban and center city,-7,"pm25,no2,pm25_frm",Colorado
+AQS:09-011-0124,AQS,1,Fort Griswold Park,41.35362,-72.07882,49.0,US,North America,suburban,-5,"pm25,pm10,o3",Connecticut
+AQS:11-001-0041,AQS,1,River Terrace,38.895572,-76.958072,8.0,US,North America,urban and center city,-5,"pm25,o3,no2",District Of Columbia
+AQS:12-031-0032,AQS,1,Kooker Park,30.356339,-81.635396,7.0,US,North America,suburban,-5,"pm25,pm10,no2",Florida
+AQS:12-073-0012,AQS,1,Tallahassee Community College,30.43973,-84.346302,15.9,US,North America,suburban,-5,"pm25,o3,pm25_frm",Florida
+AQS:12-086-1016,AQS,1,Miami Fire Station,25.794222,-80.215556,4.0,US,North America,urban and center city,-5,"pm25,pm10,pm25_frm",Florida
+AQS:12-105-6006,AQS,1,Baptist Childrens' Home,28.028889,-81.972222,0.0,US,North America,suburban,-5,"pm25,pm10,o3",Florida
+AQS:12-127-5002,AQS,1,Daytona Blind Services,29.206667,-81.0525,0.0,US,North America,suburban,-5,"pm25,pm10,o3",Florida
+AQS:13-021-0012,AQS,1,Macon-Forestry,32.805264,-83.543493,54.0,US,North America,rural,-5,"pm25,o3,pm25_frm",Georgia
+AQS:13-215-0008,AQS,1,Columbus-Airport,32.521272,-84.944635,101.0,US,North America,suburban,-5,"pm25,o3,pm25_frm",Georgia
+AQS:16-079-0017,AQS,1,Pinehurst,47.536389,-116.236667,671.0,US,North America,urban and center city,-8,"pm25,pm10,pm25_frm",Idaho
+AQS:17-019-1001,AQS,1,Isws Climate Station,40.05278,-88.37251,213.0,US,North America,rural,-6,"pm25,o3,pm25_frm",Illinois
+AQS:17-031-0001,AQS,1,Village Garage,41.670992,-87.732457,188.0,US,North America,suburban,-6,"pm25,o3,pm25_frm",Illinois
+AQS:17-031-3103,AQS,1,Iepa Trailer,41.965193,-87.876265,195.0,US,North America,suburban,-6,"o3,no2,pm25_frm",Illinois
+AQS:19-113-0040,AQS,1,Public Health,41.97677,-91.68766,224.0,US,North America,urban and center city,-6,"pm25,o3,pm25_frm",Iowa
+AQS:19-137-0002,AQS,1,Viking Lake State Park,40.969112,-95.044951,426.0,US,North America,rural,-6,"pm25,o3,pm25_frm",Iowa
+AQS:19-147-1002,AQS,1,"Emmetsburg, Iowa Lakes Community Coll.",43.123704,-94.693518,379.0,US,North America,suburban,-6,"pm25,o3,pm25_frm",Iowa
+AQS:21-093-0006,AQS,1,Elizabethtown,37.705612,-85.852629,250.0,US,North America,suburban,-5,"pm25,o3,pm25_frm",Kentucky
+AQS:22-015-0008,AQS,1,Shreveport / Airport,32.536273,-93.74894,53.0,US,North America,urban and center city,-6,"pm25,pm10,o3",Louisiana
+AQS:22-063-0002,AQS,1,French Settlement,30.315406,-90.811383,0.0,US,North America,rural,-6,"pm25,o3,no2",Louisiana
+AQS:22-121-0001,AQS,1,Port Allen,30.500642,-91.213556,7.0,US,North America,suburban,-6,"o3,no2,pm25_frm",Louisiana
+AQS:24-005-1007,AQS,1,Padonia,39.460478,-76.633543,126.0,US,North America,suburban,-5,"pm25,o3,pm25_frm",Maryland
+AQS:24-005-3001,AQS,1,Essex,39.310833,-76.474444,5.0,US,North America,suburban,-5,"o3,no2,pm25_frm",Maryland
+AQS:25-013-0008,AQS,1,Westover Afb,42.19438,-72.555112,79.0,US,North America,suburban,-5,"pm25,o3,no2",Massachusetts
+AQS:26-113-0001,AQS,1,Located About 1/4 Mile West Of Site,44.310555,-84.891865,0.5,US,North America,rural,-5,"pm25,o3,no2",Michigan
+AQS:26-163-0033,AQS,1,Property Owned By Dearborn Public Schools,42.306666,-83.148889,0.0,US,North America,suburban,-5,"pm25,pm10,pm25_frm",Michigan
+AQS:29-099-0019,AQS,1,Arnold West,38.44853,-90.3986,195.0,US,North America,suburban,-6,"pm25,pm10,o3",Missouri
+AQS:29-137-0001,AQS,1,Mtsp,39.474976,-91.788991,218.0,US,North America,rural,-6,"pm10,o3,no2",Missouri
+AQS:30-049-0004,AQS,1,Ncore - Sieben Flats,46.8505,-111.987164,1194.0,US,North America,rural,-7,"pm25,o3,pm25_frm",Montana
+AQS:30-093-0005,AQS,1,Butte Greeley School,46.002602,-112.501247,1682.0,US,North America,urban and center city,-7,"pm25,pm10,pm25_frm",Montana
+AQS:32-003-0043,AQS,1,Paul Meyer,36.106389,-115.253333,737.0,US,North America,suburban,-8,"pm25,pm10,o3",Nevada
+AQS:32-003-1019,AQS,1,Jean,35.785665,-115.357087,924.0,US,North America,rural,-8,"pm25,pm10,o3",Nevada
+AQS:32-031-1005,AQS,1,Sparks,39.540917,-119.746761,1341.0,US,North America,suburban,-8,"pm25,pm10,o3",Nevada
+AQS:32-510-0020,AQS,1,Carson City Armory,39.1447,-119.7661,1408.0,US,North America,urban and center city,-8,"pm25,o3,pm25_frm",Nevada
+AQS:33-005-0007,AQS,1,Water Street,42.930521,-72.272332,145.0,US,North America,urban and center city,-5,"pm25,o3,pm25_frm",New Hampshire
+AQS:33-011-5001,AQS,1,Miller State Park,42.86183,-71.878626,694.0,US,North America,rural,-5,"pm25,o3,pm25_frm",New Hampshire
+AQS:33-015-0014,AQS,1,Portsmouth - Peirce Island,43.075371,-70.748017,10.0,US,North America,urban and center city,-5,"pm25,pm10,o3",New Hampshire
+AQS:34-011-0007,AQS,1,Millville,39.422273,-75.025204,22.0,US,North America,rural,-5,"pm25,o3,no2",New Jersey
+AQS:35-025-0008,AQS,1,5Zs Hobbs Jefferson,32.726656,-103.122917,1110.1,US,North America,suburban,-7,"pm25,o3,no2",New Mexico
+AQS:35-045-1005,AQS,1,1H Substation,36.796667,-108.473138,1678.0,US,North America,,-7,"pm10,o3,no2",New Mexico
+AQS:36-055-1007,AQS,1,Rochester 2,43.14618,-77.54817,137.0,US,North America,urban and center city,-5,"pm25,o3,pm25_frm",New York
+AQS:36-067-1015,AQS,1,East Syracuse,43.05235,-76.05921,127.0,US,North America,suburban,-5,"pm25,o3,pm25_frm",New York
+AQS:36-101-0003,AQS,1,Pinnacle State Park,42.09142,-77.20978,507.0,US,North America,rural,-5,"pm25,o3,pm25_frm",New York
+AQS:37-081-0013,AQS,1,Mendenhall School,36.109006,-79.802314,244.0,US,North America,urban and center city,-5,"pm25,pm10,o3",North Carolina
+AQS:39-003-0009,AQS,1,Lima,40.770944,-84.0539,268.0,US,North America,rural,-5,"pm25,o3,pm25_frm",Ohio
+AQS:39-049-0038,AQS,1,Smoky Row Near Road,40.11107,-83.065415,270.0,US,North America,suburban,-5,"pm25,no2,pm25_frm",Ohio
+AQS:40-121-0415,AQS,1,Mcalester,34.885608,-95.78441,231.137,US,North America,rural,-6,"pm25,o3,pm25_frm",Oklahoma
+AQS:42-003-1008,AQS,1,Harrison,40.617488,-79.727664,302.0,US,North America,suburban,-5,"o3,no2,pm25_frm",Pennsylvania
+AQS:42-069-2006,AQS,1,Scranton,41.442778,-75.623056,251.0,US,North America,suburban,-5,"pm25,o3,no2",Pennsylvania
+AQS:42-095-0025,AQS,1,Freemansburg,40.628056,-75.341111,0.0,US,North America,suburban,-5,"pm25,o3,no2",Pennsylvania
+AQS:46-011-0003,AQS,1,Research Farm,44.348604,-96.807299,504.0,US,North America,rural,-6,"pm25,pm10,o3",South Dakota
+AQS:46-033-0132,AQS,1,Wind Cave,43.55764,-103.48386,1288.0,US,North America,rural,-6,"pm25,pm10,o3",South Dakota
+AQS:47-009-0101,AQS,1,Great Smoky Mountains Np,35.63348,-83.941606,801.0,US,North America,rural,-5,"pm25,o3,no2",Tennessee
+AQS:47-093-1013,AQS,1,Air Lab,35.980675,-83.925773,277.0,US,North America,urban and center city,-5,"pm25,pm10,pm25_frm",Tennessee
+AQS:47-165-0007,AQS,1,Hendersonville,36.29756,-86.653137,143.0,US,North America,rural,-6,"pm25,o3,pm25_frm",Tennessee
+AQS:48-201-1034,AQS,1,Houston East,29.768033,-95.220574,9.1,US,North America,suburban,-6,"pm25,o3,no2",Texas
+AQS:48-245-0022,AQS,1,Hamshire,29.863962,-94.317802,5.0,US,North America,suburban,-6,"pm25,o3,no2",Texas
+AQS:48-257-0005,AQS,1,Kaufman,32.564967,-96.317683,128.0,US,North America,suburban,-6,"pm25,o3,no2",Texas
+AQS:48-339-0078,AQS,1,Conroe Relocated,30.350325,-95.425137,77.0,US,North America,suburban,-6,"pm25,o3,no2",Texas
+AQS:49-053-0007,AQS,1,Hurricane,37.179125,-113.305096,846.0,US,North America,rural,-7,"pm25,o3,no2",Utah
+AQS:50-007-0007,AQS,1,Proctor Maple Research Ctr,44.52839,-72.86884,392.0,US,North America,rural,-5,"pm25,o3,pm25_frm",Vermont
+AQS:51-036-0002,AQS,1,Shirley Plantation,37.34438,-77.25925,6.0,US,North America,suburban,-5,"o3,no2,pm25_frm",Virginia
+AQS:51-107-1005,AQS,1,"Broad Run High School, Ashburn",39.02473,-77.48925,88.0,US,North America,suburban,-5,"o3,no2,pm25_frm",Virginia
+AQS:51-165-0003,AQS,1,Rockingham Co. Vdot,38.47753,-78.81952,390.0,US,North America,suburban,-5,"o3,no2,pm25_frm",Virginia
+AQS:55-025-0041,AQS,1,Madison East,43.10101,-89.35768,260.0,US,North America,urban and center city,-6,"pm25,o3,pm25_frm",Wisconsin
+AQS:56-009-0010,AQS,1,Converse County Long-Term,43.101281,-105.498931,1650.0,US,North America,rural,-7,"pm10,o3,no2",Wyoming
+AQS:56-013-0099,AQS,1,South Pass,42.529999,-108.720003,2526.0,US,North America,rural,-7,"pm25,o3,no2",Wyoming
+AQS:56-035-0099,AQS,1,Boulder,42.719,-109.753,2159.0,US,North America,rural,-7,"pm10,o3,no2",Wyoming
+AQS:56-035-0100,AQS,1,Daniel South,42.7907,-110.0551,2375.0,US,North America,rural,-7,"pm10,o3,no2",Wyoming
+AQS:56-035-0101,AQS,1,Pinedale Gaseous,42.869824,-109.87076,2191.0,US,North America,suburban,-7,"pm25,o3,no2",Wyoming
+AQS:56-037-0200,AQS,1,Wamsutter,41.677667,-108.024835,2044.0,US,North America,rural,-7,"pm10,o3,no2",Wyoming
+AQS:56-037-0300,AQS,1,Moxa Arch,41.750556,-109.788333,1966.0,US,North America,rural,-7,"pm10,o3,no2",Wyoming
+AQS:01-073-1005,AQS,1,Mcadory,33.331111,-87.003611,163.0,US,North America,suburban,-6,"pm25,o3,pm25_frm",Alabama
+AQS:01-097-0003,AQS,1,Chickasaw,30.770181,-88.087761,10.67,US,North America,suburban,-6,"pm25,o3,pm25_frm",Alabama
+AQS:01-103-0011,AQS,1,"Decatur, Alabama",34.530717,-86.967536,173.74,US,North America,suburban,-6,"pm25,o3,pm25_frm",Alabama
+AQS:01-113-0003,AQS,1,Phenix City - South Girard School,32.437028,-84.999653,25.0,US,North America,suburban,-6,"pm25,o3,pm25_frm",Alabama
+AQS:04-021-0001,AQS,1,Casa Grande Downtown,32.877583,-111.752222,420.0,US,North America,urban and center city,-7,"pm25,pm10,pm25_frm",Arizona
+AQS:05-143-0005,AQS,1,Springdale,36.1797,-94.116827,1.0,US,North America,suburban,-6,"pm25,o3,pm25_frm",Arkansas
+AQS:06-021-0003,AQS,1,Willows-Colusa Street,39.53387,-122.190834,1.0,US,North America,suburban,-8,"pm25,pm10,o3",California
+AQS:06-073-0001,AQS,1,Chula Vista,32.631242,-117.059088,53.0,US,North America,suburban,-8,"o3,no2,pm25_frm",California
+AQS:06-073-1016,AQS,1,San Diego - Kearny Villa Rd.,32.845709,-117.123964,134.0,US,North America,suburban,-8,"o3,no2,pm25_frm",California
+AQS:06-081-1001,AQS,1,Redwood City,37.482934,-122.20337,3.0,US,North America,suburban,-8,"pm25,o3,no2",California
+AQS:06-097-0004,AQS,1,Sebastopol,38.403765,-122.818294,78.0,US,North America,urban and center city,-8,"pm25,o3,no2",California
+AQS:08-045-0019,AQS,1,Battlement Mesa,39.43806,-108.02611,1690.0,US,North America,suburban,-7,"pm25,o3,no2",Colorado
+AQS:08-103-0006,AQS,1,"Rangely, Golf Course",40.086944,-108.761389,1655.0,US,North America,rural,-7,"pm25,o3,no2",Colorado
+AQS:09-001-0010,AQS,1,Roosevelt School-Bridgeport,41.170833,-73.194722,7.0,US,North America,urban and center city,-5,"pm25,pm10,pm25_frm",Connecticut
+AQS:12-009-0007,AQS,1,Melbourne,28.053611,-80.628611,5.0,US,North America,urban and center city,-5,"pm25,pm10,o3",Florida
+AQS:12-057-3002,AQS,1,Sydney,27.965744,-82.230596,20.0,US,North America,rural,-5,"pm25,o3,pm25_frm",Florida
+AQS:22-087-0007,AQS,1,Chalmette Vista,29.943164,-89.97625,62.0,US,North America,suburban,-6,"pm25,pm10,pm25_frm",Louisiana
+AQS:24-023-0002,AQS,1,Piney Run,39.70595,-79.012,776.63,US,North America,rural,-5,"pm25,o3,no2",Maryland
+AQS:25-011-2005,AQS,1,Greenfield 16 Barr Ave,42.605816,-72.596689,267.0,US,North America,suburban,-5,"pm25,o3,pm25_frm",Massachusetts
+AQS:26-049-0021,AQS,1,Whaley Pk 3610 Iowa (Flint),43.047224,-83.670159,220.0,US,North America,urban and center city,-5,"pm25,o3,pm25_frm",Michigan
+AQS:26-161-0008,AQS,1,"Ypsilanti Towner St, South;",42.240556,-83.599722,0.5,US,North America,urban and center city,-5,"pm25,o3,pm25_frm",Michigan
+AQS:29-077-0036,AQS,1,Hillcrest High School,37.256137,-93.299894,410.0,US,North America,suburban,-6,"pm25,pm10,o3",Missouri
+AQS:32-031-0025,AQS,1,Toll,39.399837,-119.739606,1341.0,US,North America,suburban,-8,"pm25,pm10,o3",Nevada
+AQS:34-001-0006,AQS,1,Brigantine,39.464872,-74.448736,5.0,US,North America,rural,-5,"pm25,o3,pm25_frm",New Jersey
+AQS:34-027-3001,AQS,1,Chester,40.787628,-74.676301,278.0,US,North America,rural,-5,"o3,no2,pm25_frm",New Jersey
+AQS:34-039-0004,AQS,1,Elizabeth Lab,40.64144,-74.208365,5.0,US,North America,suburban,-5,"pm25,no2,pm25_frm",New Jersey
+AQS:36-029-0005,AQS,1,Buffalo,42.876907,-78.809526,185.0,US,North America,urban and center city,-5,"pm25,no2,pm25_frm",New York
+AQS:36-031-0003,AQS,1,Whiteface Base,44.39308,-73.8589,599.0,US,North America,rural,-5,"pm25,o3,pm25_frm",New York
+AQS:37-067-0030,AQS,1,Clemmons Middle,36.026612,-80.341962,245.0,US,North America,suburban,-5,"pm25,o3,pm25_frm",North Carolina
+AQS:39-035-0073,AQS,1,Cleveland Near Road,41.44013,-81.494833,347.0,US,North America,suburban,-5,"pm25,no2,pm25_frm",Ohio
+AQS:39-085-0007,AQS,1,Painesville,41.726811,-81.242156,203.0,US,North America,urban and center city,-5,"pm25,o3,pm25_frm",Ohio
+AQS:39-087-0012,AQS,1,Odot Ironton,38.508075,-82.659241,163.0,US,North America,suburban,-5,"pm25,o3,pm25_frm",Ohio
+AQS:39-095-0024,AQS,1,Erie,41.644067,-83.54616,176.0,US,North America,urban and center city,-5,"pm25,o3,pm25_frm",Ohio
+AQS:39-103-0004,AQS,1,Chippewa,41.0604,-81.9239,322.0,US,North America,rural,-5,"pm25,o3,pm25_frm",Ohio
+AQS:39-113-0038,AQS,1,Sinclair,39.755969,-84.198674,220.0,US,North America,urban and center city,-5,"pm25,pm10,pm25_frm",Ohio
+AQS:40-001-9009,AQS,1,Stilwell,35.750735,-94.669697,300.2219,US,North America,rural,-6,"pm25,pm10,o3",Oklahoma
+AQS:42-001-0001,AQS,1,Arendtsville,39.92002,-77.30968,269.0,US,North America,rural,-5,"pm25,o3,no2",Pennsylvania
+AQS:42-027-0100,AQS,1,State College,40.811389,-77.877028,0.0,US,North America,rural,-5,"pm25,o3,no2",Pennsylvania
+AQS:42-071-0012,AQS,1,Lancaster Downwind,40.043833,-76.1124,116.0,US,North America,suburban,-5,"pm25,o3,pm25_frm",Pennsylvania
+AQS:46-103-0020,AQS,1,Credit Union,44.087397,-103.273777,1042.0,US,North America,urban and center city,-6,"pm25,pm10,no2",South Dakota
+AQS:48-121-0034,AQS,1,Denton Airport South,33.219074,-97.196296,183.0,US,North America,rural,-6,"pm25,o3,no2",Texas
+AQS:48-141-0055,AQS,1,Ascarate Park Se,31.746748,-106.402788,1122.0,US,North America,suburban,-7,"pm25,o3,no2",Texas
+AQS:48-439-1002,AQS,1,Fort Worth Northwest,32.805816,-97.356526,203.0,US,North America,urban and center city,-6,"pm25,o3,no2",Texas
+AQS:49-021-0005,AQS,1,Enoch,37.74743,-113.055525,1692.0,US,North America,rural,-7,"pm25,o3,no2",Utah
+AQS:54-039-0020,AQS,1,Dixie St.,38.346258,-81.621161,223.11,US,North America,urban and center city,-5,"pm25,o3,pm25_frm",West Virginia
+AQS:55-079-0056,AQS,1,Milwaukee - College Ave. Nr,42.93257,-87.93434,227.69,US,North America,urban and center city,-6,"pm25,pm10,no2",Wisconsin
+AQS:06-065-0500,AQS,1,29 Palms,33.71969,-116.1897,-8.0,US,North America,rural,-8,"pm25,pm10,o3",California
+AQS:08-067-7003,AQS,1,Ute 3,37.10258,-107.870219,1920.0,US,North America,rural,-7,"pm25,o3,no2",Colorado
+AQS:13-121-0056,AQS,1,Nr-Ga Tech,33.7784,-84.3914,286.0,US,North America,urban and center city,-5,"pm25,no2,pm25_frm",Georgia
+AQS:16-005-0015,AQS,1,Pocatello - Garrett And Gould,42.876725,-112.460347,0.0,US,North America,urban and center city,-7,"pm25,pm10,o3",Idaho
+AQS:16-027-0002,AQS,1,Nampa - Fire Station,43.58031,-116.562676,0.0,US,North America,urban and center city,-7,"pm25,pm10,pm25_frm",Idaho
+AQS:17-031-4201,AQS,1,Northbrook Water Plant,42.139996,-87.799227,198.0,US,North America,suburban,-6,"pm25,o3,pm25_frm",Illinois
+AQS:20-177-0013,AQS,1,Kni,39.024265,-95.711275,280.0,US,North America,urban and center city,-6,"pm25,pm10,o3",Kansas
+AQS:21-059-0005,AQS,1,Owensboro Primary,37.780776,-87.075307,127.0,US,North America,suburban,-6,"pm25,o3,no2",Kentucky
+AQS:23-003-1011,AQS,1,Riverside,46.682299,-68.016195,0.0,US,North America,urban and center city,-5,"pm25,pm10,pm25_frm",Maine
+AQS:27-053-0962,AQS,1,Near Road I-35/I-94,44.965242,-93.254759,259.0,US,North America,urban and center city,-6,"pm25,o3,no2",Minnesota
+AQS:30-063-0024,AQS,1,Msla Boyd Park,46.842181,-114.021499,975.0,US,North America,suburban,-7,"pm25,pm10,o3",Montana
+AQS:41-039-0060,AQS,1,Eugene - Amazon Park (Amz),44.026312,-123.083737,133.0,US,North America,urban and center city,-8,"pm25,o3,pm25_frm",Oregon
+AQS:41-039-2013,AQS,1,Oakridge - Willamette Activity Center (Wac),43.744352,-122.480487,341.0,US,North America,rural,-8,"pm25,pm10,pm25_frm",Oregon
+AQS:42-043-0401,AQS,1,Harrisburg,40.246992,-76.846988,125.0,US,North America,rural,-5,"pm25,o3,pm25_frm",Pennsylvania
+AQS:45-079-0007,AQS,1,Parklane,34.093959,-80.962304,107.0,US,North America,suburban,-5,"pm25,o3,pm25_frm",South Carolina
+AQS:46-029-0002,AQS,1,Watertown Utility Yard,44.89965,-97.128802,524.0,US,North America,urban and center city,-6,"pm25,pm10,o3",South Dakota
+AQS:48-349-1051,AQS,1,Corsicana Airport,32.031946,-96.399147,128.0,US,North America,rural,-6,"pm25,o3,no2",Texas
+AQS:48-453-0014,AQS,1,Austin North Hills Drive,30.354934,-97.761737,259.7,US,North America,suburban,-6,"pm25,o3,no2",Texas
+AQS:55-035-0014,AQS,1,Eau Claire - Dot Sign Shop,44.76249,-91.41445,282.0,US,North America,suburban,-6,"pm25,pm10,o3",Wisconsin
+AQS:55-079-0010,AQS,1,Milwaukee - Sixteenth St. Health Center,43.01724,-87.93369,200.0,US,North America,urban and center city,-6,"pm25,o3,pm25_frm",Wisconsin
+AQS:55-111-0007,AQS,1,Devils Lake Park,43.4351,-89.67979,392.0,US,North America,rural,-6,"pm25,pm10,o3",Wisconsin
+AQS:56-025-0100,AQS,1,Casper Gaseous,42.82231,-106.36501,1591.0,US,North America,suburban,-7,"pm25,o3,no2",Wyoming
+AQS:06-089-0004,AQS,1,Redding - Health Department,40.55013,-122.38092,149.0,US,North America,suburban,-8,"pm25,o3,pm25_frm",California
+AQS:21-145-1024,AQS,1,Jackson Purchase (Paducah Primary),37.05822,-88.57251,108.0,US,North America,suburban,-6,"pm25,o3,no2",Kentucky
+AQS:25-009-2006,AQS,1,Lynn Water Treatment Plant,42.474642,-70.970816,52.0,US,North America,urban and center city,-5,"pm25,o3,no2",Massachusetts
+AQS:25-017-0010,AQS,1,Chelmsfordnr,42.612085,-71.306986,39.0,US,North America,suburban,-5,"pm25,o3,no2",Massachusetts
+AQS:35-013-0016,AQS,1,6Cm Anthony,32.003712,-106.599715,1159.0,US,North America,rural,-7,"pm25,pm10,pm25_frm",New Mexico
+AQS:42-015-0011,AQS,1,Towanda,41.705226,-76.512726,340.0,US,North America,rural,-5,"pm25,o3,no2",Pennsylvania
+AQS:47-037-0023,AQS,1,Lockeland,36.176382,-86.7389,160.0,US,North America,urban and center city,-6,"pm25,pm10,pm25_frm",Tennessee
+AQS:51-003-0001,AQS,1,Albemarle High School,38.07657,-78.50397,172.0,US,North America,suburban,-5,"pm25,o3,pm25_frm",Virginia
+AQS:53-077-0009,AQS,1,Yakima - 4Th Ave,46.594952,-120.512283,326.0,US,North America,urban and center city,-8,"pm25,pm10,pm25_frm",Washington
+AQS:56-019-0004,AQS,1,Johnson County,43.87483,-106.50974,1433.0,US,North America,rural,-7,"pm10,o3,no2",Wyoming
+AQS:42-133-0008,AQS,1,York,39.965278,-76.699444,125.0,US,North America,suburban,-5,"pm25,o3,no2",Pennsylvania
+AQS:45-025-0001,AQS,1,Chesterfield,34.615367,-80.198787,133.0,US,North America,rural,-5,"pm25,o3,pm25_frm",South Carolina
+AQS:45-019-0046,AQS,1,Cape Romain,32.941023,-79.657187,3.0,US,North America,rural,-5,"pm25,o3,no2",South Carolina
+AQS:06-037-4010,AQS,1,North Hollywood (Noho),34.181977,-118.363036,198.0,US,North America,suburban,-8,"pm25,o3,no2",California
+AQS:02-170-0008,AQS,1,Butte,61.534163,-149.031655,30.0,US,North America,rural,-9,"pm25,pm10",Alaska
+AQS:06-031-0004,AQS,1,Corcoran-Patterson,36.102244,-119.56565,61.0,US,North America,suburban,-8,"pm25,pm10",California
+AQS:17-111-0001,AQS,1,Cary Grove Hs,42.221442,-88.242207,235.0,US,North America,suburban,-6,"pm25,o3",Illinois
+AQS:21-193-0003,AQS,1,Hazard,37.28329,-83.20932,280.0,US,North America,suburban,-5,"pm25,o3",Kentucky
+AQS:21-227-0009,AQS,1,Ed Spear Park (Smiths Grove),37.04926,-86.21487,194.0,US,North America,suburban,-6,"pm25,o3",Kentucky
+AQS:25-009-5005,AQS,1,Consentino School.,42.770837,-71.10229,0.0,US,North America,suburban,-5,"pm25,o3",Massachusetts
+AQS:25-023-0005,AQS,1,Brockton Buckley,42.065106,-71.012129,1250.0,US,North America,suburban,-5,"pm25,o3",Massachusetts
+AQS:25-027-0023,AQS,1,Worcester Summer Street,42.263955,-71.794322,145.0,US,North America,urban and center city,-5,"pm25,no2",Massachusetts
+AQS:26-077-0008,AQS,1,Kalamazoo Fairgrounds,42.278067,-85.54189,0.0,US,North America,urban and center city,-5,"pm25,o3",Michigan
+AQS:26-147-0005,AQS,1,Port Huron,42.953336,-82.456229,186.0,US,North America,suburban,-5,"pm25,o3",Michigan
+AQS:37-129-0002,AQS,1,Castle Hayne,34.364167,-77.838611,8.0,US,North America,rural,-5,"pm25,o3",North Carolina
+AQS:48-139-0016,AQS,1,Midlothian Ofw,32.482083,-97.026899,195.0,US,North America,suburban,-6,"pm25,o3",Texas
+AQS:49-007-1003,AQS,1,Price #2,39.59575,-110.770111,1737.6,US,North America,suburban,-7,"o3,no2",Utah
+AQS:02-020-0018,AQS,1,Garden/Trinity Christian Church,61.205861,-149.824602,39.0,US,North America,suburban,-9,"pm25,pm10",Alaska
+AQS:06-057-0005,AQS,1,Grass Valley-Litton Building,39.233477,-121.055608,853.0,US,North America,suburban,-8,"pm25,o3",California
+AQS:12-033-0004,AQS,1,Ellyson Industrial Park,30.525367,-87.20355,32.0,US,North America,suburban,-6,"pm25,o3",Florida
+AQS:13-127-0006,AQS,1,Brunswick,31.169805,-81.495035,5.0,US,North America,suburban,-5,"o3,pm25_frm",Georgia
+AQS:18-167-0018,AQS,1,Terre Haute Caap/ Mclean High School,39.485987,-87.401312,140.0,US,North America,urban and center city,-5,"pm25,o3",Indiana
+AQS:21-111-1041,AQS,1,Algonquin Parkway,38.23158,-85.82678,137.0,US,North America,suburban,-5,"pm25,pm10",Kentucky
+AQS:21-195-0002,AQS,1,Pikeville Primary,37.4826,-82.53532,207.0,US,North America,urban and center city,-5,"pm25,o3",Kentucky
+AQS:22-019-0008,AQS,1,Westlake,30.262347,-93.284906,0.0,US,North America,rural,-6,"pm25,no2",Louisiana
+AQS:37-051-0009,AQS,1,William Owen School,35.041416,-78.953112,63.0,US,North America,urban and center city,-5,"pm25,pm10",North Carolina
+AQS:42-029-0100,AQS,1,New Garden,39.834461,-75.768242,0.0,US,North America,rural,-5,"pm25,o3",Pennsylvania
+AQS:02-110-0004,AQS,1,Floyd Dryden Middle School,58.388497,-134.567237,15.0,US,North America,suburban,-9,"pm25,pm10",Alaska
+AQS:08-067-7001,AQS,1,Ute 1,37.13678,-107.62863,1983.0,US,North America,rural,-7,"o3,no2",Colorado
+AQS:10-001-0002,AQS,1,Property Of Killens Pond State Park; Behind Farm Buildings,38.986681,-75.556818,0.0,US,North America,rural,-5,"pm25,o3",Delaware
+AQS:12-085-0007,AQS,1,Stuart,27.172458,-80.240689,4.1,US,North America,urban and center city,-5,"pm25,o3",Florida
+AQS:12-115-1006,AQS,1,Paw Park,27.34931,-82.479676,11.0,US,North America,suburban,-5,"pm10,o3",Florida
+AQS:13-135-0002,AQS,1,Gwinnett,33.9632,-84.0691,290.0,US,North America,suburban,-5,"pm25,o3",Georgia
+AQS:18-055-0001,AQS,1,"Plummer, 2500 S. W- Citizens Gas Plummer Maintenance Faciliy",38.985477,-86.990419,128.621,US,North America,rural,-5,"o3,pm25_frm",Indiana
+AQS:20-091-0010,AQS,1,Heritage Park,38.838575,-94.746424,324.2,US,North America,suburban,-6,"pm25,o3",Kansas
+AQS:25-003-0008,AQS,1,Pittsfield,42.452299,-73.239648,300.0,US,North America,urban and center city,-5,"pm25,o3",Massachusetts
+AQS:27-109-5008,AQS,1,Ben Franklin School,43.996908,-92.450366,0.0,US,North America,suburban,-6,"pm25,o3",Minnesota
+AQS:28-033-0002,AQS,1,Hernando,34.82056,-89.98778,117.0,US,North America,suburban,-6,"pm25,o3",Mississippi
+AQS:28-045-0003,AQS,1,Waveland,30.300833,-89.395916,5.0,US,North America,rural,-6,"pm25,o3",Mississippi
+AQS:28-047-0008,AQS,1,Gulfport Youth Court,30.390369,-89.049778,0.0,US,North America,rural,-6,"pm25,o3",Mississippi
+AQS:37-147-0006,AQS,1,Pitt Agri. Center,35.641276,-77.360126,7.0,US,North America,rural,-5,"pm25,o3",North Carolina
+AQS:37-159-0021,AQS,1,Rockwell,35.551868,-80.395039,240.0,US,North America,rural,-5,"pm25,o3",North Carolina
+AQS:39-061-0006,AQS,1,Sycamore,39.2787,-84.36625,259.0,US,North America,suburban,-5,"pm25,o3",Ohio
+AQS:39-155-0014,AQS,1,Laird Eng Bldg,41.23172,-80.80116,277.0,US,North America,urban and center city,-5,"pm25,pm25_frm",Ohio
+AQS:41-035-0004,AQS,1,Klamath Falls - Peterson Elementary School (Kfp),42.190296,-121.731369,1244.0,US,North America,suburban,-8,"pm25,pm25_frm",Oregon
+AQS:42-011-0011,AQS,1,Reading Airport,40.38335,-75.9686,92.0,US,North America,suburban,-5,"pm25,o3",Pennsylvania
+AQS:45-037-0001,AQS,1,Trenton,33.739963,-81.853635,190.0,US,North America,rural,-5,"o3,pm25_frm",South Carolina
+AQS:01-003-0010,AQS,1,"Fairhope, Alabama",30.497478,-87.880258,37.19,US,North America,suburban,-6,"o3,pm25_frm",Alabama
+AQS:01-119-0003,AQS,1,"Ward, Sumter Co.",32.362606,-88.277992,63.7032,US,North America,rural,-6,"pm25,o3",Alabama
+AQS:04-013-4010,AQS,1,Dysart,33.63718,-112.34185,359.0,US,North America,suburban,-7,"pm10,o3",Arizona
+AQS:04-013-7024,AQS,1,High School Air Monitoring Station,33.508125,-111.83852,366.0,US,North America,rural,-7,"pm10,o3",Arizona
+AQS:04-019-0011,AQS,1,Orange Grove,32.322661,-111.038389,681.0,US,North America,suburban,-7,"pm25,pm10",Arizona
+AQS:04-019-1011,AQS,1,22Nd & Craycroft,32.204411,-110.878067,789.0,US,North America,suburban,-7,"o3,no2",Arizona
+AQS:04-021-3002,AQS,1,Apache Junction Fire Station,33.421194,-111.503222,550.0,US,North America,suburban,-7,"pm10,pm25_frm",Arizona
+AQS:04-021-3007,AQS,1,Pinal Air Park,32.508306,-111.308056,579.0,US,North America,rural,-7,"pm10,o3",Arizona
+AQS:04-021-7001,AQS,1,Sacaton Air Monitoring Site,33.081704,-111.752943,146.0,US,North America,rural,-7,"pm10,o3",Arizona
+AQS:06-013-1002,AQS,1,Bethel Island,38.006311,-121.641918,-2.0,US,North America,rural,-8,"o3,no2",California
+AQS:06-019-0007,AQS,1,Fresno-Drummond,36.705474,-119.741332,89.0,US,North America,suburban,-8,"o3,no2",California
+AQS:06-019-2009,AQS,1,Tranquillity,36.634225,-120.382331,58.83,US,North America,rural,-8,"pm25,o3",California
+AQS:06-025-4003,AQS,1,Westmorland,33.0325,-115.62361,0.0,US,North America,rural,-8,"pm10,o3",California
+AQS:06-029-0007,AQS,1,Edison,35.345607,-118.851825,425.0,US,North America,rural,-8,"o3,no2",California
+AQS:06-029-0018,AQS,1,Ridgecrest-Ward,35.642943,-117.715066,717.0,US,North America,urban and center city,-8,"pm25,pm10",California
+AQS:06-029-6001,AQS,1,Shafter,35.503587,-119.272606,126.0,US,North America,suburban,-8,"o3,no2",California
+AQS:06-033-3002,AQS,1,Lakeport-S. Main Street,39.01893,-122.91333,409.0,US,North America,suburban,-8,"o3,pm25_frm",California
+AQS:06-053-0002,AQS,1,Carmel Valley,36.48187,-121.73333,131.0,US,North America,suburban,-8,"pm25,o3",California
+AQS:06-065-0016,AQS,1,Temecula,33.583018,-117.072202,453.0,US,North America,suburban,-8,"pm25,o3",California
+AQS:06-071-4001,AQS,1,Hesperia-Olive Street,34.41651,-117.28563,969.0,US,North America,suburban,-8,"pm10,o3",California
+AQS:06-077-2010,AQS,1,Manteca,37.793392,-121.247874,11.0,US,North America,suburban,-8,"pm25,pm10",California
+AQS:06-079-0005,AQS,1,Paso Robles,35.614668,-120.656912,100.0,US,North America,suburban,-8,"pm10,o3",California
+AQS:06-083-1014,AQS,1,Paradise Road,34.54166,-119.79146,371.0,US,North America,rural,-8,"o3,no2",California
+AQS:06-085-0002,AQS,1,Gilroy,36.999571,-121.574684,63.0,US,North America,suburban,-8,"pm25,o3",California
+AQS:06-087-0007,AQS,1,Santa Cruz,36.98332,-121.98822,28.0,US,North America,suburban,-8,"pm25,o3",California
+AQS:06-103-0007,AQS,1,Red Bluff-Walnut St. District Office,40.17093,-122.25556,100.0,US,North America,suburban,-8,"pm25,o3",California
+AQS:06-111-0007,AQS,1,Thousand Oaks,34.210169,-118.870509,244.0,US,North America,suburban,-8,"pm25,o3",California
+AQS:06-111-0009,AQS,1,Piru - Pacific,34.404281,-118.80998,190.0,US,North America,rural,-8,"pm25,o3",California
+AQS:08-007-7004,AQS,1,Not In A City,37.205862,-107.254118,1920.0,US,North America,rural,-7,"o3,no2",Colorado
+AQS:09-001-9003,AQS,1,Sherwood Island Connector,41.118333,-73.336667,4.0,US,North America,rural,-5,"o3,no2",Connecticut
+AQS:09-009-2123,AQS,1,Meadow And Bank Streets,41.550556,-73.043611,80.0,US,North America,urban and center city,-5,"pm25,pm10",Connecticut
+AQS:10-005-1002,AQS,1,Seaford Shipley State Service Center,38.65392,-75.610605,0.0,US,North America,suburban,-5,"pm25,o3",Delaware
+AQS:12-001-3012,AQS,1,Paynes Prairie Farm,29.566112,-82.26608,30.8,US,North America,rural,-5,"pm25,o3",Florida
+AQS:12-005-0006,AQS,1,"St.Andrews State Park, Panama City Beach",30.130369,-85.731395,4.9,US,North America,rural,-6,"pm25,o3",Florida
+AQS:12-011-0035,AQS,1,Near Road - Fort Lauderdale,26.132677,-80.169817,3.0,US,North America,urban and center city,-5,"pm25,no2",Florida
+AQS:12-011-5005,AQS,1,Coconut Creek,26.294167,-80.176389,0.0,US,North America,suburban,-5,"pm25,pm10",Florida
+AQS:12-021-0004,AQS,1,Laural Oaks Elementary,26.269637,-81.711069,20.0,US,North America,suburban,-5,"pm25,o3",Florida
+AQS:12-031-0098,AQS,1,Mandarin,30.135797,-81.633981,4.0,US,North America,suburban,-5,"pm25,pm10",Florida
+AQS:12-031-0100,AQS,1,Mayo Clinic,30.260278,-81.453611,3.0,US,North America,suburban,-5,"pm25,o3",Florida
+AQS:12-057-1035,AQS,1,Davis Island,27.929316,-82.453519,5.0,US,North America,suburban,-5,"pm10,o3",Florida
+AQS:12-059-0004,AQS,1,Bonifay,30.844621,-85.605095,26.2,US,North America,rural,-6,"pm25,o3",Florida
+AQS:12-083-0003,AQS,1,Ocala Ymca,29.171283,-82.094767,10.0,US,North America,urban and center city,-5,"pm25,o3",Florida
+AQS:12-086-0027,AQS,1,Rosenstiel,25.732878,-80.16175,2.0,US,North America,suburban,-5,"o3,no2",Florida
+AQS:12-103-5002,AQS,1,John Chesnut Sr. Park - East Lake,28.090074,-82.700636,2.0,US,North America,rural,-5,"pm25,o3",Florida
+AQS:12-113-0015,AQS,1,Woodlawn Beach Middle School,30.394133,-87.008033,3.5,US,North America,suburban,-6,"pm25,o3",Florida
+AQS:12-115-2002,AQS,1,Jackson Road,27.088498,-82.361914,3.0,US,North America,suburban,-5,"pm25,o3",Florida
+AQS:12-129-0001,AQS,1,St. Marks Wildlife Refuge,30.0925,-84.161111,2.1,US,North America,rural,-5,"pm25,o3",Florida
+AQS:13-059-0002,AQS,1,Athens,33.918137,-83.344385,215.0,US,North America,suburban,-5,"pm25,o3",Georgia
+AQS:13-067-0003,AQS,1,Kennesaw,34.015436,-84.607423,317.0,US,North America,suburban,-5,"o3,pm25_frm",Georgia
+AQS:13-095-0007,AQS,1,Albany,31.5776,-84.0998,67.0,US,North America,suburban,-5,"pm25,pm25_frm",Georgia
+AQS:13-151-0002,AQS,1,Mcdonough,33.433949,-84.161811,900.0,US,North America,rural,-5,"pm25,o3",Georgia
+AQS:13-185-0003,AQS,1,Valdosta,30.8486,-83.2933,70.0,US,North America,suburban,-5,"pm25,pm25_frm",Georgia
+AQS:15-003-1001,AQS,1,Honolulu,21.30758,-157.85542,20.0,US,North America,urban and center city,-10,"pm25,pm10",Hawaii
+AQS:16-009-0010,AQS,1,St. Maries,47.316577,-116.571281,0.0,US,North America,urban and center city,-7,"pm25,pm25_frm",Idaho
+AQS:16-059-0004,AQS,1,Salmon - Charles St.,45.181897,-113.890285,1197.0,US,North America,rural,-7,"pm25,pm25_frm",Idaho
+AQS:17-065-0002,AQS,1,Ten Mile Creek Dnr Office,38.082155,-88.624943,149.0,US,North America,rural,-6,"pm25,o3",Illinois
+AQS:17-083-0117,AQS,1,Jerseyville Water Treatment Plant (Wtp),39.101439,-90.344494,193.0,US,North America,rural,-6,"pm25,o3",Illinois
+AQS:17-113-2003,AQS,1,Isu Harris Physical Plant,40.518735,-88.996896,236.0,US,North America,suburban,-6,"pm25,o3",Illinois
+AQS:17-115-0013,AQS,1,Iepa Trailer,39.866834,-88.925594,204.0,US,North America,suburban,-6,"pm25,o3",Illinois
+AQS:17-117-0002,AQS,1,Iepa Trailer,39.396075,-89.809739,201.0,US,North America,rural,-6,"o3,no2",Illinois
+AQS:18-067-0004,AQS,1,Kokomo- E. Vaile Rd.,40.481347,-86.109688,217.1,US,North America,urban and center city,-5,"pm25,o3",Indiana
+AQS:18-105-0003,AQS,1,Bloomington- Binford Elementary School,39.159383,-86.504762,254.6,US,North America,suburban,-5,"pm25,pm25_frm",Indiana
+AQS:18-127-0024,AQS,1,Ogden Dunes- Water Treatment Plant,41.6175,-87.199167,183.0,US,North America,suburban,-6,"pm25,o3",Indiana
+AQS:18-183-0003,AQS,1,Larwill- Whitko Career Academy,41.169646,-85.629292,261.0,US,North America,rural,-5,"pm25,pm25_frm",Indiana
+AQS:19-013-0009,AQS,1,Water Tower,42.501543,-92.316017,270.0,US,North America,urban and center city,-6,"pm25,pm25_frm",Iowa
+AQS:19-045-0019,AQS,1,"Clinton, Chancy Park",41.823283,-90.211982,189.0,US,North America,urban and center city,-6,"pm25,pm25_frm",Iowa
+AQS:19-103-2001,AQS,1,"Iowa City, Hoover Sch.",41.657232,-91.503478,225.0,US,North America,urban and center city,-6,"pm25,pm25_frm",Iowa
+AQS:21-043-0500,AQS,1,Grayson Lake,38.23887,-82.9881,211.0,US,North America,rural,-5,"o3,pm25_frm",Kentucky
+AQS:22-005-0004,AQS,1,Dutchtown,30.229653,-90.965628,4.0,US,North America,rural,-6,"o3,no2",Louisiana
+AQS:22-019-0009,AQS,1,Vinton,30.227798,-93.579965,0.0,US,North America,rural,-6,"o3,pm25_frm",Louisiana
+AQS:22-047-0009,AQS,1,Bayou Plaquemine,30.221255,-91.315418,5.0,US,North America,rural,-6,"o3,no2",Louisiana
+AQS:22-071-0012,AQS,1,New Orleans / City Park,29.993519,-90.10155,3.0,US,North America,urban and center city,-6,"pm25,pm10",Louisiana
+AQS:22-073-0004,AQS,1,Monroe / Airport,32.509959,-92.046196,25.0,US,North America,urban and center city,-6,"o3,pm25_frm",Louisiana
+AQS:22-103-0002,AQS,1,Madisonville,30.429381,-90.199678,20.0,US,North America,suburban,-6,"pm25,o3",Louisiana
+AQS:24-015-0003,AQS,1,Fair Hill Natural Resource Management Area,39.702982,-75.864771,128.0,US,North America,rural,-5,"pm25,o3",Maryland
+AQS:24-019-0004,AQS,1,Horn Point,38.587525,-76.141006,0.0,US,North America,rural,-5,"pm25,o3",Maryland
+AQS:24-029-0002,AQS,1,Millington,39.305021,-75.797317,18.0,US,North America,rural,-5,"pm25,o3",Maryland
+AQS:24-031-3001,AQS,1,Rockville,39.114313,-77.106876,126.0,US,North America,rural,-5,"pm25,o3",Maryland
+AQS:24-043-0009,AQS,1,Hagerstown,39.564178,-77.720244,183.0,US,North America,rural,-5,"pm25,o3",Maryland
+AQS:26-091-0007,AQS,1,"6792 Raisin Center Hwy, Lenawee Co.Rd.Comm.Owner, Tecumseh",41.995568,-83.946559,0.5,US,North America,suburban,-5,"pm25,o3",Michigan
+AQS:27-005-2013,AQS,1,Fws Wetland Management District,46.851811,-95.846272,0.0,US,North America,rural,-6,"pm25,o3",Minnesota
+AQS:27-037-0480,AQS,1,Near Road I-35,44.706123,-93.285803,312.0,US,North America,suburban,-6,"pm25,no2",Minnesota
+AQS:27-083-4210,AQS,1,Southwest Minnesota Regional Airport,44.4438,-95.81789,361.0,US,North America,rural,-6,"pm25,o3",Minnesota
+AQS:27-171-3201,AQS,1,St. Michael Elementary School,45.20916,-93.66921,288.0,US,North America,suburban,-6,"pm25,o3",Minnesota
+AQS:28-011-0002,AQS,1,Cleveland Delta State,33.750838,-90.734175,50.0,US,North America,urban and center city,-6,"pm25,o3",Mississippi
+AQS:28-035-0004,AQS,1,Hattiesburg,31.32389,-89.2922,0.0,US,North America,urban and center city,-6,"pm25,pm25_frm",Mississippi
+AQS:29-021-0005,AQS,1,St. Joseph Pump Station,39.741694,-94.858584,258.0,US,North America,urban and center city,-6,"pm25,pm10",Missouri
+AQS:29-039-0001,AQS,1,El Dorado Springs,37.70097,-94.03474,294.0,US,North America,rural,-6,"pm25,o3",Missouri
+AQS:29-047-0005,AQS,1,Liberty,39.303174,-94.377014,287.0,US,North America,rural,-6,"pm25,o3",Missouri
+AQS:29-189-3001,AQS,1,Ladue,38.650329,-90.350313,156.0,US,North America,suburban,-6,"pm25,pm25_frm",Missouri
+AQS:30-029-0049,AQS,1,Flathead Valley,48.363694,-114.189272,928.0,US,North America,suburban,-7,"pm25,pm10",Montana
+AQS:30-031-0017,AQS,1,West Yellowstone Park Ent #2,44.657014,-111.089618,2030.0,US,North America,rural,-7,"pm25,no2",Montana
+AQS:30-049-0026,AQS,1,Rossiter Pump House,46.658762,-112.013089,1131.0,US,North America,suburban,-7,"pm25,pm25_frm",Montana
+AQS:30-053-0018,AQS,1,Libby Courthouse Annex,48.391545,-115.553309,634.0,US,North America,urban and center city,-7,"pm25,pm10",Montana
+AQS:30-089-0007,AQS,1,Thompson Falls High School,47.594395,-115.323746,745.0,US,North America,suburban,-7,"pm25,pm10",Montana
+AQS:33-001-2004,AQS,1,Field Office On The Grounds Of The Former State Prison,43.566122,-71.496335,216.0,US,North America,rural,-5,"pm25,o3",New Hampshire
+AQS:33-009-0010,AQS,1,Lebanon Airport Road,43.629605,-72.309499,171.0,US,North America,urban and center city,-5,"pm25,o3",New Hampshire
+AQS:34-019-0001,AQS,1,Flemington,40.515262,-74.806671,45.0,US,North America,rural,-5,"pm25,o3",New Jersey
+AQS:34-021-0005,AQS,1,Rider University,40.283092,-74.742613,30.0,US,North America,suburban,-5,"pm25,o3",New Jersey
+AQS:35-013-0020,AQS,1,6Zk Chaparral,32.041212,-106.40971,1250.0,US,North America,rural,-7,"pm10,o3",New Mexico
+AQS:35-015-1005,AQS,1,5Zr Carlsbad,32.380118,-104.262726,780.0,US,North America,rural,-7,"o3,no2",New Mexico
+AQS:35-045-0009,AQS,1,1Zb Bloomfield,36.742227,-107.977567,1713.0,US,North America,rural,-7,"o3,no2",New Mexico
+AQS:35-045-0018,AQS,1,1Nl Navajo Lake,36.809735,-107.652192,1950.0,US,North America,rural,-7,"o3,no2",New Mexico
+AQS:35-045-0020,AQS,1,Chaco Culture Nhp - Radio Repeater,36.035,-107.904167,1965.0,US,North America,rural,-7,"o3,no2",New Mexico
+AQS:35-049-0021,AQS,1,3Sfa Santa Fe Airport,35.61975,-106.07968,1930.0,US,North America,rural,-7,"pm25,o3",New Mexico
+AQS:36-001-0012,AQS,1,Loudonville,42.68075,-73.75733,101.0,US,North America,suburban,-5,"o3,pm25_frm",New York
+AQS:36-013-0006,AQS,1,Dunkirk,42.49963,-79.31881,180.0,US,North America,urban and center city,-5,"o3,pm25_frm",New York
+AQS:36-087-0005,AQS,1,Rockland County,41.18208,-74.02819,140.0,US,North America,rural,-5,"pm25,o3",New York
+AQS:36-103-0002,AQS,1,Babylon,40.74529,-73.41919,27.0,US,North America,suburban,-5,"o3,pm25_frm",New York
+AQS:36-119-2004,AQS,1,White Plains,41.05192,-73.76366,64.0,US,North America,suburban,-5,"pm25,o3",New York
+AQS:37-021-0034,AQS,1,Board Of Ed. Bldg.,35.6062,-82.5844,662.94,US,North America,suburban,-5,"pm25,pm25_frm",North Carolina
+AQS:37-057-0002,AQS,1,Lexington Water Tower,35.8145,-80.2627,241.0,US,North America,urban and center city,-5,"pm25,pm25_frm",North Carolina
+AQS:37-065-0099,AQS,1,Leggett,35.988278,-77.5843,18.0,US,North America,rural,-5,"pm25,o3",North Carolina
+AQS:37-101-0002,AQS,1,West Johnston Co.,35.59095,-78.4622,127.0,US,North America,rural,-5,"pm25,o3",North Carolina
+AQS:37-173-0002,AQS,1,Bryson City,35.434767,-83.442133,560.0,US,North America,suburban,-5,"pm25,o3",North Carolina
+AQS:37-183-0021,AQS,1,Triple Oak,35.8652,-78.8197,97.0,US,North America,suburban,-5,"pm25,no2",North Carolina
+AQS:38-007-0002,AQS,1,Painted Canyon,46.8943,-103.37853,832.0,US,North America,rural,-7,"pm25,o3",North Dakota
+AQS:39-025-0022,AQS,1,Batavia,39.0828,-84.1441,262.0,US,North America,suburban,-5,"pm25,o3",Ohio
+AQS:39-035-0034,AQS,1,District 6,41.55523,-81.575256,191.0,US,North America,urban and center city,-5,"o3,pm25_frm",Ohio
+AQS:39-049-0029,AQS,1,New Albany,40.084514,-82.815585,311.0,US,North America,suburban,-5,"pm25,o3",Ohio
+AQS:39-153-0017,AQS,1,East Hs,41.063526,-81.468956,310.0,US,North America,suburban,-5,"pm25,pm25_frm",Ohio
+AQS:39-165-0007,AQS,1,Lebanon,39.42689,-84.20077,234.0,US,North America,suburban,-5,"pm25,o3",Ohio
+AQS:40-027-0049,AQS,1,Moore,35.320105,-97.484099,372.36,US,North America,suburban,-6,"pm25,o3",Oklahoma
+AQS:40-031-0651,AQS,1,Lawton,34.63298,-98.42879,362.027,US,North America,suburban,-6,"pm25,o3",Oklahoma
+AQS:40-043-0860,AQS,1,Seiling,36.158414,-98.931973,532.9,US,North America,rural,-6,"pm25,o3",Oklahoma
+AQS:40-109-0097,AQS,1,Okc Near Road,35.50307,-97.577981,1.0,US,North America,urban and center city,-6,"pm25,no2",Oklahoma
+AQS:40-143-0174,AQS,1,Glenpool,35.953708,-96.004975,223.01,US,North America,rural,-6,"pm25,o3",Oklahoma
+AQS:41-009-0004,AQS,1,Portland - Sauvie Island (Sis),45.768531,-122.7721,6.0,US,North America,rural,-8,"pm25,o3",Oregon
+AQS:42-003-0067,AQS,1,South Fayette,40.375644,-80.169943,354.0,US,North America,suburban,-5,"o3,pm25_frm",Pennsylvania
+AQS:42-117-4000,AQS,1,Tioga County,41.644722,-76.939167,650.0,US,North America,rural,-5,"o3,no2",Pennsylvania
+AQS:44-003-0002,AQS,1,Aj,41.615237,-71.72,67.0,US,North America,,-5,"pm25,o3",Rhode Island
+AQS:44-009-0007,AQS,1,Us-Epa Laboratory,41.49511,-71.423705,32.0,US,North America,suburban,-5,"pm25,o3",Rhode Island
+AQS:47-065-4002,AQS,1,Siskin,35.050918,-85.293019,214.8,US,North America,urban and center city,-5,"pm25,pm25_frm",Tennessee
+AQS:47-105-0109,AQS,1,Loudon School,35.721095,-84.343035,248.0,US,North America,suburban,-5,"pm25,o3",Tennessee
+AQS:48-113-0087,AQS,1,Dallas Redbird Airport Executive,32.676448,-96.87205,206.0,US,North America,suburban,-6,"o3,no2",Texas
+AQS:48-183-0001,AQS,1,Longview,32.378681,-94.711803,109.1,US,North America,rural,-6,"o3,no2",Texas
+AQS:48-201-0029,AQS,1,Northwest Harris County,30.039522,-95.673918,50.6,US,North America,rural,-6,"o3,no2",Texas
+AQS:48-231-1006,AQS,1,Greenville,33.153086,-96.115569,161.0,US,North America,suburban,-6,"o3,no2",Texas
+AQS:48-245-0009,AQS,1,Beaumont Downtown,30.036481,-94.071074,10.1,US,North America,suburban,-6,"o3,no2",Texas
+AQS:48-309-1037,AQS,1,Waco Mazanec,31.653084,-97.070699,143.0,US,North America,rural,-6,"pm25,o3",Texas
+AQS:48-361-1001,AQS,1,West Orange,30.085258,-93.761366,3.0,US,North America,urban and center city,-6,"o3,no2",Texas
+AQS:48-423-0007,AQS,1,Tyler Airport Relocated,32.344019,-95.415752,165.0,US,North America,rural,-6,"o3,no2",Texas
+AQS:48-439-3009,AQS,1,Grapevine Fairway,32.984258,-97.063702,165.0,US,North America,suburban,-6,"o3,no2",Texas
+AQS:48-439-3011,AQS,1,Arlington Municipal Airport,32.656365,-97.088592,183.0,US,North America,suburban,-6,"o3,no2",Texas
+AQS:49-013-7011,AQS,1,Station Located Near Intersection Of 6000 So & 10000 West,40.216779,-110.182742,1606.0,US,North America,rural,-7,"o3,no2",Utah
+AQS:49-047-2002,AQS,1,Not In A City,40.206291,-109.353932,1701.8,US,North America,rural,-7,"o3,no2",Utah
+AQS:49-047-2003,AQS,1,Not In A City,40.05671,-109.688108,1466.8,US,North America,rural,-7,"o3,no2",Utah
+AQS:49-047-7022,AQS,1,Station Near Intersection Of Whiterock Canyon Rd & Quray Canal,40.483598,-109.906796,1893.0,US,North America,rural,-7,"o3,no2",Utah
+AQS:50-003-0004,AQS,1,Morse Airport - State Of Vermont Property,42.88759,-73.24984,241.0,US,North America,rural,-5,"pm25,o3",Vermont
+AQS:51-041-0004,AQS,1,Vdot Chesterfield Residency Shop,37.35748,-77.59355,83.0,US,North America,rural,-5,"o3,pm25_frm",Virginia
+AQS:51-153-0009,AQS,1,James S. Long Park,38.85287,-77.63462,117.0,US,North America,suburban,-5,"o3,no2",Virginia
+AQS:51-710-0024,AQS,1,Noaa,36.85555,-76.30135,2.0,US,North America,urban and center city,-5,"no2,pm25_frm",Virginia
+AQS:53-009-0013,AQS,1,Cheeka Peak,48.29786,-124.62491,466.0,US,North America,rural,-8,"pm25,o3",Washington
+AQS:53-033-0017,AQS,1,North Bend - North Bend Way,47.49022,-121.77278,140.0,US,North America,rural,-8,"pm25,o3",Washington
+AQS:53-053-0024,AQS,1,Tacoma-S 36Th St,47.22634,-122.46256,108.0,US,North America,urban and center city,-8,"pm25,no2",Washington
+AQS:53-065-0005,AQS,1,Colville-E 1St,48.544448,-117.903425,71.0,US,North America,urban and center city,-8,"pm25,pm10",Washington
+AQS:54-003-0003,AQS,1,Martinsburg Ball Field,39.448105,-77.963845,0.0,US,North America,suburban,-5,"o3,pm25_frm",West Virginia
+AQS:54-061-0003,AQS,1,Morgantown,39.649444,-79.920278,378.8664,US,North America,suburban,-5,"o3,pm25_frm",West Virginia
+AQS:54-069-0010,AQS,1,Wheeling,40.114876,-80.700972,0.0,US,North America,urban and center city,-5,"o3,pm25_frm",West Virginia
+AQS:54-107-1002,AQS,1,Neale Elementary School,39.323533,-81.552367,196.596,US,North America,suburban,-5,"o3,pm25_frm",West Virginia
+AQS:55-003-0010,AQS,1,Bad River Tribal School - Odanah,46.60234,-90.65615,192.0,US,North America,suburban,-6,"pm25,o3",Wisconsin
+AQS:55-041-0007,AQS,1,Potawatomi,45.56498,-88.80859,559.0,US,North America,rural,-6,"pm25,o3",Wisconsin
+AQS:55-059-0019,AQS,1,Chiwaukee Prairie Stateline,42.50472,-87.8093,187.0,US,North America,rural,-6,"pm25,o3",Wisconsin
+AQS:55-063-0012,AQS,1,Lacrosse - Dot Building,43.7775,-91.2269,667.0,US,North America,suburban,-6,"pm25,o3",Wisconsin
+AQS:55-087-0009,AQS,1,Appleton - Aal,44.30738,-88.39509,240.0,US,North America,suburban,-6,"pm25,o3",Wisconsin
+AQS:55-089-0009,AQS,1,Harrington Beach Park,43.4983,-87.8102,211.0,US,North America,rural,-6,"pm25,o3",Wisconsin
+AQS:55-125-0001,AQS,1,Trout Lake,46.0519,-89.654,503.0,US,North America,rural,-6,"pm25,o3",Wisconsin
+AQS:56-005-0123,AQS,1,Thunder Basin,44.6522,-105.2903,1196.0,US,North America,rural,-7,"o3,no2",Wyoming
+AQS:56-035-0700,AQS,1,Big Piney Site #3,42.486361,-110.098861,2076.0,US,North America,rural,-7,"o3,no2",Wyoming
+AQS:56-035-1002,AQS,1,Juel Spring,42.373499,-109.560498,2145.0,US,North America,rural,-7,"o3,no2",Wyoming
+AQS:01-073-5003,AQS,1,Corner,33.801667,-86.9425,212.0,US,North America,rural,-6,"pm25,o3",Alabama
+AQS:02-090-0035,AQS,1,Hurst Road,64.762641,-147.310279,145.0,US,North America,suburban,-9,"pm25,pm25_frm",Alaska
+AQS:06-043-1001,AQS,1,Yosemite Np-Yosemite Village Vistor Center,37.748707,-119.587094,1216.0,US,North America,,-8,"pm25,pm10",California
+AQS:06-051-0001,AQS,1,Mammoth Lakes,37.64571,-118.96652,2395.0,US,North America,urban and center city,-8,"pm10,pm25_frm",California
+AQS:06-067-0011,AQS,1,Elk Grove-Bruceville,38.302591,-121.420838,6.0,US,North America,rural,-8,"o3,no2",California
+AQS:06-067-5003,AQS,1,Sloughhouse,38.494475,-121.211131,58.0,US,North America,rural,-8,"pm25,o3",California
+AQS:06-077-1002,AQS,1,Stockton-Hazelton,37.950741,-121.268523,19.0,US,North America,urban and center city,-8,"pm25,no2",California
+AQS:06-083-1021,AQS,1,Carpinteria,34.403052,-119.457914,137.0,US,North America,rural,-8,"o3,no2",California
+AQS:06-093-2001,AQS,1,Yreka,41.726892,-122.633579,802.0,US,North America,suburban,-8,"pm25,o3",California
+AQS:06-107-2010,AQS,1,Porterville,36.031831,-119.055018,136.25,US,North America,rural,-8,"pm25,o3",California
+AQS:06-113-1003,AQS,1,Woodland-Gibson Road,38.66121,-121.73269,11.0,US,North America,suburban,-8,"o3,pm25_frm",California
+AQS:12-023-0002,AQS,1,Lake City - Veteran'S Domicile,30.178056,-82.619167,36.6,US,North America,suburban,-5,"pm25,o3",Florida
+AQS:12-086-6001,AQS,1,Homestead Fire Station,25.471944,-80.482778,7.0,US,North America,suburban,-5,"pm25,pm25_frm",Florida
+AQS:13-153-0001,AQS,1,Warner Robins,32.6056,-83.5978,90.0,US,North America,suburban,-5,"pm25,pm25_frm",Georgia
+AQS:16-017-0003,AQS,1,Sandpoint,48.292141,-116.556656,645.0,US,North America,rural,-7,"pm25,pm10",Idaho
+AQS:16-041-0002,AQS,1,Preston,42.082222,-111.864167,1439.0,US,North America,rural,-7,"pm25,pm25_frm",Idaho
+AQS:17-119-3007,AQS,1,Water Plant,38.860669,-90.105851,131.0,US,North America,suburban,-6,"o3,pm25_frm",Illinois
+AQS:17-157-0001,AQS,1,Iepa Trailer,38.176278,-89.788459,136.0,US,North America,rural,-6,"pm25,o3",Illinois
+AQS:17-197-1011,AQS,1,Com Ed Training Center,41.221537,-88.190967,181.0,US,North America,rural,-6,"pm25,o3",Illinois
+AQS:18-019-0008,AQS,1,Charlestown State Park- 1051.8 Meters East Of Sr 62/ Indiana Armory,38.393822,-85.664118,186.551,US,North America,rural,-5,"o3,pm25_frm",Indiana
+AQS:25-005-1004,AQS,1,Fall River,41.685707,-71.169235,59.0,US,North America,suburban,-5,"pm25,o3",Massachusetts
+AQS:27-017-7417,AQS,1,Fond Du Lac Band,46.713694,-92.511722,433.0,US,North America,rural,-6,"pm25,o3",Minnesota
+AQS:27-035-3204,AQS,1,Brainerd Lakes Regional Airport,46.39674,-94.1303,381.0,US,North America,rural,-6,"pm25,o3",Minnesota
+AQS:27-123-0868,AQS,1,Ramsey Health Center,44.95072,-93.09827,251.0,US,North America,urban and center city,-6,"pm10,pm25_frm",Minnesota
+AQS:27-139-0505,AQS,1,B.F. Pearson School,44.791437,-93.512534,0.0,US,North America,urban and center city,-6,"pm25,o3",Minnesota
+AQS:39-013-0006,AQS,1,Shadyside,39.9679,-80.7464,195.0,US,North America,urban and center city,-5,"no2,pm25_frm",Ohio
+AQS:39-023-0005,AQS,1,Springfield Fire St1,39.92882,-83.80949,297.0,US,North America,urban and center city,-5,"pm25,pm25_frm",Ohio
+AQS:39-151-0020,AQS,1,Canton,40.800717,-81.373,318.0,US,North America,urban and center city,-5,"pm25,pm25_frm",Ohio
+AQS:40-115-9004,AQS,1,Quapaw Shelter,36.922222,-94.838889,247.0,US,North America,rural,-6,"pm25,o3",Oklahoma
+AQS:41-013-0100,AQS,1,Prineville - Davidson Park (Pdp),44.299787,-120.844773,873.0,US,North America,urban and center city,-8,"pm25,pm25_frm",Oregon
+AQS:41-047-0041,AQS,1,Salem - Oregon State Hospital (Ssh),44.943114,-123.005934,182.0,US,North America,urban and center city,-8,"pm25,o3",Oregon
+AQS:41-067-0004,AQS,1,Hillsboro - Hare Field (Hhf),45.528501,-122.972398,16.0,US,North America,suburban,-8,"pm25,pm25_frm",Oregon
+AQS:42-013-0801,AQS,1,Altoona,40.535278,-78.370833,378.0,US,North America,suburban,-5,"pm25,o3",Pennsylvania
+AQS:42-043-1100,AQS,1,Hershey,40.272222,-76.681389,125.0,US,North America,urban and center city,-5,"pm10,o3",Pennsylvania
+AQS:42-059-0002,AQS,1,Holbrook,39.80933,-80.26567,450.0,US,North America,rural,-5,"pm25,o3",Pennsylvania
+AQS:42-101-0075,AQS,1,Torresdale Station,40.054171,-74.985166,9.0,US,North America,urban and center city,-5,"pm25,no2",Pennsylvania
+AQS:42-125-5001,AQS,1,Florence,40.445278,-80.420833,335.0,US,North America,rural,-5,"pm25,o3",Pennsylvania
+AQS:45-041-0003,AQS,1,Williams Middle School,34.214263,-79.767347,44.0,US,North America,suburban,-5,"pm25,pm25_frm",South Carolina
+AQS:45-091-8801,AQS,1,Rock Hill,34.9127,-80.8745,10.0,US,North America,suburban,-5,"pm25,o3",South Carolina
+AQS:48-027-1045,AQS,1,Temple Georgia,31.122413,-97.431055,188.0,US,North America,suburban,-6,"pm25,o3",Texas
+AQS:48-039-1016,AQS,1,Lake Jackson,29.043761,-95.472953,0.0,US,North America,suburban,-6,"o3,no2",Texas
+AQS:48-043-0101,AQS,1,Big Bend Np,29.30265,-103.17781,1057.0,US,North America,rural,-6,"pm25,o3",Texas
+AQS:48-355-0034,AQS,1,Dona Park,27.811833,-97.465706,6.0,US,North America,urban and center city,-6,"pm25,pm25_frm",Texas
+AQS:48-439-1053,AQS,1,Fort Worth California Parkway North,32.664758,-97.337905,214.9,US,North America,urban and center city,-6,"pm25,no2",Texas
+AQS:48-453-1068,AQS,1,Austin North Interstate 35,30.35384,-97.691587,205.0,US,North America,urban and center city,-6,"pm25,no2",Texas
+AQS:53-005-0002,AQS,1,Kennewick - Metaline,46.21835,-119.204153,162.0,US,North America,urban and center city,-8,"pm25,pm10",Washington
+AQS:05-119-1008,AQS,1,Doyle Springs Road,34.681343,-92.328697,0.0,US,North America,suburban,-6,"pm25,pm25_frm",Arkansas
+AQS:06-019-2016,AQS,1,Fresno-Foundry,36.710833,-119.7775,87.0,US,North America,urban and center city,-8,"pm25,no2",California
+AQS:06-031-0500,AQS,1,Santa Rosa Rancheria,36.233274,-119.766212,68.0,US,North America,rural,-8,"pm10,o3",California
+AQS:06-059-2022,AQS,1,Mission Viejo,33.63003,-117.67593,161.0,US,North America,suburban,-8,"o3,pm25_frm",California
+AQS:06-061-0003,AQS,1,Auburn-Atwood,38.93568,-121.09959,400.0,US,North America,suburban,-8,"pm25,o3",California
+AQS:08-013-0003,AQS,1,Longmont - Municipal Bldg,40.164576,-105.100856,1520.0,US,North America,urban and center city,-7,"pm25,pm25_frm",Colorado
+AQS:08-067-1004,AQS,1,Shamrock Mine,37.30389,-107.484167,2367.0,US,North America,rural,-7,"o3,no2",Colorado
+AQS:12-003-0002,AQS,1,Olustee,30.201111,-82.441111,46.7,US,North America,rural,-5,"pm25,o3",Florida
+AQS:22-057-0004,AQS,1,Thibodaux,29.764098,-90.765275,5.0,US,North America,suburban,-6,"pm25,o3",Louisiana
+AQS:23-017-2011,AQS,1,Rumford Avenue Parking Lot (Rap),44.551419,-70.546319,135.0,US,North America,rural,-5,"pm25,pm25_frm",Maine
+AQS:26-153-0001,AQS,1,"Seney National Wildlife Refuge, Germfask, Mi",46.288877,-85.950227,0.0,US,North America,rural,-5,"pm25,o3",Michigan
+AQS:26-163-0093,AQS,1,Eliza Howell-Nr,42.385998,-83.266189,0.5,US,North America,urban and center city,-5,"pm25,no2",Michigan
+AQS:27-075-0005,AQS,1,Boundary Waters,47.948622,-91.495574,528.0,US,North America,rural,-6,"pm25,o3",Minnesota
+AQS:27-137-7001,AQS,1,Virginia City Hall,47.523355,-92.536305,455.0,US,North America,urban and center city,-6,"pm25,no2",Minnesota
+AQS:27-145-3052,AQS,1,Talahi School,45.549839,-94.13345,0.0,US,North America,suburban,-6,"pm25,o3",Minnesota
+AQS:29-095-0042,AQS,1,"Blue Ridge, I-70",39.047911,-94.450513,293.0,US,North America,suburban,-6,"pm25,no2",Missouri
+AQS:36-071-0002,AQS,1,Newburgh,41.49916,-74.00885,127.0,US,North America,urban and center city,-5,"pm25,pm25_frm",New York
+AQS:36-103-0009,AQS,1,Holtsville,40.82799,-73.05754,45.0,US,North America,suburban,-5,"pm25,o3",New York
+AQS:41-029-2129,AQS,1,Medford - Welch St & Jackson St (Mwj),42.33155,-122.880266,417.0,US,North America,urban and center city,-8,"pm25,pm25_frm",Oregon
+AQS:41-033-0114,AQS,1,Grants Pass - Parkside Elementary School (Gpp),42.434139,-123.348466,0.0,US,North America,suburban,-8,"pm25,pm25_frm",Oregon
+AQS:41-037-0001,AQS,1,Lakeview - Center St & M St (Lcm),42.189215,-120.353969,1448.0,US,North America,rural,-8,"pm25,pm25_frm",Oregon
+AQS:42-005-0001,AQS,1,Kittanning,40.814183,-79.56475,200.0,US,North America,suburban,-5,"pm25,o3",Pennsylvania
+AQS:42-085-0100,AQS,1,Farrell,41.215014,-80.484779,329.0,US,North America,urban and center city,-5,"pm25,o3",Pennsylvania
+AQS:42-091-0013,AQS,1,Norristown,40.112222,-75.309167,53.0,US,North America,suburban,-5,"pm25,o3",Pennsylvania
+AQS:42-129-0008,AQS,1,Greensburg,40.304694,-79.505667,0.0,US,North America,suburban,-5,"pm25,o3",Pennsylvania
+AQS:48-027-1047,AQS,1,Killeen Skylark Field,31.087999,-97.679743,256.0,US,North America,urban and center city,-6,"o3,no2",Texas
+AQS:48-029-1069,AQS,1,San Antonio Interstate 35,29.529433,-98.391385,284.3,US,North America,urban and center city,-6,"pm25,no2",Texas
+AQS:48-139-1044,AQS,1,Italy,32.175432,-96.870194,165.0,US,North America,rural,-6,"o3,no2",Texas
+AQS:48-215-0043,AQS,1,Mission,26.22624,-98.291147,37.0,US,North America,suburban,-6,"pm25,o3",Texas
+AQS:50-007-0014,AQS,1,City Of Burlington Parking Lot,44.4762,-73.2106,63.1,US,North America,urban and center city,-5,"pm25,no2",Vermont
+AQS:51-113-0003,AQS,1,Shenandoah Np,38.5231,-78.43471,1068.0,US,North America,rural,-5,"pm25,o3",Virginia
+AQS:53-057-0011,AQS,1,Anacortes-202 Ave,48.52059,-122.61428,7.0,US,North America,urban and center city,-8,"pm25,o3",Washington
+AQS:54-011-0007,AQS,1,Huntington,38.410242,-82.432436,169.4688,US,North America,suburban,-5,"o3,pm25_frm",West Virginia
+AQS:56-025-2601,AQS,1,Brookhurst,42.8608,-106.23586,1559.0,US,North America,suburban,-7,"o3,no2",Wyoming
+AQS:04-021-7030,AQS,1,Ak Chin Museum,33.031038,-112.078111,359.0,US,North America,rural,-7,"pm25,pm10",Arizona
+AQS:06-061-0004,AQS,1,Colfax-City Hall,39.100174,-120.953832,768.0,US,North America,suburban,-8,"pm25,o3",California
+AQS:06-061-1004,AQS,1,Tahoe City-Fairway Drive,39.166017,-120.148833,1915.67,US,North America,urban and center city,-8,"pm25,o3",California
+AQS:06-061-2003,AQS,1,Lincoln-2885 Moore Road,38.867937,-121.338353,37.0,US,North America,rural,-8,"pm25,o3",California
+AQS:06-063-1010,AQS,1,Portola,39.81336,-120.47069,8.0,US,North America,suburban,-8,"pm25,pm25_frm",California
+AQS:06-067-0012,AQS,1,Folsom-Natoma St.,38.683304,-121.164457,98.0,US,North America,suburban,-8,"pm25,o3",California
+AQS:12-099-0022,AQS,1,Lamstein Lane,26.68737,-80.220311,4.78,US,North America,suburban,-5,"pm25,o3",Florida
+AQS:27-137-7550,AQS,1,U Of M - Duluth,46.81826,-92.08936,351.0,US,North America,suburban,-6,"pm25,o3",Minnesota
+AQS:42-041-0101,AQS,1,Carlisle,40.246528,-77.18675,0.0,US,North America,rural,-5,"pm25,pm25_frm",Pennsylvania
+AQS:42-079-1101,AQS,1,Wilkes-Barre,41.265556,-75.846389,172.0,US,North America,suburban,-5,"pm10,o3",Pennsylvania
+AQS:48-245-1035,AQS,1,Nederland 17Th Street,29.979975,-94.004778,15.0,US,North America,suburban,-6,"o3,no2",Texas
+AQS:12-091-0002,AQS,1,Ft. Walton Beach,30.426533,-86.666217,9.5,US,North America,suburban,-6,"pm10,o3",Florida
+AQS:15-007-0007,AQS,1,Niumalu,21.949599,-159.36624,11.0,US,North America,suburban,-10,"pm25,no2",Hawaii
+AQS:35-045-1233,AQS,1,Dine College Gis Lab,36.8071,-108.69523,0.0,US,North America,rural,-7,"o3,no2",New Mexico
+AQS:37-131-0003,AQS,1,Northampton County,36.511708,-77.655389,55.0,US,North America,rural,-5,"pm25,no2",North Carolina
+AQS:39-099-0014,AQS,1,Headstart,41.09596,-80.65847,286.0,US,North America,urban and center city,-5,"pm25,pm25_frm",Ohio
+AQS:40-105-0207,AQS,1,Oklahoma Union (Nowata County),36.91841,-95.632286,225.584,US,North America,rural,-6,"pm25,o3",Oklahoma
+AQS:45-019-0049,AQS,1,Charleston Public Works,32.790984,-79.958694,2.0,US,North America,urban and center city,-5,"pm25,pm25_frm",South Carolina
+AQS:46-013-0004,AQS,1,Aberdeen Bus Stop,45.468596,-98.494061,395.3,US,North America,urban and center city,-6,"pm25,pm10",South Dakota
+AQS:49-003-7001,AQS,1,Washakie,41.945874,-112.233973,1369.0,US,North America,rural,-7,"o3,no2",Utah
+AQS:26-139-0005,AQS,1,Jenison,42.894444,-85.852778,195.0,US,North America,suburban,-5,o3,Michigan
+AQS:46-127-0001,AQS,1,Union County #1 Jensen,42.751518,-96.707208,344.0,US,North America,rural,-6,o3,South Dakota
+AQS:21-013-0002,AQS,1,Middlesboro,36.60843,-83.73694,346.0,US,North America,suburban,-5,o3,Kentucky
+AQS:21-199-0003,AQS,1,Somerset,37.09798,-84.61152,306.0,US,North America,suburban,-5,o3,Kentucky
+AQS:26-099-0009,AQS,1,New Haven,42.731394,-82.793463,189.0,US,North America,suburban,-5,o3,Michigan
+AQS:47-093-1020,AQS,1,Spring Hill Elementary School,36.019186,-83.87381,322.0,US,North America,suburban,-5,o3,Tennessee
+AQS:21-047-0006,AQS,1,Hopkinsville,36.91171,-87.323337,215.0,US,North America,rural,-6,o3,Kentucky
+AQS:26-005-0003,AQS,1,1016 W. 32Nd St (Holland),42.768233,-86.150636,194.0,US,North America,suburban,-5,o3,Michigan
+AQS:42-051-0524,AQS,1,Uniontown,39.917663,-79.805499,350.0,US,North America,rural,-5,o3,Pennsylvania
+AQS:06-107-0009,AQS,1,Sequoia & Kings Canyon Nps - Ash Mountain,36.48947,-118.82915,510.0,US,North America,rural,-8,o3,California
+AQS:18-095-0011,AQS,1,Anderson- Eastside Elem. School,40.125703,-85.652184,236.54,US,North America,suburban,-5,pm25,Indiana
+AQS:23-003-0014,AQS,1,Public Safety Building,47.355332,-68.321106,184.0,US,North America,urban and center city,-5,pm25,Maine
+AQS:40-019-0297,AQS,1,Healdton,34.244189,-97.462931,289.66,US,North America,rural,-6,pm25,Oklahoma
+AQS:41-025-0003,AQS,1,Burns - Washington St (Bws),43.58925,-119.04872,1267.0,US,North America,urban and center city,-8,pm25,Oregon
+AQS:41-029-0201,AQS,1,Talent - Rapp Lane (Tal),42.229891,-122.7877,591.0,US,North America,rural,-8,o3,Oregon
+AQS:41-039-9004,AQS,1,Cottage Grove - City Shops (Cgc),43.799501,-123.053487,196.0,US,North America,urban and center city,-8,pm25,Oregon
+AQS:41-047-0004,AQS,1,Turner - Cascade Junior High School (Cjh),44.81029,-122.915085,102.0,US,North America,rural,-8,o3,Oregon
+AQS:42-003-0002,AQS,1,Avalon,40.50084,-80.066488,256.0,US,North America,suburban,-5,pm25,Pennsylvania
+AQS:42-063-0004,AQS,1,Strongstown,40.56333,-78.919972,360.0,US,North America,rural,-5,o3,Pennsylvania
+AQS:72-113-0004,AQS,1,Residential Area,18.009558,-66.627249,0.0,US,North America,urban and center city,-4,pm25_frm,Puerto Rico
+AQS:04-003-1005,AQS,1,Douglas Red Cross,31.3492,-109.539683,1231.0,US,North America,urban and center city,-7,pm10,Arizona
+AQS:06-071-8001,AQS,1,Big Bear,34.26464,-116.86147,2056.0,US,North America,suburban,-8,pm25_frm,California
+AQS:23-001-0011,AQS,1,Country Kitchen Bakery Parking Lot,44.089406,-70.214219,49.38,US,North America,urban and center city,-5,pm25,Maine
+AQS:23-019-0017,AQS,1,Mary Snow School,44.817398,-68.772762,54.2,US,North America,urban and center city,-5,pm25,Maine
+AQS:26-017-0014,AQS,1,"Bay City -Jenison St About 70 Ft West, 2 Lane Residential",43.571391,-83.890721,0.0,US,North America,urban and center city,-5,pm25,Michigan
+AQS:37-033-0001,AQS,1,Cherry Grove,36.307033,-79.467417,235.6,US,North America,rural,-5,o3,North Carolina
+AQS:39-145-0013,AQS,1,Portsmouth Wtp,38.754599,-82.91701,174.0,US,North America,suburban,-5,pm25_frm,Ohio
+AQS:41-059-1003,AQS,1,Hermiston - Municipal Airport (Hma),45.828968,-119.262991,196.0,US,North America,suburban,-8,o3,Oregon
+AQS:42-101-0004,AQS,1,Air Management Services Laboratory (Ams Lab),40.008889,-75.09778,22.0,US,North America,urban and center city,-5,o3,Pennsylvania
+AQS:45-083-0011,AQS,1,T.K. Gregg,34.955566,-81.924797,232.0,US,North America,urban and center city,-5,pm25_frm,South Carolina
+AQS:48-201-0066,AQS,1,Houston Westhollow,29.723333,-95.635941,24.0,US,North America,suburban,-6,o3,Texas
+AQS:53-063-0001,AQS,1,Cheney - Turnbull,47.41645,-117.52997,696.0,US,North America,,-8,o3,Washington
+AQS:53-067-0013,AQS,1,Lacey - College St,47.029396,-122.821548,70.0,US,North America,suburban,-8,pm25,Washington
+AQS:56-039-1013,AQS,1,Yellowstone National Park - Old Faithful Snow Lodge,44.373056,-110.830833,2230.0,US,North America,rural,-7,pm25,Wyoming
+AQS:02-020-1004,AQS,1,Parkgate/Eagle River,61.3267,-149.569707,100.0,US,North America,suburban,-9,pm10,Alaska
+AQS:05-139-0006,AQS,1,El Dorado,33.220563,-92.672263,55.0,US,North America,urban and center city,-6,pm25_frm,Arkansas
+AQS:12-071-0005,AQS,1,Winkler Pump Station,26.602016,-81.877908,0.0,US,North America,suburban,-5,pm25,Florida
+AQS:13-139-0003,AQS,1,Gainesville,34.2993,-83.8134,386.0,US,North America,suburban,-5,pm25,Georgia
+AQS:15-001-1006,AQS,1,Hilo,19.717562,-155.11053,137.0,US,North America,suburban,-10,pm25,Hawaii
+AQS:18-003-0004,AQS,1,Ft. Wayne- Beacon St.,41.094965,-85.101816,177.6,US,North America,suburban,-5,o3,Indiana
+AQS:26-101-0922,AQS,1, Lrb Aka Little River Band-Manistee,44.307,-86.242649,0.0,US,North America,urban and center city,-5,o3,Michigan
+AQS:27-037-0470,AQS,1,Apple Valley,44.73846,-93.23725,306.0,US,North America,suburban,-6,pm25,Minnesota
+AQS:27-137-7554,AQS,1,Laura Macarthur School,46.743657,-92.165998,196.3,US,North America,suburban,-6,pm25,Minnesota
+AQS:34-039-2003,AQS,1,Rahway,40.603943,-74.276174,3.0,US,North America,suburban,-5,pm25,New Jersey
+AQS:37-035-0004,AQS,1,Hickory Water Tower,35.728889,-81.365556,333.0,US,North America,suburban,-5,pm25,North Carolina
+AQS:37-107-0004,AQS,1,Lenoir Co. Comm. Coll.,35.2318,-77.5669,15.0,US,North America,suburban,-5,o3,North Carolina
+AQS:37-123-0001,AQS,1,Candor: Epa Castnet Site,35.263165,-79.836636,173.0,US,North America,rural,-5,pm25,North Carolina
+AQS:48-037-1031,AQS,1,Texarkana New Boston,33.436223,-94.077756,92.0,US,North America,urban and center city,-6,pm25,Texas
+AQS:51-810-0008,AQS,1,Deq Tidewater Regional Office,36.841883,-76.181233,4.0,US,North America,suburban,-5,pm25_frm,Virginia
+AQS:01-027-0001,AQS,1,Ashland,33.284928,-85.803608,344.42,US,North America,rural,-6,pm25_frm,Alabama
+AQS:01-049-1003,AQS,1,Crossville,34.288567,-85.969858,500.0,US,North America,rural,-6,pm25_frm,Alabama
+AQS:01-051-0004,AQS,1,Wetumpka Westside Technology Park,32.53568,-86.255193,54.0,US,North America,urban and center city,-6,o3,Alabama
+AQS:01-055-0011,AQS,1,Southside,33.904039,-86.053867,152.4,US,North America,suburban,-6,o3,Alabama
+AQS:01-089-0022,AQS,1,Huntsville Capshaw Road,34.772727,-86.756174,227.99,US,North America,rural,-6,o3,Alabama
+AQS:01-125-0004,AQS,1,"Va, Tuscaloosa",33.189931,-87.484189,128.0,US,North America,suburban,-6,pm25_frm,Alabama
+AQS:02-068-0003,AQS,1,Denali Np,63.7232,-148.9676,663.0,US,North America,rural,-9,o3,Alaska
+AQS:04-001-1003,AQS,1,White Mountain Fort Apache Reservation,34.07339,-109.85801,2230.0,US,North America,rural,-7,pm10,Arizona
+AQS:04-003-8001,AQS,1,Chiricahua Nm,32.00941,-109.38906,1569.0,US,North America,rural,-7,o3,Arizona
+AQS:04-005-1008,AQS,1,Flagstaff Middle School,35.206111,-111.652777,2120.0,US,North America,suburban,-7,o3,Arizona
+AQS:04-005-8001,AQS,1,Grand Canyon Np - The Abyss,36.05864,-112.1836,2070.0,US,North America,rural,-7,o3,Arizona
+AQS:04-007-0008,AQS,1,Payson Well Site,34.229733,-111.3295,1497.0,US,North America,urban and center city,-7,pm10,Arizona
+AQS:04-007-0010,AQS,1,Tonto Nm,33.6547,-111.1074,786.0,US,North America,rural,-7,o3,Arizona
+AQS:04-007-1001,AQS,1,Hayden Old Jail,33.006179,-110.785797,625.0,US,North America,urban and center city,-7,pm10,Arizona
+AQS:04-007-8000,AQS,1,Miami Golf Course,33.419017,-110.82967,1012.0,US,North America,rural,-7,pm10,Arizona
+AQS:04-013-4008,AQS,1,Cave Creek,33.82169,-112.01726,587.0,US,North America,rural,-7,o3,Arizona
+AQS:04-013-9508,AQS,1,Humboldt Mountain,33.9828,-111.79871,1582.0,US,North America,rural,-7,o3,Arizona
+AQS:04-013-9702,AQS,1,Blue Point-Sheriff Station-Tonto Nf-Salt River Recreation Area,33.54558,-111.60972,436.0,US,North America,rural,-7,o3,Arizona
+AQS:04-015-1003,AQS,1,Bullhead City Adeq,35.153888,-114.566111,156.0,US,North America,urban and center city,-7,pm10,Arizona
+AQS:04-017-0119,AQS,1,Petrified Forest Np,34.82251,-109.89249,1712.0,US,North America,rural,-7,o3,Arizona
+AQS:04-019-0001,AQS,1,Ajo,32.382036,-112.857453,515.0,US,North America,suburban,-7,pm10,Arizona
+AQS:04-019-0021,AQS,1,Saguaro Np,32.174538,-110.737116,938.0,US,North America,rural,-7,o3,Arizona
+AQS:04-021-3009,AQS,1,Combs,33.219111,-111.561111,428.0,US,North America,suburban,-7,pm10,Arizona
+AQS:04-021-3011,AQS,1,Pinal County Housing (Aka Eleven Mile Corner),32.891056,-111.5705,440.0,US,North America,suburban,-7,pm10,Arizona
+AQS:04-021-8001,AQS,1,Queen Valley,33.293465,-111.285594,634.0,US,North America,rural,-7,o3,Arizona
+AQS:04-025-8034,AQS,1,Prescott Pioneer Park,34.612055,-112.463213,1602.0,US,North America,suburban,-7,o3,Arizona
+AQS:05-001-0011,AQS,1,Stuttgart,34.518515,-91.55896,0.0,US,North America,suburban,-6,pm25_frm,Arkansas
+AQS:05-019-9991,AQS,1,Caddo Valley,34.1795,-93.0988,71.0,US,North America,rural,-6,o3,Arkansas
+AQS:05-051-0003,AQS,1,Hot Springs,34.469441,-93.000178,369.0,US,North America,urban and center city,-6,pm25_frm,Arkansas
+AQS:05-067-0001,AQS,1,Newport,35.637283,-91.188906,0.0,US,North America,suburban,-6,pm25_frm,Arkansas
+AQS:05-101-0002,AQS,1,Deer,35.832726,-93.20826,711.0,US,North America,rural,-6,o3,Arkansas
+AQS:05-113-0002,AQS,1,Mena,34.583699,-94.226234,0.0,US,North America,suburban,-6,pm25_frm,Arkansas
+AQS:06-005-0002,AQS,1,Jackson-Clinton Road,38.342606,-120.764426,377.0,US,North America,suburban,-8,o3,California
+AQS:06-007-0007,AQS,1,Paradise - Airport,39.708454,-121.617309,0.0,US,North America,rural,-8,o3,California
+AQS:06-007-2002,AQS,1,Paradise - Theater,39.77919,-121.59135,534.0,US,North America,urban and center city,-8,pm25,California
+AQS:06-007-4001,AQS,1,"Traffic, Rural Paved Road",39.327563,-121.668811,0.0,US,North America,rural,-8,pm25,California
+AQS:06-017-0011,AQS,1,South Lake Tahoe-Sandy Way,38.944979,-119.970609,1905.0,US,North America,urban and center city,-8,pm10,California
+AQS:06-019-2008,AQS,1,Huron,36.198672,-120.101096,113.08,US,North America,rural,-8,pm25,California
+AQS:06-027-0026,AQS,1,Bill Stanley,36.361932,-118.01068,1104.0,US,North America,rural,-8,pm10,California
+AQS:06-027-0028,AQS,1,Lizard Tail,36.54314,-117.941827,1098.0,US,North America,rural,-8,pm10,California
+AQS:06-027-0101,AQS,1,Death Valley Np - Park Village,36.508611,-116.847778,125.0,US,North America,rural,-8,o3,California
+AQS:06-027-1001,AQS,1,Coso Junction,36.049402,-117.943927,1027.0,US,North America,,-8,pm10,California
+AQS:06-029-0008,AQS,1,Maricopa,35.051454,-119.40262,289.0,US,North America,suburban,-8,o3,California
+AQS:06-029-2009,AQS,1,Lebec,34.841567,-118.860588,1063.14,US,North America,rural,-8,pm25,California
+AQS:06-043-0006,AQS,1,Jerseydale,37.54377,-119.83957,0.0,US,North America,rural,-8,o3,California
+AQS:06-045-0006,AQS,1,Ukiah-Library,39.15047,-123.20655,0.0,US,North America,suburban,-8,pm25,California
+AQS:06-045-0010,AQS,1,Fort Bragg-300 Dana Street,39.43734,-123.78766,48.5,US,North America,suburban,-8,pm10,California
+AQS:06-057-1001,AQS,1,Truckee-Fire Station,39.32783,-120.184592,5500.0,US,North America,urban and center city,-8,pm25,California
+AQS:06-063-1006,AQS,1,Quincy-N Church Street,39.939567,-120.944376,3450.0,US,North America,urban and center city,-8,pm25,California
+AQS:06-065-0010,AQS,1,Joshua Tree Np - Cottonwood Visitor Center,33.747236,-115.820124,943.0,US,North America,rural,-8,o3,California
+AQS:06-065-9003,AQS,1,Blythe-445 W Murphy Street,33.61235,-114.60209,83.8,US,North America,suburban,-8,o3,California
+AQS:06-069-0003,AQS,1,Pinnacles Np,36.48324,-121.15688,317.0,US,North America,rural,-8,o3,California
+AQS:06-071-0012,AQS,1,Phelan-Beekley Road & Phelan Road,34.4251,-117.5898,1278.0,US,North America,rural,-8,o3,California
+AQS:06-071-4003,AQS,1,Redlands,34.05977,-117.14731,0.0,US,North America,suburban,-8,o3,California
+AQS:06-071-9002,AQS,1,Joshua Tree Np,34.06957,-116.38893,1243.0,US,North America,rural,-8,o3,California
+AQS:06-079-8005,AQS,1,Red Hills,35.64368,-120.23135,712.0,US,North America,rural,-8,o3,California
+AQS:06-079-8006,AQS,1,Carrizo Plain,35.35472,-120.04019,626.0,US,North America,rural,-8,o3,California
+AQS:06-083-3001,AQS,1,Santa Ynez,34.605819,-120.075069,210.0,US,North America,rural,-8,o3,California
+AQS:06-085-1001,AQS,1,Los Gatos,37.226862,-121.979675,116.0,US,North America,urban and center city,-8,o3,California
+AQS:06-085-2006,AQS,1,San Martin,37.079379,-121.600031,86.0,US,North America,rural,-8,o3,California
+AQS:06-087-1005,AQS,1,San Lorenzo Valley Middle School,37.06315,-122.083092,108.0,US,North America,rural,-8,pm25,California
+AQS:06-089-3003,AQS,1,Lassen Volcanic Np,40.53999,-121.57646,1755.0,US,North America,rural,-8,o3,California
+AQS:06-095-3003,AQS,1,Vacaville-Ulatis Drive,38.35655,-121.94986,55.0,US,North America,suburban,-8,o3,California
+AQS:06-097-0001,AQS,1,Cloverdale,38.804267,-123.018142,91.0,US,North America,urban and center city,-8,pm10,California
+AQS:06-097-0002,AQS,1,Healdsburg-Matheson,38.610905,-122.868794,30.0,US,North America,urban and center city,-8,pm10,California
+AQS:06-103-0004,AQS,1,Tuscan Butte (Seasonal),40.262072,-122.092766,568.0,US,North America,rural,-8,o3,California
+AQS:06-107-0006,AQS,1,Sequoia & Kings Canyon Nps - Lower Kaweah,36.566128,-118.7777,1890.0,US,North America,rural,-8,o3,California
+AQS:08-005-0002,AQS,1,Highland Reservoir,39.567887,-104.957193,1747.0,US,North America,suburban,-7,o3,Colorado
+AQS:08-005-0006,AQS,1,Aurora East,39.638522,-104.569335,1799.0,US,North America,rural,-7,o3,Colorado
+AQS:08-013-0012,AQS,1,Boulder Chamber Of Commerce,40.021097,-105.263382,1619.0,US,North America,suburban,-7,pm25_frm,Colorado
+AQS:08-041-0016,AQS,1,Manitou Springs,38.853097,-104.901289,1955.0,US,North America,suburban,-7,o3,Colorado
+AQS:08-045-0012,AQS,1,Rifle-Health Dept,39.54182,-107.784125,1640.0,US,North America,suburban,-7,o3,Colorado
+AQS:08-045-0016,AQS,1,Sunlight Mountain,39.426,-107.38,3224.0,US,North America,rural,-7,o3,Colorado
+AQS:08-051-9991,AQS,1,Gothic,38.9564,-106.9858,2926.0,US,North America,rural,-7,o3,Colorado
+AQS:08-069-0007,AQS,1,Rocky Mountain Np,40.27813,-105.54564,2742.0,US,North America,rural,-7,o3,Colorado
+AQS:08-069-0009,AQS,1,Fort Collins - Csu - Edison,40.571288,-105.079693,1524.0,US,North America,urban and center city,-7,pm25,Colorado
+AQS:08-077-0017,AQS,1,Grand Junction - Powell Bldg,39.063798,-108.561173,1398.0,US,North America,urban and center city,-7,pm25,Colorado
+AQS:08-077-0020,AQS,1,Palisade-Water Treatment,39.130575,-108.313835,1521.0,US,North America,rural,-7,o3,Colorado
+AQS:08-083-0006,AQS,1,Cortez - Health Dept,37.350054,-108.592334,1890.0,US,North America,urban and center city,-7,o3,Colorado
+AQS:08-083-0101,AQS,1,Mesa Verde Np,37.1984,-108.49046,2170.0,US,North America,rural,-7,o3,Colorado
+AQS:08-123-0006,AQS,1,Greeley - Hospital,40.414877,-104.70693,1441.0,US,North America,suburban,-7,pm25,Colorado
+AQS:08-123-0011,AQS,1,Briggsdale,40.65,-104.33,1483.0,US,North America,rural,-7,o3,Colorado
+AQS:08-123-0012,AQS,1,Pawnee Buttes,40.813,-104.036,1661.0,US,North America,rural,-7,o3,Colorado
+AQS:09-001-0017,AQS,1,Greenwich Point Park,41.004657,-73.585128,3.0,US,North America,suburban,-5,o3,Connecticut
+AQS:09-007-9007,AQS,1,Cvh,41.55,-72.626,49.0,US,North America,suburban,-5,o3,Connecticut
+AQS:09-009-9002,AQS,1,Hammonasset State Park,41.256788,-72.55327,3.0,US,North America,suburban,-5,o3,Connecticut
+AQS:09-013-1001,AQS,1,Shenipsit State Forest,41.976389,-72.388056,265.0,US,North America,rural,-5,o3,Connecticut
+AQS:09-015-9991,AQS,1,Abington,41.84046,-72.010368,209.0,US,North America,rural,-5,o3,Connecticut
+AQS:10-005-1003,AQS,1,"Lewes Spm Site, Near Ud Acid Rain/Mercury Collectors",38.779077,-75.163269,0.0,US,North America,rural,-5,o3,Delaware
+AQS:12-009-4001,AQS,1,Cocoa Beach,28.311111,-80.644077,2.0,US,North America,suburban,-5,o3,Florida
+AQS:12-017-0006,AQS,1,Crystal River Preserve,28.958652,-82.642209,9.0,US,North America,rural,-5,pm25,Florida
+AQS:12-031-0106,AQS,1,Cisco Drive,30.378217,-81.8409,30.5,US,North America,rural,-5,o3,Florida
+AQS:12-033-0018,AQS,1,Pensacola Nas,30.36805,-87.270967,3.1,US,North America,suburban,-6,o3,Florida
+AQS:12-057-0081,AQS,1,E.G. Simmons Park,27.739554,-82.46505,4.0,US,North America,rural,-5,o3,Florida
+AQS:12-061-9991,AQS,1,Indian River Lagoon,27.8492,-80.4554,2.0,US,North America,rural,-5,o3,Florida
+AQS:12-069-0002,AQS,1,Clermont,28.523889,-81.723333,0.0,US,North America,urban and center city,-5,o3,Florida
+AQS:12-077-9991,AQS,1,Sumatra,30.1103,-84.9903,14.0,US,North America,rural,-5,o3,Florida
+AQS:12-081-4012,AQS,1,G.T. Bray Park,27.480873,-82.618709,8.0,US,North America,urban and center city,-5,o3,Florida
+AQS:12-086-0029,AQS,1,Perdue,25.587327,-80.325922,4.0,US,North America,rural,-5,o3,Florida
+AQS:12-086-0033,AQS,1,Palm Springs Fire Station,25.941944,-80.326389,2.0,US,North America,suburban,-5,pm25_frm,Florida
+AQS:12-097-2002,AQS,1,Osceola County Fire Station,28.347509,-81.636464,0.0,US,North America,suburban,-5,o3,Florida
+AQS:12-099-0008,AQS,1,Belle Glade,26.724168,-80.663341,20.0,US,North America,rural,-5,pm25,Florida
+AQS:12-101-0005,AQS,1,San Antonio,28.33168,-82.304536,33.0,US,North America,rural,-5,o3,Florida
+AQS:12-101-2001,AQS,1,Holiday,28.195574,-82.756264,0.0,US,North America,suburban,-5,o3,Florida
+AQS:12-107-1008,AQS,1,Palatka Barge Port,29.686956,-81.65598,3.0,US,North America,rural,-5,pm10,Florida
+AQS:12-111-0013,AQS,1,Savannas,27.389079,-80.311033,4.65,US,North America,suburban,-5,o3,Florida
+AQS:13-051-0021,AQS,1,Savannah-E. President,32.06848,-81.04942,2.0,US,North America,suburban,-5,o3,Georgia
+AQS:13-055-0001,AQS,1,Summerville,34.474526,-85.408847,276.0,US,North America,rural,-5,o3,Georgia
+AQS:13-069-0002,AQS,1,General Coffee,31.513097,-82.749971,100.0,US,North America,rural,-5,pm25_frm,Georgia
+AQS:13-073-0001,AQS,1,Evans,33.582044,-82.131249,74.0,US,North America,suburban,-5,o3,Georgia
+AQS:13-085-0001,AQS,1,Dawsonville,34.376227,-84.059506,372.0,US,North America,rural,-5,o3,Georgia
+AQS:13-097-0004,AQS,1,Douglasville,33.741242,-84.776429,1145.0,US,North America,suburban,-5,o3,Georgia
+AQS:13-213-0003,AQS,1,Fort Mountain,34.785219,-84.626423,794.0,US,North America,rural,-5,o3,Georgia
+AQS:13-247-0001,AQS,1,Conyers,33.588545,-84.069608,219.0,US,North America,rural,-5,o3,Georgia
+AQS:13-261-1001,AQS,1,Leslie,31.954286,-84.08101,10.0,US,North America,rural,-5,o3,Georgia
+AQS:15-001-1012,AQS,1,Kona,19.509778,-155.913417,517.0,US,North America,suburban,-10,pm25,Hawaii
+AQS:15-001-2016,AQS,1,Pahala,19.2039,-155.480183,320.0,US,North America,rural,-10,pm25,Hawaii
+AQS:15-001-2020,AQS,1,Hove,19.117561,-155.778136,862.6,US,North America,rural,-10,pm25,Hawaii
+AQS:15-009-0025,AQS,1,Kahului,20.869627,-156.493626,46.0,US,North America,urban and center city,-10,pm25,Hawaii
+AQS:16-001-0017,AQS,1,Boise - White Pine Elementary,43.577603,-116.178156,823.0,US,North America,suburban,-7,o3,Idaho
+AQS:16-013-0004,AQS,1,Ketchum,43.6825,-114.371267,1783.0,US,North America,suburban,-7,pm25,Idaho
+AQS:16-015-0001,AQS,1,Idaho City,43.82291,-115.8395,0.0,US,North America,rural,-7,pm25,Idaho
+AQS:16-015-0002,AQS,1,Garden Valley,44.104498,-115.972386,0.0,US,North America,rural,-7,pm25,Idaho
+AQS:16-019-0011,AQS,1,Idaho Falls,43.4647,-112.04645,0.0,US,North America,urban and center city,-7,pm25,Idaho
+AQS:16-023-0101,AQS,1,Craters Of The Moon Nm,43.460556,-113.562222,1815.0,US,North America,rural,-7,o3,Idaho
+AQS:16-049-0002,AQS,1,Grangeville,45.931274,-116.116255,1046.7,US,North America,rural,-7,pm25,Idaho
+AQS:16-049-0003,AQS,1,Kamiah,46.2094,-116.0275,460.11,US,North America,rural,-8,pm25,Idaho
+AQS:16-049-9991,AQS,1,Nez Perce Tribe,46.2756,-116.0216,945.0,US,North America,rural,-7,o3,Idaho
+AQS:16-057-0005,AQS,1,Moscow,46.72182,-116.960177,800.7096,US,North America,rural,-7,pm25,Idaho
+AQS:16-069-0012,AQS,1,Lewiston,46.408352,-116.992533,284.988,US,North America,suburban,-7,pm25,Idaho
+AQS:16-083-0007,AQS,1,Twin Falls,42.565089,-114.494717,1129.894,US,North America,suburban,-7,pm25,Idaho
+AQS:16-085-0002,AQS,1,Mccall,44.890197,-116.1065,0.0,US,North America,rural,-7,pm25,Idaho
+AQS:17-001-0007,AQS,1,John Wood Community College,39.915409,-91.335868,201.0,US,North America,suburban,-6,o3,Illinois
+AQS:17-019-0006,AQS,1,709 N. Champaign St.,40.123886,-88.240553,226.0,US,North America,suburban,-6,pm25_frm,Illinois
+AQS:17-023-0001,AQS,1,416 S. State St. Hwy 1- West Union,39.210857,-87.668297,114.8,US,North America,rural,-6,o3,Illinois
+AQS:17-031-1601,AQS,1,Cook County Trailer,41.66812,-87.99057,226.0,US,North America,suburban,-6,o3,Illinois
+AQS:17-031-7002,AQS,1,Water Plant,42.062053,-87.675254,183.0,US,North America,suburban,-6,o3,Illinois
+AQS:17-043-6001,AQS,1,Morton Arboretum,41.813049,-88.072827,206.0,US,North America,suburban,-6,o3,Illinois
+AQS:17-085-9991,AQS,1,Stockton,42.2869,-89.9997,274.0,US,North America,rural,-6,o3,Illinois
+AQS:17-089-0003,AQS,1,Mckinley School,42.050403,-88.280015,238.0,US,North America,suburban,-6,pm25_frm,Illinois
+AQS:17-089-0007,AQS,1,Kane County Health Dept,41.784717,-88.329374,213.0,US,North America,suburban,-6,pm25_frm,Illinois
+AQS:17-097-1007,AQS,1,Camp Logan Trailer,42.465964,-87.809624,178.0,US,North America,rural,-6,o3,Illinois
+AQS:17-143-0024,AQS,1,Firestation,40.68742,-89.606943,155.0,US,North America,suburban,-6,o3,Illinois
+AQS:17-167-0012,AQS,1,Agriculture Building,39.831921,-89.644164,180.0,US,North America,suburban,-6,pm25,Illinois
+AQS:17-197-1002,AQS,1,Pershing School,41.526885,-88.116474,167.0,US,North America,suburban,-6,pm25,Illinois
+AQS:17-201-2001,AQS,1,Maple Elementary School,42.334982,-89.037775,224.0,US,North America,suburban,-6,o3,Illinois
+AQS:18-005-0007,AQS,1,Hope- Hauser Jr-Sr High School,39.294322,-85.766816,199.0,US,North America,rural,-5,o3,Indiana
+AQS:18-005-0008,AQS,1,Columbus- Rocky Ford Rd.,39.237457,-85.891332,164.421,US,North America,suburban,-5,pm25,Indiana
+AQS:18-011-0001,AQS,1,"Perry Worth Elementry School, West Of Whitestown",39.997732,-86.395394,264.264,US,North America,rural,-5,o3,Indiana
+AQS:18-013-0001,AQS,1,Helmsburg,39.263914,-86.292269,176.44,US,North America,rural,-5,o3,Indiana
+AQS:18-015-0002,AQS,1,Flora-Flora Airport,40.540455,-86.553035,180.55,US,North America,suburban,-5,o3,Indiana
+AQS:18-035-0006,AQS,1,Muncie- Central Hs,40.203338,-85.387819,255.38,US,North America,suburban,-5,pm25_frm,Indiana
+AQS:18-035-0010,AQS,1,Albany- Albany Elem. Sch.,40.300385,-85.245862,252.1,US,North America,urban and center city,-5,o3,Indiana
+AQS:18-037-2001,AQS,1,Jasper Po,38.391799,-86.929668,124.8,US,North America,urban and center city,-5,pm25_frm,Indiana
+AQS:18-039-0007,AQS,1,Bristol- Bristol Elem. Sch.,41.716959,-85.824696,232.0,US,North America,suburban,-5,o3,Indiana
+AQS:18-057-0006,AQS,1,Our Lady Of Grace- Noblesville,40.068297,-85.992451,210.3,US,North America,suburban,-5,o3,Indiana
+AQS:18-057-0007,AQS,1,11775 Brooks School Rd.,39.960884,-85.939546,212.0,US,North America,suburban,-5,pm25,Indiana
+AQS:18-083-9991,AQS,1,Vincennes,38.7408,-87.4853,134.0,US,North America,rural,-5,o3,Indiana
+AQS:18-091-0005,AQS,1,Michigan City- W. Michigan Blvd./  Nipsco Gas Station,41.717762,-86.907786,190.5,US,North America,urban and center city,-6,o3,Indiana
+AQS:18-091-0010,AQS,1,Laporte Ozone Site At Water Treatment Plant,41.629259,-86.68502,214.2,US,North America,urban and center city,-6,o3,Indiana
+AQS:18-097-0043,AQS,1,Indpls- West St.,39.744993,-86.166464,206.0,US,North America,urban and center city,-5,pm25_frm,Indiana
+AQS:18-123-0009,AQS,1,Leopold- Perry Central Hs,38.115152,-86.60325,201.0,US,North America,rural,-6,o3,Indiana
+AQS:18-141-0010,AQS,1,Potato Creek State Park,41.551667,-86.370556,201.0,US,North America,rural,-5,o3,Indiana
+AQS:18-141-0016,AQS,1,Granger-Beckley St.,41.754722,-86.11,215.8,US,North America,suburban,-5,o3,Indiana
+AQS:18-145-0001,AQS,1,"Triton Middle School, North Of Fairland",39.613367,-85.870669,210.0,US,North America,rural,-5,o3,Indiana
+AQS:18-147-0009,AQS,1,Dale- David Turnham School,38.167523,-86.983214,142.0,US,North America,suburban,-6,pm25_frm,Indiana
+AQS:18-157-0008,AQS,1,Lafayette- Greenbush St./ Cinergy Substation,40.431667,-86.8525,195.0,US,North America,suburban,-5,pm25,Indiana
+AQS:18-163-0016,AQS,1,Evansville- U Of E/  University Of Evansville-Carson Center,37.974436,-87.532289,118.0,US,North America,urban and center city,-6,pm25_frm,Indiana
+AQS:18-167-0024,AQS,1,Sandcut/  Site Located By Home Behind Shed.,39.558525,-87.312883,173.0,US,North America,rural,-5,o3,Indiana
+AQS:18-169-9991,AQS,1,Salamonie Reservoir,40.816038,-85.661408,250.0,US,North America,rural,-5,o3,Indiana
+AQS:18-173-0008,AQS,1,Boonville-  Boonville Hs,38.051667,-87.278056,94.2,US,North America,suburban,-6,o3,Indiana
+AQS:18-173-0011,AQS,1,Dayville,37.954444,-87.321667,94.0,US,North America,rural,-6,o3,Indiana
+AQS:19-017-0011,AQS,1,Waverly Airport Site,42.743036,-92.513241,0.0,US,North America,rural,-6,o3,Iowa
+AQS:19-085-0007,AQS,1,Not In A City,41.832256,-95.928185,325.0,US,North America,urban and center city,-6,o3,Iowa
+AQS:19-113-0033,AQS,1,Coggon Elementary School Bldg. Northern Limits Of Linn County,42.281013,-91.526879,282.0,US,North America,urban and center city,-6,o3,Iowa
+AQS:19-139-0015,AQS,1,Muscatine Hs - East Campus School Roof,41.400968,-91.067957,171.0,US,North America,suburban,-6,pm25_frm,Iowa
+AQS:19-153-1579,AQS,1,"Sheldahl, Southern Crossroads",41.849433,-93.697617,0.0,US,North America,rural,-6,o3,Iowa
+AQS:19-155-0009,AQS,1,"Council Bluffs, Franklin Sch.",41.264171,-95.896124,301.0,US,North America,suburban,-6,pm25_frm,Iowa
+AQS:19-163-0017,AQS,1,"Buffalo, Lw Mining",41.467236,-90.688451,196.0,US,North America,rural,-6,pm10,Iowa
+AQS:19-193-0021,AQS,1,Irving Elementry School,42.499844,-96.394755,358.0,US,North America,urban and center city,-6,pm25_frm,Iowa
+AQS:20-057-0002,AQS,1,Dodge City,37.775303,-100.03544,803.148,US,North America,suburban,-6,pm10,Kansas
+AQS:20-103-0003,AQS,1,Leavenworth,39.327391,-94.95102,292.0,US,North America,urban and center city,-6,o3,Kansas
+AQS:20-173-0018,AQS,1,Sedgwick Ozone,37.897506,-97.492083,400.0,US,North America,rural,-6,o3,Kansas
+AQS:20-181-0003,AQS,1,Goodland,39.342801,-101.702996,1125.0,US,North America,urban and center city,-6,pm10,Kansas
+AQS:21-029-0006,AQS,1,Shepherdsville,37.98629,-85.71192,135.0,US,North America,urban and center city,-5,o3,Kentucky
+AQS:21-113-0001,AQS,1,Nicholasville,37.89147,-84.58825,283.0,US,North America,suburban,-5,o3,Kentucky
+AQS:21-139-0003,AQS,1,Smithland,37.155392,-88.394024,110.0,US,North America,rural,-6,o3,Kentucky
+AQS:21-175-9991,AQS,1,Crockett,37.9214,-83.0662,455.0,US,North America,rural,-5,o3,Kentucky
+AQS:21-185-0004,AQS,1,Buckner,38.4002,-85.44428,240.0,US,North America,rural,-5,o3,Kentucky
+AQS:21-213-0004,AQS,1,Franklin,36.708607,-86.566284,221.0,US,North America,rural,-6,o3,Kentucky
+AQS:21-229-9991,AQS,1,Mackville,37.7046,-85.0485,353.0,US,North America,rural,-5,o3,Kentucky
+AQS:22-017-0001,AQS,1,Dixie,32.68336,-93.861582,65.0,US,North America,rural,-6,o3,Louisiana
+AQS:22-019-0002,AQS,1,Carlyss,30.140265,-93.368448,2.0,US,North America,suburban,-6,o3,Louisiana
+AQS:22-047-0005,AQS,1,Geismar,30.203984,-91.125925,8.0,US,North America,rural,-6,pm25_frm,Louisiana
+AQS:22-077-0001,AQS,1,New Roads,30.681718,-91.366247,10.0,US,North America,rural,-6,o3,Louisiana
+AQS:22-079-0002,AQS,1,Alexandria,31.177824,-92.410746,3.0,US,North America,rural,-6,pm25_frm,Louisiana
+AQS:22-095-0002,AQS,1,Garyville,30.057515,-90.619286,9.0,US,North America,rural,-6,o3,Louisiana
+AQS:22-099-0001,AQS,1,St.Martinville,30.088872,-91.869595,1.0,US,North America,rural,-6,o3,Louisiana
+AQS:22-105-0001,AQS,1,Hammond,30.503287,-90.377212,9.0,US,North America,rural,-6,pm25_frm,Louisiana
+AQS:22-109-0001,AQS,1,Houma,29.679301,-90.779731,0.0,US,North America,rural,-6,pm25_frm,Louisiana
+AQS:23-001-0014,AQS,1,Durham Fire Station,43.974622,-70.124608,50.0,US,North America,rural,-5,o3,Maine
+AQS:23-005-2003,AQS,1,Cetl - Cape Elizabeth Two Lights (State Park),43.561043,-70.207324,24.0,US,North America,rural,-5,o3,Maine
+AQS:23-009-0102,AQS,1,Top Of Cadillac Mtn (Fenced Enclosure),44.351697,-68.22698,466.0,US,North America,rural,-5,o3,Maine
+AQS:23-013-0004,AQS,1,Marshall Point Lighthouse,43.917955,-69.26059,9.0,US,North America,rural,-5,o3,Maine
+AQS:23-017-3002,AQS,1,Bethel Smith Farm Road,44.377794,-70.854697,203.0,US,North America,rural,-5,o3,Maine
+AQS:23-019-4008,AQS,1,Wlbz Tv Transmitter Building - Summit Of Rider Bluff,44.735978,-68.670752,250.0,US,North America,rural,-5,o3,Maine
+AQS:23-031-0040,AQS,1,Sbp - Shapleigh Ball Park,43.58889,-70.87734,213.0,US,North America,rural,-5,o3,Maine
+AQS:23-031-2002,AQS,1,Kpw - Kennebunkport Parson'D Way,43.343167,-70.471034,6.0,US,North America,suburban,-5,o3,Maine
+AQS:24-003-1003,AQS,1,Glen Burnie,39.169533,-76.627933,14.0,US,North America,suburban,-5,o3,Maryland
+AQS:24-009-0011,AQS,1,Calvert,38.536722,-76.617194,44.0,US,North America,rural,-5,o3,Maryland
+AQS:24-013-0001,AQS,1,South Carroll,39.444294,-77.042252,226.0,US,North America,rural,-5,o3,Maryland
+AQS:24-017-0010,AQS,1,Southern Maryland,38.508547,-76.811864,49.0,US,North America,rural,-5,o3,Maryland
+AQS:24-019-9991,AQS,1,Blackwater Nwr,38.444971,-76.111274,4.0,US,North America,rural,-5,o3,Maryland
+AQS:24-021-0037,AQS,1,Frederick Airport,39.42276,-77.37519,92.0,US,North America,suburban,-5,o3,Maryland
+AQS:24-025-9001,AQS,1,Aldino,39.563333,-76.203889,395.0,US,North America,suburban,-5,o3,Maryland
+AQS:24-033-8003,AQS,1,Pg Equestrian Center,38.81194,-76.74417,12.0,US,North America,rural,-5,o3,Maryland
+AQS:25-001-0002,AQS,1,Truro National Seashore,41.975804,-70.023598,41.0,US,North America,rural,-5,o3,Massachusetts
+AQS:25-003-6001,AQS,1,North Adams,42.702223,-73.110414,217.0,US,North America,rural,-5,pm25,Massachusetts
+AQS:25-005-1006,AQS,1,Fairhaven2,41.645381,-70.897504,4.0,US,North America,suburban,-5,o3,Massachusetts
+AQS:25-007-0001,AQS,1,"1 Herring Creek Rd, Aquinnah (Wampanoag Tribal Site)",41.330469,-70.785225,10.0,US,North America,rural,-5,o3,Massachusetts
+AQS:25-027-0024,AQS,1,Uxbridge,42.099699,-71.619399,306.0,US,North America,suburban,-5,o3,Massachusetts
+AQS:26-019-0003,AQS,1,"1060 West St, Benzonia Twp, Mi",44.616943,-86.109408,222.0,US,North America,rural,-5,o3,Michigan
+AQS:26-021-0014,AQS,1,"Coloma Site 4689 Defield Rd, Coloma, Mi Paw Paw Wwtp",42.19779,-86.309694,198.0,US,North America,rural,-5,o3,Michigan
+AQS:26-037-0002,AQS,1,Roselake2 9870 Stoll Rd,42.798339,-84.393795,259.0,US,North America,rural,-5,o3,Michigan
+AQS:26-049-2001,AQS,1,Otisvillelakeville Middle School,43.168336,-83.461541,256.0,US,North America,rural,-5,o3,Michigan
+AQS:26-063-0007,AQS,1,Rural Thumb Area Ozone Site,43.836388,-82.6429,0.0,US,North America,rural,-5,o3,Michigan
+AQS:26-081-0022,AQS,1,Approximately 1/4 Mile South Of 14 Mile Rd - Evans,43.176672,-85.416608,0.0,US,North America,rural,-5,o3,Michigan
+AQS:26-099-1003,AQS,1,Warren - Fire Station 29900 Hoover At Common,42.51334,-83.005971,188.0,US,North America,suburban,-5,o3,Michigan
+AQS:26-105-0007,AQS,1,Scottville - Located 550 Ft North Of Us10,43.953334,-86.294415,0.0,US,North America,suburban,-5,o3,Michigan
+AQS:26-121-0039,AQS,1,Muskegon,43.278061,-86.311083,190.0,US,North America,rural,-5,o3,Michigan
+AQS:26-157-9991,AQS,1,Unionville,43.6138,-83.3591,201.0,US,North America,rural,-5,o3,Michigan
+AQS:26-161-9991,AQS,1,Ann Arbor,42.416636,-83.902185,267.0,US,North America,rural,-5,o3,Michigan
+AQS:26-165-9991,AQS,1,Hoxeyville,44.18089,-85.738985,305.0,US,North America,rural,-5,o3,Michigan
+AQS:27-007-2304,AQS,1,Red Lake Nation,47.878159,-95.029172,369.0,US,North America,rural,-6,pm25,Minnesota
+AQS:27-021-3410,AQS,1,Leech Lake Nation:,47.38443,-94.60166,408.0,US,North America,suburban,-6,pm25,Minnesota
+AQS:27-031-7810,AQS,1,Grand Portage Band,47.972085,-89.69098,125.0,US,North America,rural,-6,pm25,Minnesota
+AQS:27-049-5302,AQS,1,Stanton Air Field,44.473754,-93.012611,300.0,US,North America,rural,-6,o3,Minnesota
+AQS:27-053-0909,AQS,1,Lowry Avenue,45.012102,-93.276699,248.4,US,North America,urban and center city,-6,pm10,Minnesota
+AQS:27-137-0034,AQS,1,Voyageurs Np #2,48.41252,-92.829225,427.0,US,North America,rural,-6,o3,Minnesota
+AQS:28-075-0003,AQS,1,Meridian,32.364565,-88.731491,102.0,US,North America,urban and center city,-6,o3,Mississippi
+AQS:28-081-0005,AQS,1,Tupelo Airport Near Old Nws Office,34.264917,-88.766222,107.0,US,North America,suburban,-6,o3,Mississippi
+AQS:28-161-9991,AQS,1,Coffeeville,34.002747,-89.799183,134.0,US,North America,rural,-6,o3,Mississippi
+AQS:29-003-0001,AQS,1,Savannah,39.9544,-94.849,341.0,US,North America,suburban,-6,o3,Missouri
+AQS:29-019-0011,AQS,1,Finger Lakes,39.07803,-92.31632,221.3,US,North America,rural,-6,o3,Missouri
+AQS:29-027-0002,AQS,1,New Bloomfield,38.70608,-92.09308,262.0,US,North America,suburban,-6,o3,Missouri
+AQS:29-047-0006,AQS,1,Rocky Creek,39.331913,-94.580931,302.0,US,North America,rural,-6,o3,Missouri
+AQS:29-049-0001,AQS,1,Trimble,39.53063,-94.55594,315.0,US,North America,rural,-6,o3,Missouri
+AQS:29-077-0042,AQS,1,Fellows Lake,37.319186,-93.204411,410.0,US,North America,suburban,-6,o3,Missouri
+AQS:29-097-0003,AQS,1,Carthage,37.198286,-94.317246,0.0,US,North America,rural,-6,pm10,Missouri
+AQS:29-113-0004,AQS,1,Foley West,39.04577,-90.84927,218.0,US,North America,rural,-6,o3,Missouri
+AQS:29-157-0001,AQS,1,Not In A City,37.70264,-89.69864,151.0,US,North America,rural,-6,o3,Missouri
+AQS:29-183-1004,AQS,1,Orchard Farm,38.8994,-90.44917,134.0,US,North America,rural,-6,o3,Missouri
+AQS:29-186-0005,AQS,1,Bonne Terre,37.90084,-90.42388,0.0,US,North America,rural,-6,o3,Missouri
+AQS:29-189-0005,AQS,1,Pacific,38.49015,-90.70509,160.0,US,North America,rural,-6,o3,Missouri
+AQS:30-013-0001,AQS,1,Great Falls Overlook Park,47.494318,-111.303317,1021.0,US,North America,urban and center city,-7,pm25,Montana
+AQS:30-029-0009,AQS,1,White Fish Dead End,48.400407,-114.336962,0.0,US,North America,suburban,-7,pm10,Montana
+AQS:30-029-0047,AQS,1,Kalispell Flathead Electric,48.20054,-114.305334,890.0,US,North America,urban and center city,-7,pm10,Montana
+AQS:30-029-8001,AQS,1,Glacier Np,48.5103,-113.99681,964.0,US,North America,rural,-7,o3,Montana
+AQS:30-031-0019,AQS,1,Bozeman High School,45.683765,-111.056282,1468.0,US,North America,suburban,-7,pm25,Montana
+AQS:30-063-0037,AQS,1,French Town - Beckwith,47.012907,-114.224273,933.0,US,North America,suburban,-7,pm25,Montana
+AQS:30-063-0038,AQS,1,Seeley Elementary School,47.17563,-113.476182,1239.0,US,North America,suburban,-7,pm25,Montana
+AQS:30-081-0007,AQS,1,Hamilton - Ps 46,46.243621,-114.158889,1088.0,US,North America,urban and center city,-7,pm25,Montana
+AQS:30-111-0087,AQS,1,Billings Lockwood,45.806311,-108.425978,713.0,US,North America,suburban,-7,pm25,Montana
+AQS:31-025-0002,AQS,1,Weeping Water,40.865557,-96.146955,347.0,US,North America,suburban,-6,pm10,Nebraska
+AQS:31-055-0052,AQS,1,On Top Of Elementary School,41.197847,-96.056686,0.0,US,North America,suburban,-6,pm25_frm,Nebraska
+AQS:31-107-9991,AQS,1,Santee Sioux,42.829154,-97.854129,429.0,US,North America,rural,-6,o3,Nebraska
+AQS:31-109-0016,AQS,1,Not In A City,40.98498,-96.671373,384.0,US,North America,rural,-6,o3,Nebraska
+AQS:31-177-0002,AQS,1,On Roof Of Good Shepard Lutheran Home,41.551211,-96.146175,0.0,US,North America,rural,-6,pm25_frm,Nebraska
+AQS:32-001-0002,AQS,1,Fallon,39.472471,-118.783624,1208.0,US,North America,rural,-8,o3,Nevada
+AQS:32-003-7772,AQS,1,Indian Springs,36.569333,-115.676651,10.0,US,North America,suburban,-8,o3,Nevada
+AQS:32-005-0007,AQS,1,Ranchos Aspen Park,38.897557,-119.732507,1485.0,US,North America,rural,-8,pm25,Nevada
+AQS:32-007-0005,AQS,1,Elko Grammar School No. 2,40.83835,-115.766029,1560.0,US,North America,rural,-8,pm10,Nevada
+AQS:32-019-0006,AQS,1,Fernley,39.602787,-119.247741,1271.0,US,North America,rural,-8,o3,Nevada
+AQS:32-023-0011,AQS,1,Linda Street,36.349408,-116.031976,909.09,US,North America,rural,-8,pm10,Nevada
+AQS:32-023-0013,AQS,1,Church,36.159639,-115.996263,775.0,US,North America,rural,-8,pm10,Nevada
+AQS:32-023-0015,AQS,1,Glen Oaks,36.193469,-116.007584,823.0,US,North America,rural,-8,pm10,Nevada
+AQS:32-031-0020,AQS,1,South Reno,39.469219,-119.775354,1341.0,US,North America,suburban,-8,o3,Nevada
+AQS:32-033-0101,AQS,1,Great Basin Np,39.00512,-114.21593,2058.0,US,North America,rural,-8,o3,Nevada
+AQS:33-007-4002,AQS,1,"Camp Dodge, Greens Grant",44.308132,-71.217639,449.0,US,North America,rural,-5,o3,New Hampshire
+AQS:33-011-1011,AQS,1,Gilson Road,42.718653,-71.522416,59.0,US,North America,suburban,-5,o3,New Hampshire
+AQS:33-013-1007,AQS,1,Hazen Drive,43.2185,-71.5145,110.3,US,North America,urban and center city,-5,o3,New Hampshire
+AQS:34-007-1001,AQS,1,Ancora State Hospital,39.68425,-74.861491,33.0,US,North America,rural,-5,o3,New Jersey
+AQS:34-021-9991,AQS,1,Wash. Crossing,40.3125,-74.8729,61.0,US,North America,rural,-5,o3,New Jersey
+AQS:34-025-0005,AQS,1,Monmouth University,40.277647,-74.0051,8.0,US,North America,suburban,-5,o3,New Jersey
+AQS:34-029-0006,AQS,1,Colliers Mills,40.06483,-74.44405,41.0,US,North America,rural,-5,o3,New Jersey
+AQS:34-031-5001,AQS,1,Ramapo,41.058617,-74.255544,307.0,US,North America,rural,-5,o3,New Jersey
+AQS:35-013-0019,AQS,1,6Zl Holman Road,32.424813,-106.674724,1189.0,US,North America,rural,-7,pm10,New Mexico
+AQS:35-013-0023,AQS,1,6Zq Solano,32.317593,-106.768337,1219.0,US,North America,urban and center city,-7,o3,New Mexico
+AQS:35-029-0003,AQS,1,7E Deming Airport,32.2558,-107.7227,1313.0,US,North America,suburban,-7,pm10,New Mexico
+AQS:35-039-0026,AQS,1,3Crd Coyote Ranger District,36.187742,-106.698369,2229.0,US,North America,rural,-7,o3,New Mexico
+AQS:35-043-1001,AQS,1,2Zj Bernalillo,35.299484,-106.548914,1544.0,US,North America,rural,-7,o3,New Mexico
+AQS:35-055-0005,AQS,1,3Zd Taos,36.383359,-105.5839,0.0,US,North America,suburban,-7,pm25,New Mexico
+AQS:35-061-0008,AQS,1,2Ll Los Lunas,34.8147,-106.7396,1489.0,US,North America,suburban,-7,o3,New Mexico
+AQS:36-027-0007,AQS,1,Millbrook,41.78555,-73.74136,98.0,US,North America,rural,-5,o3,New York
+AQS:36-041-0005,AQS,1,Piseco Lake,43.44957,-74.51625,519.0,US,North America,rural,-5,o3,New York
+AQS:36-045-0002,AQS,1,Perch River,44.08747,-75.97316,107.0,US,North America,rural,-5,o3,New York
+AQS:36-059-0005,AQS,1,Eisenhower Park,40.74316,-73.58549,27.0,US,North America,suburban,-5,pm25,New York
+AQS:36-063-1006,AQS,1,Middleport,43.22386,-78.47888,139.0,US,North America,rural,-5,o3,New York
+AQS:36-065-2001,AQS,1,Utica Health Dept,43.09892,-75.22506,139.0,US,North America,urban and center city,-5,pm25,New York
+AQS:36-075-0003,AQS,1,Fulton,43.28428,-76.46324,127.0,US,North America,rural,-5,o3,New York
+AQS:36-079-0005,AQS,1,Mt Ninham,41.45589,-73.70977,227.0,US,North America,rural,-5,o3,New York
+AQS:36-091-0004,AQS,1,Stillwater,43.01209,-73.6489,117.0,US,North America,rural,-5,o3,New York
+AQS:36-103-0004,AQS,1,Riverhead,40.96078,-72.71238,31.0,US,North America,rural,-5,o3,New York
+AQS:36-109-9991,AQS,1,Connecticut Hill,42.4006,-76.6538,501.0,US,North America,rural,-5,o3,New York
+AQS:36-117-3001,AQS,1,Williamson,43.23086,-77.17136,139.0,US,North America,rural,-5,o3,New York
+AQS:37-003-0005,AQS,1,Taylorsville Liledoun,35.9138,-81.191,365.0,US,North America,suburban,-5,o3,North Carolina
+AQS:37-011-0002,AQS,1,Linville Falls,35.972347,-81.933072,987.0,US,North America,rural,-5,o3,North Carolina
+AQS:37-027-0003,AQS,1,Lenoir (City),35.9359,-81.5306,366.0,US,North America,urban and center city,-5,o3,North Carolina
+AQS:37-075-0001,AQS,1,Joanna Bald,35.2578,-83.7955,1436.0,US,North America,rural,-5,o3,North Carolina
+AQS:37-087-0008,AQS,1,Waynesville School,35.507224,-82.963625,791.0,US,North America,suburban,-5,o3,North Carolina
+AQS:37-087-0035,AQS,1,Frying Pan Mountain,35.379167,-82.7925,1617.88,US,North America,rural,-5,o3,North Carolina
+AQS:37-087-0036,AQS,1,Purchase Knob,35.587144,-83.074156,1550.0,US,North America,rural,-5,o3,North Carolina
+AQS:37-109-0004,AQS,1,Crouse,35.438556,-81.27675,270.0,US,North America,rural,-5,o3,North Carolina
+AQS:37-113-9991,AQS,1,Coweeta,35.0608,-83.4306,686.0,US,North America,rural,-5,o3,North Carolina
+AQS:37-117-0001,AQS,1,Jamesville School,35.81066,-76.9063,14.0,US,North America,rural,-5,o3,North Carolina
+AQS:37-119-0046,AQS,1,University Meadows,35.314158,-80.713469,216.0,US,North America,suburban,-5,o3,North Carolina
+AQS:37-121-0004,AQS,1,Spruce Pine Hospital,35.912487,-82.062082,788.0,US,North America,suburban,-5,pm25,North Carolina
+AQS:37-145-0003,AQS,1,Bushy Fork,36.306965,-79.09197,198.0,US,North America,rural,-5,o3,North Carolina
+AQS:37-157-0099,AQS,1,Bethany Sch.,36.308889,-79.859167,274.0,US,North America,rural,-5,o3,North Carolina
+AQS:37-179-0003,AQS,1,Monroe School,34.974039,-80.540622,184.0,US,North America,suburban,-5,o3,North Carolina
+AQS:37-199-0004,AQS,1,Mt. Mitchell,35.765413,-82.264944,2023.0,US,North America,rural,-5,o3,North Carolina
+AQS:39-007-1001,AQS,1,Conneaut,41.959695,-80.572808,201.0,US,North America,suburban,-5,o3,Ohio
+AQS:39-017-0018,AQS,1,Middletown Airport,39.529112,-84.394003,195.0,US,North America,suburban,-5,o3,Ohio
+AQS:39-017-0023,AQS,1,Crawford Woods,39.384671,-84.540537,202.0,US,North America,suburban,-5,o3,Ohio
+AQS:39-017-9991,AQS,1,Oxford,39.5327,-84.7286,284.0,US,North America,rural,-5,o3,Ohio
+AQS:39-023-0001,AQS,1,Springfield Well Fd,40.00103,-83.80456,288.0,US,North America,rural,-5,o3,Ohio
+AQS:39-027-1002,AQS,1,Wilmington,39.427535,-83.788916,322.0,US,North America,rural,-5,o3,Ohio
+AQS:39-035-0064,AQS,1,Berea Boe,41.361835,-81.86457,245.0,US,North America,suburban,-5,o3,Ohio
+AQS:39-035-5002,AQS,1,Mayfield,41.536942,-81.458871,315.5,US,North America,suburban,-5,o3,Ohio
+AQS:39-041-0002,AQS,1,Delaware,40.356694,-83.063971,275.0,US,North America,rural,-5,o3,Ohio
+AQS:39-057-0006,AQS,1,Xenia,39.66575,-83.94268,285.0,US,North America,suburban,-5,o3,Ohio
+AQS:39-083-0003,AQS,1,Centerburg Wwtp,40.27886,-82.679563,355.0,US,North America,rural,-5,o3,Ohio
+AQS:39-087-0011,AQS,1,Wilgus,38.62901,-82.45886,195.0,US,North America,rural,-5,o3,Ohio
+AQS:39-089-0005,AQS,1,Heath,40.026037,-82.432996,260.0,US,North America,suburban,-5,o3,Ohio
+AQS:39-089-0008,AQS,1,Reynoldsburg,39.954457,-82.75892,311.0,US,North America,suburban,-5,o3,Ohio
+AQS:39-093-0018,AQS,1,Sheffield,41.420882,-82.095729,205.0,US,North America,suburban,-5,o3,Ohio
+AQS:39-095-0027,AQS,1,Waterville,41.4942,-83.718949,187.0,US,North America,suburban,-5,o3,Ohio
+AQS:39-095-0035,AQS,1,Cooley,41.669001,-83.28717,175.0,US,North America,rural,-5,o3,Ohio
+AQS:39-097-0007,AQS,1,London,39.78819,-83.47606,331.0,US,North America,rural,-5,o3,Ohio
+AQS:39-109-0005,AQS,1,Miami East Hs,40.08502,-84.113808,301.0,US,North America,rural,-5,o3,Ohio
+AQS:39-121-9991,AQS,1,Quaker City,39.9428,-81.3373,372.0,US,North America,rural,-5,o3,Ohio
+AQS:39-145-0020,AQS,1,Back Road,38.609338,-82.822512,198.0,US,North America,rural,-5,pm10,Ohio
+AQS:39-151-0022,AQS,1,Brewster,40.712703,-81.598078,298.0,US,North America,rural,-5,o3,Ohio
+AQS:39-151-4005,AQS,1,Alliance,40.93133,-81.123519,330.0,US,North America,suburban,-5,o3,Ohio
+AQS:39-155-0013,AQS,1,Kinsman Maintenance,41.454568,-80.589528,295.6,US,North America,rural,-5,o3,Ohio
+AQS:39-167-0004,AQS,1,Marietta Wtp,39.432117,-81.460443,248.0,US,North America,urban and center city,-5,o3,Ohio
+AQS:40-017-0101,AQS,1,Yukon,35.479215,-97.751503,422.21,US,North America,suburban,-6,o3,Oklahoma
+AQS:40-037-0144,AQS,1,Mannford,36.105481,-96.361196,239.047,US,North America,rural,-6,o3,Oklahoma
+AQS:40-071-0604,AQS,1,Ponca City,36.697186,-97.08135,300.0,US,North America,urban and center city,-6,pm25,Oklahoma
+AQS:40-097-9014,AQS,1,Cherokee Heights,36.228408,-95.249943,190.0,US,North America,rural,-6,o3,Oklahoma
+AQS:40-109-0035,AQS,1,Central Fire Station,35.47292,-97.52709,369.92,US,North America,urban and center city,-6,pm25_frm,Oklahoma
+AQS:40-113-0226,AQS,1,Skiatook,36.35586,-96.01243,201.0,US,North America,suburban,-6,o3,Oklahoma
+AQS:41-001-0004,AQS,1,Baker City - Us Forest Service (Bfs),44.78822,-117.8446,1047.0,US,North America,suburban,-8,pm25,Oregon
+AQS:41-017-0004,AQS,1,Sisters - Us Forest Service (Sfs),44.2921,-121.5555,975.0,US,North America,suburban,-8,pm25,Oregon
+AQS:41-017-0120,AQS,1,Bend - Pump Station (Bps),44.063916,-121.312554,1105.0,US,North America,urban and center city,-8,pm25,Oregon
+AQS:41-023-0002,AQS,1,John Day - Dayton Street (Jdd),44.418,-118.9513,939.0,US,North America,suburban,-8,pm25,Oregon
+AQS:41-029-0019,AQS,1,Shady Cove - Shady Cove Schools (Scs),42.623225,-122.810158,438.0,US,North America,suburban,-8,pm25,Oregon
+AQS:41-029-0203,AQS,1,Ashland - Fire Dept (Afd),42.1941,-122.7086,596.0,US,North America,suburban,-8,pm25,Oregon
+AQS:41-033-0036,AQS,1,Cave Junction - Us Forest Service (Cjfs),42.1617,-123.64835,1337.0,US,North America,rural,-8,pm25,Oregon
+AQS:41-043-0009,AQS,1,Albany - Calapooia Middle School (Acs),44.61569,-123.091457,72.0,US,North America,urban and center city,-8,pm25,Oregon
+AQS:41-043-2002,AQS,1,Sweet Home - Fire Dept (Sfd),44.3958,-122.7305,138.0,US,North America,rural,-8,pm25,Oregon
+AQS:41-051-2011,AQS,1,Portland - Helensview School (Pch),45.562192,-122.575705,23.0,US,North America,suburban,-8,pm25,Oregon
+AQS:41-059-0121,AQS,1,Pendleton - Mckay Creek (Pmc),45.652231,-118.823033,326.0,US,North America,suburban,-8,pm25,Oregon
+AQS:41-061-0123,AQS,1,La Grande - N Hall St & E N St (Lhn),45.3235,-118.0778,844.0,US,North America,suburban,-8,pm25,Oregon
+AQS:41-063-0001,AQS,1,Enterprise - Us Forest Service (Efs),45.426351,-117.296066,1163.0,US,North America,rural,-8,pm25,Oregon
+AQS:41-065-0007,AQS,1,The Dalles - Cherry Heights Road (Tdc),45.602419,-121.203387,83.0,US,North America,urban and center city,-8,pm25,Oregon
+AQS:41-067-0111,AQS,1,Beaverton - Highland Park (Bhp),45.470191,-122.816411,58.0,US,North America,urban and center city,-8,pm25,Oregon
+AQS:42-011-0006,AQS,1,Kutztown,40.51408,-75.789721,144.0,US,North America,suburban,-5,o3,Pennsylvania
+AQS:42-027-9991,AQS,1,Penn State,40.7208,-77.9319,378.0,US,North America,rural,-5,o3,Pennsylvania
+AQS:42-047-9991,AQS,1,Kane Exp. Forest,41.598119,-78.767867,622.0,US,North America,rural,-5,o3,Pennsylvania
+AQS:42-073-0015,AQS,1,New Castle,40.995848,-80.346442,262.0,US,North America,suburban,-5,o3,Pennsylvania
+AQS:42-081-0100,AQS,1,Montoursville,41.2508,-76.9238,161.54,US,North America,urban and center city,-5,o3,Pennsylvania
+AQS:42-085-9991,AQS,1,M.K. Goddard,41.4271,-80.1451,384.0,US,North America,rural,-5,o3,Pennsylvania
+AQS:42-111-9991,AQS,1,Laurel Hill,39.9878,-79.2515,615.0,US,North America,rural,-5,o3,Pennsylvania
+AQS:46-065-0003,AQS,1,Pierre Airport,44.373786,-100.287269,524.0,US,North America,suburban,-6,pm25,South Dakota
+AQS:47-001-0101,AQS,1,Freels/Oak Ridge,35.96504,-84.22319,238.0,US,North America,rural,-5,o3,Tennessee
+AQS:47-025-9991,AQS,1,Speedwell,36.46983,-83.826511,361.0,US,North America,rural,-6,o3,Tennessee
+AQS:47-041-9991,AQS,1,Edgar Evans,36.0388,-85.7331,302.0,US,North America,rural,-6,o3,Tennessee
+AQS:47-045-0004,AQS,1,Dyersburg,36.05266,-89.382157,100.0,US,North America,suburban,-6,pm25,Tennessee
+AQS:47-065-1011,AQS,1,Soddy Daisy,35.233476,-85.181581,289.6,US,North America,rural,-5,o3,Tennessee
+AQS:47-089-0002,AQS,1,New Market,36.105629,-83.602077,310.0,US,North America,rural,-5,o3,Tennessee
+AQS:47-107-1002,AQS,1,Athens,35.450115,-84.596195,280.0,US,North America,urban and center city,-5,pm25,Tennessee
+AQS:47-119-2007,AQS,1,Columbia,35.65188,-87.0096,219.0,US,North America,urban and center city,-6,pm25,Tennessee
+AQS:47-141-0005,AQS,1,Cookeville,36.185702,-85.492107,358.0,US,North America,suburban,-6,pm25,Tennessee
+AQS:47-145-0004,AQS,1,Harriman,35.939078,-84.542802,240.0,US,North America,suburban,-5,pm25,Tennessee
+AQS:47-155-0102,AQS,1,Great Smoky Mountains Np - Clingman'S Dome,35.562872,-83.497941,2021.0,US,North America,rural,-6,o3,Tennessee
+AQS:47-157-1004,AQS,1,Edmund Orgill Park Ozone,35.378153,-89.83447,119.0,US,North America,rural,-6,o3,Tennessee
+AQS:47-163-1007,AQS,1,Kingsport Pm,36.538761,-82.521599,4330.0,US,North America,suburban,-5,pm25,Tennessee
+AQS:47-163-2002,AQS,1,Blountville,36.541365,-82.424555,487.0,US,North America,rural,-5,o3,Tennessee
+AQS:47-187-0106,AQS,1,Fairview,35.949765,-87.138246,287.0,US,North America,rural,-6,o3,Tennessee
+AQS:47-189-0103,AQS,1,Cedars Of Lebanon,36.060895,-86.286291,210.0,US,North America,rural,-6,o3,Tennessee
+AQS:48-029-0677,AQS,1,Old Hwy 90,29.423938,-98.580505,220.7,US,North America,urban and center city,-6,pm25,Texas
+AQS:48-061-1023,AQS,1,Harlingen Teege,26.20034,-97.712693,12.0,US,North America,suburban,-6,o3,Texas
+AQS:48-061-2004,AQS,1,Isla Blanca State Park Road,26.071097,-97.15773,0.0,US,North America,rural,-6,pm25,Texas
+AQS:48-085-0005,AQS,1,Frisco,33.132423,-96.786404,232.0,US,North America,suburban,-6,o3,Texas
+AQS:48-121-1032,AQS,1,Pilot Point,33.410657,-96.944599,201.0,US,North America,suburban,-6,o3,Texas
+AQS:48-135-1014,AQS,1,Odessa Gonzales,31.870261,-102.334748,884.0,US,North America,suburban,-6,pm25,Texas
+AQS:48-201-1017,AQS,1,Baytown Garth,29.827169,-94.988311,12.2,US,North America,suburban,-6,o3,Texas
+AQS:48-221-0001,AQS,1,Granbury,32.442308,-97.803549,226.0,US,North America,suburban,-6,o3,Texas
+AQS:48-245-0011,AQS,1,Port Arthur West,29.897514,-93.991087,4.0,US,North America,urban and center city,-6,o3,Texas
+AQS:48-245-0101,AQS,1,Setrpc  40  Sabine Pass,29.727931,-93.894081,1.0,US,North America,rural,-6,o3,Texas
+AQS:48-251-0003,AQS,1,Cleburne Airport,32.353592,-97.43679,250.0,US,North America,suburban,-6,o3,Texas
+AQS:48-273-0314,AQS,1,National Seashore,27.422439,-97.300866,20.0,US,North America,rural,-6,pm25,Texas
+AQS:48-303-1028,AQS,1,Lubbock 12Th Street,33.585565,-101.786968,501.0,US,North America,urban and center city,-6,pm25,Texas
+AQS:48-323-0004,AQS,1,Eagle Pass,28.704629,-100.451154,255.0,US,North America,urban and center city,-6,pm25,Texas
+AQS:48-355-0026,AQS,1,Corpus Christi Tuloso,27.832435,-97.55543,12.0,US,North America,suburban,-6,o3,Texas
+AQS:48-367-0081,AQS,1,Parker County,32.868761,-97.905937,347.0,US,North America,rural,-6,o3,Texas
+AQS:48-373-9991,AQS,1,Alabama-Coushatta,30.7017,-94.6742,101.0,US,North America,rural,-6,o3,Texas
+AQS:48-375-0320,AQS,1,Amarillo A&M,35.201592,-101.909275,1122.0,US,North America,urban and center city,-6,pm25,Texas
+AQS:48-381-9991,AQS,1,Palo Duro,34.8803,-101.6649,1050.0,US,North America,rural,-6,o3,Texas
+AQS:48-397-0001,AQS,1,Rockwall Heath,32.936527,-96.459244,168.0,US,North America,suburban,-6,o3,Texas
+AQS:48-469-0003,AQS,1,Victoria,28.836212,-97.005521,34.0,US,North America,urban and center city,-6,o3,Texas
+AQS:49-037-0101,AQS,1,Canyonlands Np,38.45832,-109.82126,1794.0,US,North America,rural,-7,o3,Utah
+AQS:49-047-1002,AQS,1,Dinosaur Nm - West Entrance Housing,40.4372,-109.3047,1463.0,US,North America,rural,-7,o3,Utah
+AQS:49-053-0130,AQS,1,Zion Canyon,37.1983,-113.1506,1213.0,US,North America,rural,-7,o3,Utah
+AQS:51-033-0001,AQS,1,"Usgs Geomagnetic Center, Corbin",38.20087,-77.37742,68.0,US,North America,rural,-5,o3,Virginia
+AQS:51-061-0002,AQS,1,"Chester Phelps Wildlife Management Area, Sumerduck",38.47367,-77.76772,102.0,US,North America,rural,-5,o3,Virginia
+AQS:51-085-0003,AQS,1,"Turner Property, Old Church",37.60613,-77.2188,48.0,US,North America,suburban,-5,o3,Virginia
+AQS:51-087-0015,AQS,1,Deq Piedmont Regional Office,37.67132,-77.5664,73.0,US,North America,suburban,-5,pm25_frm,Virginia
+AQS:51-147-9991,AQS,1,Prince Edward,37.1655,-78.3069,150.0,US,North America,rural,-5,o3,Virginia
+AQS:51-163-0003,AQS,1,Natural Bridge Ranger Station,37.62668,-79.51257,281.0,US,North America,rural,-5,o3,Virginia
+AQS:51-179-0001,AQS,1,Widewater Elementary School,38.48123,-77.3704,51.0,US,North America,suburban,-5,o3,Virginia
+AQS:51-197-0002,AQS,1,Rural Retreat Sewage Treatment Plant,36.89117,-81.25423,751.0,US,North America,rural,-5,o3,Virginia
+AQS:51-520-0006,AQS,1,John Battle High School,36.608,-82.1641,550.0,US,North America,suburban,-5,pm25_frm,Virginia
+AQS:51-680-0015,AQS,1,Lynchburg City Water Tower,37.332706,-79.215011,306.0,US,North America,suburban,-5,pm25_frm,Virginia
+AQS:51-775-0011,AQS,1,Salem High School,37.297883,-80.081017,347.0,US,North America,suburban,-5,pm25_frm,Virginia
+AQS:51-800-0005,AQS,1,"Va Tech Agricultural Research Station, Holland",36.66525,-76.73078,19.0,US,North America,suburban,-5,o3,Virginia
+AQS:53-001-0003,AQS,1,Ritzville - Alder St,47.12,-118.3819,550.0,US,North America,rural,-8,pm25,Washington
+AQS:53-003-0004,AQS,1,Clarkston - 13Th St,46.425416,-117.060445,250.0,US,North America,suburban,-8,pm25,Washington
+AQS:53-007-0007,AQS,1,Chelan - Woodin Ave,47.83861,-120.023076,327.0,US,North America,rural,-8,pm25,Washington
+AQS:53-007-0010,AQS,1,Leavenworth - Evans St,47.598863,-120.664702,357.0,US,North America,suburban,-8,pm25,Washington
+AQS:53-007-0011,AQS,1,Wenatchee-Fifth St,47.43061,-120.34195,260.0,US,North America,urban and center city,-8,pm25,Washington
+AQS:53-009-0017,AQS,1,Port Angeles - 5Th St,48.115,-123.436434,75.0,US,North America,suburban,-8,pm25,Washington
+AQS:53-011-0022,AQS,1,Yacolt - Yacolt Rd,45.8639,-122.410889,213.0,US,North America,rural,-8,pm25,Washington
+AQS:53-013-0002,AQS,1,Dayton - W Main,46.318,-117.985,464.0,US,North America,rural,-8,pm25,Washington
+AQS:53-015-0015,AQS,1,Longview - 30Th Ave,46.139444,-122.961944,13.0,US,North America,suburban,-8,pm25,Washington
+AQS:53-021-0002,AQS,1,Mesa - Pepoit Way,46.5754,-119.0021,224.0,US,North America,rural,-8,pm25,Washington
+AQS:53-023-0001,AQS,1,Pomeroy Sewage Treatment Plant,46.474438,-117.614764,549.0,US,North America,suburban,-8,pm25,Washington
+AQS:53-025-1002,AQS,1,Moses Lake - Balsam St,47.1303,-119.2737,325.0,US,North America,urban and center city,-8,pm25,Washington
+AQS:53-025-1003,AQS,1,Quincy-3Rd Ave Ne,47.241153,-119.847824,397.0,US,North America,urban and center city,-8,pm25,Washington
+AQS:53-027-0011,AQS,1,Taholah-Chitwin Drive,47.3442,-124.2879,14.0,US,North America,rural,-8,pm25,Washington
+AQS:53-031-0003,AQS,1,Port Townsend-San Juan,48.12919,-122.77897,20.0,US,North America,suburban,-8,pm25,Washington
+AQS:53-033-0023,AQS,1,Enumclaw - Mud Mtn (Army Corp Of Engineers Site),47.1411,-121.9379,402.0,US,North America,rural,-8,o3,Washington
+AQS:53-033-0024,AQS,1,Lake Forest Park Towne Center,47.755,-122.2806,16.0,US,North America,suburban,-8,pm25,Washington
+AQS:53-033-0031,AQS,1,Bellevue-Se 12Th St,47.600863,-122.148397,92.0,US,North America,suburban,-8,pm25,Washington
+AQS:53-033-0069,AQS,1,Tukwila Allentown,47.498535,-122.278385,5.0,US,North America,suburban,-8,pm25,Washington
+AQS:53-037-0002,AQS,1,Ellensburg - Ruby St,46.99364,-120.545,500.0,US,North America,urban and center city,-8,pm25,Washington
+AQS:53-041-0004,AQS,1,Chehalis - Market Blvd,46.66409,-122.96732,34.0,US,North America,urban and center city,-8,pm25,Washington
+AQS:53-045-0007,AQS,1,Shelton - W Franklin,47.21355,-123.10081,23.0,US,North America,urban and center city,-8,pm25,Washington
+AQS:53-047-0010,AQS,1,Winthrop - Chewuch Rd,48.47724,-120.19057,536.0,US,North America,rural,-8,pm25,Washington
+AQS:53-047-0013,AQS,1,Omak-Colville Tribe,48.39999,-119.51896,5.0,US,North America,suburban,-8,pm25,Washington
+AQS:53-053-0012,AQS,1,Mt Rainier - Jackson Visitiors Center,46.7841,-121.740367,1615.0,US,North America,rural,-8,o3,Washington
+AQS:53-061-0020,AQS,1,Darrington - Fir St (Darrington High School),48.2469,-121.6031,182.0,US,North America,urban and center city,-8,pm25,Washington
+AQS:53-061-1007,AQS,1,Marysville - 7Th Ave (Marysville Junior High),48.054315,-122.171529,2.0,US,North America,suburban,-8,pm25,Washington
+AQS:53-063-0046,AQS,1,Spokane - Greenbluff,47.82728,-117.27422,785.0,US,North America,rural,-8,o3,Washington
+AQS:53-063-0047,AQS,1,Spokane - Monroe St,47.69978,-117.42635,1881.0,US,North America,urban and center city,-8,pm25,Washington
+AQS:53-065-0002,AQS,1,Spokane - Wellpinit  Ford Rd (Spokane Tribe),47.88528,-117.98865,743.0,US,North America,suburban,-8,pm25,Washington
+AQS:53-071-0005,AQS,1,Walla Wall - 12Th St,46.05881,-118.35147,267.0,US,North America,suburban,-8,pm25,Washington
+AQS:53-073-0005,AQS,1,Custer - Loomis,48.95074,-122.55441,5.0,US,North America,rural,-8,o3,Washington
+AQS:53-073-0019,AQS,1,Bellingham-Pacific St,48.760036,-122.456463,24.0,US,North America,suburban,-8,pm25,Washington
+AQS:53-075-0003,AQS,1, Pullman - Dexter Ave 4,46.72447,-117.18014,771.0,US,North America,suburban,-8,pm25,Washington
+AQS:53-075-0005,AQS,1,Lacarosse - Hill St,46.8153,-117.8739,468.0,US,North America,rural,-8,pm25,Washington
+AQS:53-075-0006,AQS,1,Rosalia - Josephine St,47.23136,-117.36856,682.0,US,North America,urban and center city,-8,pm25,Washington
+AQS:53-077-0005,AQS,1,Sunnyside-S16Th St (Harrison Middle School),46.31932,-119.999677,155.0,US,North America,suburban,-8,pm25,Washington
+AQS:53-077-0015,AQS,1,Toppenish - Ward Rd (Yakama Tribe),46.38024,-120.33266,216.0,US,North America,urban and center city,-8,pm25,Washington
+AQS:54-025-0003,AQS,1,Sam Black Church - Doh Garage - Greenbrier County,37.908533,-80.632633,749.1984,US,North America,rural,-5,o3,West Virginia
+AQS:54-033-0003,AQS,1,Washington Irving Junior High School,39.278117,-80.34225,336.1944,US,North America,urban and center city,-5,pm25_frm,West Virginia
+AQS:54-093-9991,AQS,1,Parsons,39.0905,-79.6617,510.0,US,North America,rural,-5,o3,West Virginia
+AQS:55-009-0005,AQS,1,Green Bay East High,44.50729,-87.99344,184.0,US,North America,urban and center city,-6,pm25,Wisconsin
+AQS:55-021-0015,AQS,1,Columbus,43.31551,-89.10889,306.0,US,North America,rural,-6,o3,Wisconsin
+AQS:55-029-0004,AQS,1,Newport Park,45.2384,-86.994,195.0,US,North America,rural,-6,o3,Wisconsin
+AQS:55-039-0006,AQS,1,Fond Du Lac,43.6874,-88.42205,323.0,US,North America,rural,-6,o3,Wisconsin
+AQS:55-043-0009,AQS,1,Potosi,42.69302,-90.69813,303.0,US,North America,rural,-6,pm25,Wisconsin
+AQS:55-055-0009,AQS,1,Jefferson - Laatsch,43.0034,-88.8283,259.0,US,North America,suburban,-6,o3,Wisconsin
+AQS:55-061-0002,AQS,1,Kewaunee,44.44312,-87.50525,207.0,US,North America,rural,-6,o3,Wisconsin
+AQS:55-071-0007,AQS,1,Manitowoc - Wdlnd Dunes,44.13862,-87.61612,182.0,US,North America,rural,-6,o3,Wisconsin
+AQS:55-073-0012,AQS,1,Lake Dubay,44.70735,-89.77192,381.0,US,North America,rural,-6,o3,Wisconsin
+AQS:55-105-0030,AQS,1,Beloit - Converse,42.51831,-89.06347,243.0,US,North America,urban and center city,-6,o3,Wisconsin
+AQS:55-117-0006,AQS,1,Sheboygan - Kohler Andrae,43.66737,-87.71631,182.0,US,North America,rural,-6,o3,Wisconsin
+AQS:55-117-0009,AQS,1,Sheboygan - Haven,43.815596,-87.792235,226.0,US,North America,rural,-6,o3,Wisconsin
+AQS:55-119-8001,AQS,1,Perkinstown,45.2066,-90.5972,522.0,US,North America,rural,-6,pm25,Wisconsin
+AQS:56-001-0008,AQS,1,Pete Lien Downwind Pm10,41.4945,-105.561944,2220.0,US,North America,rural,-7,pm10,Wyoming
+AQS:56-001-9991,AQS,1,Centennial,41.3642,-106.2399,3178.0,US,North America,rural,-7,o3,Wyoming
+AQS:56-003-0002,AQS,1,Basin,44.28,-108.041111,1241.0,US,North America,rural,-7,o3,Wyoming
+AQS:56-007-0009,AQS,1,Sinclair North East (Ambient),41.79358,-107.08422,1996.0,US,North America,rural,-7,no2,Wyoming
+AQS:56-023-0820,AQS,1,Naughton Power Plant Pm10 Site .25 Mile East Of Power Plant,41.7575,-110.57833,0.0,US,North America,rural,-7,pm10,Wyoming
+AQS:56-033-0004,AQS,1,Not In A City,44.933611,-106.847222,1135.0,US,North America,rural,-7,o3,Wyoming
+AQS:56-037-0812,AQS,1,"Oci, Ltd Site #3",41.709662,-109.713239,0.0,US,North America,rural,-7,pm10,Wyoming
+AQS:56-039-0008,AQS,1,Grand Teton Np - Science School,43.670833,-110.599472,2105.0,US,North America,rural,-7,o3,Wyoming
+AQS:56-039-1011,AQS,1,Yellowstone Np - Water Tank,44.56536,-110.40034,2430.0,US,North America,rural,-7,o3,Wyoming
+AQS:56-045-0003,AQS,1,Not In A City,43.873056,-104.191944,1437.0,US,North America,rural,-7,o3,Wyoming
+AQS:04-001-1235,AQS,1,Nazlini,35.880404,-109.438003,0.0,US,North America,rural,-7,pm25_frm,Arizona
+AQS:04-017-1002,AQS,1,Whiteriver - Fort Apache Reservation,33.85815,-109.97029,1599.0,US,North America,rural,-7,pm10,Arizona
+AQS:05-113-0003,AQS,1,Eagle Mountain,34.454514,-94.143521,0.0,US,North America,rural,-6,o3,Arkansas
+AQS:06-027-1028,AQS,1,Fort Independence Indian Community,36.834957,-118.226677,1201.04,US,North America,rural,-8,pm10,California
+AQS:06-029-5002,AQS,1,Arvin-Di Giorgio,35.23918,-118.78863,145.0,US,North America,rural,-8,o3,California
+AQS:06-051-0011,AQS,1,Mono Shore,38.069711,-118.947738,1957.0,US,North America,rural,-8,pm10,California
+AQS:06-079-3001,AQS,1,Morro Bay,35.36631,-120.84271,55.0,US,North America,urban and center city,-8,o3,California
+AQS:06-089-0007,AQS,1,Anderson - North Street,40.452913,-122.298866,498.0,US,North America,suburban,-8,o3,California
+AQS:06-109-0005,AQS,1,Sonora-Barretta Street,37.98178,-120.378551,571.0,US,North America,urban and center city,-8,o3,California
+AQS:08-019-0006,AQS,1,Mines Peak,39.794391,-105.76398,3806.0,US,North America,rural,-7,o3,Colorado
+AQS:08-045-0021,AQS,1,"Rocky Mountain School, Carbondale",39.4125,-107.23056,1867.0,US,North America,suburban,-7,o3,Colorado
+AQS:08-093-0001,AQS,1,Kenosha Pass,39.417,-105.755,3098.0,US,North America,rural,-7,o3,Colorado
+AQS:08-123-0008,AQS,1,Platteville - Middle School,40.209387,-104.82405,1469.0,US,North America,rural,-7,pm25_frm,Colorado
+AQS:10-003-1010,AQS,1,Bcsp,39.800423,-75.57634,0.0,US,North America,rural,-5,o3,Delaware
+AQS:12-035-0004,AQS,1,Flagler,29.489083,-81.276833,7.3,US,North America,rural,-5,o3,Florida
+AQS:12-047-0015,AQS,1,White Springs,30.42659,-82.794715,40.0,US,North America,rural,-5,pm25,Florida
+AQS:12-055-0003,AQS,1,Archbold Biological Station,27.187346,-81.339603,60.0,US,North America,rural,-5,o3,Florida
+AQS:12-081-3002,AQS,1,Port Manatee,27.633089,-82.54593,0.0,US,North America,rural,-5,o3,Florida
+AQS:12-103-3004,AQS,1,County Motorpool,27.895061,-82.77457,0.0,US,North America,suburban,-5,pm10,Florida
+AQS:13-231-9991,AQS,1,Georgia Station,33.1787,-84.4052,270.0,US,North America,rural,-5,o3,Georgia
+AQS:13-303-0001,AQS,1,Sandersville,32.967359,-82.806871,135.0,US,North America,suburban,-5,pm25,Georgia
+AQS:16-055-0015,AQS,1,Not In A City,47.715385,-116.827245,686.7144,US,North America,suburban,-8,pm25,Idaho
+AQS:17-049-1001,AQS,1,Central Jr High,39.067159,-88.548934,177.0,US,North America,rural,-6,o3,Illinois
+AQS:17-119-9991,AQS,1,Alhambra,38.869001,-89.622816,164.0,US,North America,rural,-6,o3,Illinois
+AQS:18-043-1004,AQS,1,New Albany- Green Valley Elem. Sch.,38.30703,-85.832974,115.514,US,North America,suburban,-5,o3,Indiana
+AQS:19-111-0008,AQS,1,"Keokuk, Fire Station",40.400959,-91.391012,0.0,US,North America,urban and center city,-6,pm25_frm,Iowa
+AQS:21-091-0012,AQS,1,Lewisport,37.93829,-86.89719,122.0,US,North America,rural,-6,o3,Kentucky
+AQS:22-017-0008,AQS,1,Shreveport / Calumet,32.472659,-93.777984,53.0,US,North America,suburban,-6,pm25_frm,Louisiana
+AQS:23-011-0016,AQS,1,"Augusta, Lincoln Street Elementary School (Alss)",44.312319,-69.786717,71.0,US,North America,suburban,-5,pm25_frm,Maine
+AQS:23-029-0019,AQS,1,Harbor Masters Office; Jonesport Public Landing,44.531907,-67.59587,10.0,US,North America,rural,-5,o3,Maine
+AQS:27-003-1001,AQS,1,Cedar Creek,45.40184,-93.20306,280.0,US,North America,rural,-6,o3,Minnesota
+AQS:27-163-6016,AQS,1,St. Croix Watershed Research Station,45.168004,-92.765136,234.0,US,North America,rural,-6,o3,Minnesota
+AQS:37-031-9991,AQS,1,Beaufort,34.8848,-76.6203,2.0,US,North America,rural,-5,o3,North Carolina
+AQS:39-009-0003,AQS,1,Gifford,39.442165,-81.908827,200.0,US,North America,rural,-5,pm25_frm,Ohio
+AQS:39-153-0023,AQS,1,Five Points,41.087862,-81.541532,326.0,US,North America,urban and center city,-5,pm25_frm,Ohio
+AQS:41-003-0013,AQS,1,Corvallis - Circle Blvd (Ccb),44.5884,-123.2673,71.0,US,North America,suburban,-8,pm25,Oregon
+AQS:41-019-0002,AQS,1,Roseburg - Garden Valley Rd (Rgv),43.2266,-123.36479,136.0,US,North America,suburban,-8,pm25,Oregon
+AQS:41-031-0007,AQS,1,Madras - Westside Elementary School (Mws),44.63062,-121.13165,873.0,US,North America,rural,-8,pm25,Oregon
+AQS:41-039-0100,AQS,1,Florence - Oregon Dept Of Forestry (Fdf),43.989644,-124.109192,17.0,US,North America,suburban,-8,pm25,Oregon
+AQS:42-007-0002,AQS,1,Hookstown,40.56252,-80.503948,372.0,US,North America,rural,-5,o3,Pennsylvania
+AQS:42-033-4000,AQS,1,Moshannon State Forest,41.1175,-78.526194,0.0,US,North America,rural,-5,o3,Pennsylvania
+AQS:42-089-0002,AQS,1,Swiftwater,41.08306,-75.32328,370.0,US,North America,rural,-5,o3,Pennsylvania
+AQS:42-133-0011,AQS,1,York Dw,39.86097,-76.462055,240.0,US,North America,suburban,-5,o3,Pennsylvania
+AQS:45-019-0048,AQS,1,Faa Tower,32.980254,-80.06501,13.0,US,North America,suburban,-5,pm25_frm,South Carolina
+AQS:45-051-0008,AQS,1,Coastal Carolina University,33.8005,-78.9941,14.0,US,North America,suburban,-5,o3,South Carolina
+AQS:45-063-0008,AQS,1,Irmo,34.051017,-81.15495,69.0,US,North America,suburban,-5,pm25_frm,South Carolina
+AQS:47-099-0003,AQS,1,Loretto,35.116878,-87.419725,276.0,US,North America,rural,-6,pm25,Tennessee
+AQS:47-113-0010,AQS,1,Jackson,35.705319,-88.81964,135.0,US,North America,suburban,-6,pm25,Tennessee
+AQS:47-155-0101,AQS,1,Great Smoky Mountains Np - Cove Mountain,35.696758,-83.609612,1243.0,US,North America,rural,-5,o3,Tennessee
+AQS:48-061-0006,AQS,1,Brownsville,25.892518,-97.49383,6.0,US,North America,urban and center city,-6,pm25,Texas
+AQS:48-215-1046,AQS,1,Edinburg East Freddy Gonzalez Drive,26.288486,-98.152059,10.0,US,North America,urban and center city,-6,pm25_frm,Texas
+AQS:48-479-0313,AQS,1,World Trade Bridge,27.599587,-99.53341,146.0,US,North America,suburban,-6,pm25,Texas
+AQS:53-027-2002,AQS,1,Aberdeen - Division St,46.97228,-123.83173,1.0,US,North America,suburban,-8,pm25,Washington
+AQS:53-033-2004,AQS,1,Kent - James & Central,47.386111,-122.230278,20.0,US,North America,urban and center city,-8,pm25,Washington
+AQS:53-035-0007,AQS,1,Bremerton-Spruce Ave,47.592675,-122.627397,78.0,US,North America,suburban,-8,pm25,Washington
+AQS:53-057-0015,AQS,1,Mt Vernon - 2Nd Ave,48.4102,-122.3376,7.0,US,North America,suburban,-8,pm25,Washington
+AQS:54-049-0006,AQS,1,Marion Health Care Hospital,39.481483,-80.134667,305.7144,US,North America,urban and center city,-5,pm25_frm,West Virginia
+AQS:55-127-0006,AQS,1,Elkhorn,42.66218,-88.48703,318.0,US,North America,rural,-6,o3,Wisconsin
+AQS:01-097-2005,AQS,1,Bay Road,30.474305,-88.141022,19.81,US,North America,rural,-6,o3,Alabama
+AQS:06-015-0007,AQS,1,Crescent City-Crescent Elk School,41.75613,-124.20347,13.0,US,North America,urban and center city,-8,pm25,California
+AQS:06-017-0010,AQS,1,Placerville-Gold Nugget Way,38.725282,-120.821916,585.0,US,North America,suburban,-8,o3,California
+AQS:06-029-0017,AQS,1,Canebrake,35.72771,-118.13774,914.4,US,North America,rural,-8,pm10,California
+AQS:06-063-1007,AQS,1,Chester-222 First Ave,40.309644,-121.227848,1403.0,US,North America,urban and center city,-8,pm25,California
+AQS:06-065-6001,AQS,1,Perris,33.78942,-117.22764,439.0,US,North America,urban and center city,-8,o3,California
+AQS:06-105-0002,AQS,1,Weaverville-Courthouse,40.73475,-122.9412,600.0,US,North America,urban and center city,-8,pm25,California
+AQS:08-047-0003,AQS,1,Black Hawk,39.792519,-105.49127,2633.0,US,North America,rural,-7,o3,Colorado
+AQS:08-083-8001,AQS,1,Towaocumu2,37.20006,-108.7331,1788.0,US,North America,rural,-7,o3,Colorado
+AQS:12-095-0010,AQS,1,Skyview Drive,28.453167,-81.397139,27.0,US,North America,suburban,-5,o3,Florida
+AQS:17-119-1009,AQS,1,Southwest Cable Tv,38.726573,-89.959963,177.0,US,North America,suburban,-6,o3,Illinois
+AQS:21-015-0003,AQS,1,East Bend,38.91833,-84.852637,168.0,US,North America,rural,-5,o3,Kentucky
+AQS:21-221-9991,AQS,1,Cadiz,36.7841,-87.8499,189.0,US,North America,rural,-6,o3,Kentucky
+AQS:23-003-9991,AQS,1,Ashland,46.6041,-68.4135,235.0,US,North America,rural,-5,o3,Maine
+AQS:23-011-2001,AQS,1,Gardiner,44.226737,-69.788656,55.0,US,North America,suburban,-5,o3,Maine
+AQS:27-095-3051,AQS,1,Mille Lacs Band,46.2053,-93.75945,393.0,US,North America,rural,-6,o3,Minnesota
+AQS:30-087-0761,AQS,1,Not In A City,45.603053,-106.464744,1293.0,US,North America,rural,-7,no2,Montana
+AQS:31-079-0005,AQS,1,Grand Island Ndot,40.915555,-98.378888,566.0,US,North America,urban and center city,-6,pm25,Nebraska
+AQS:33-007-4001,AQS,1,Not In A City,44.270093,-71.303821,1910.0,US,North America,rural,-5,o3,New Hampshire
+AQS:33-009-9991,AQS,1,Woodstock,43.944519,-71.700788,258.0,US,North America,rural,-5,o3,New Hampshire
+AQS:35-015-0010,AQS,1,Not In A City,32.178157,-104.443447,1357.0,US,North America,rural,-7,o3,New Mexico
+AQS:36-031-9991,AQS,1,Huntington Wildlife Forest,43.9731,-74.2232,502.0,US,North America,rural,-5,o3,New York
+AQS:36-071-5001,AQS,1,Valley Central High School,41.52375,-74.21534,37.0,US,North America,suburban,-5,o3,New York
+AQS:37-011-9991,AQS,1,Cranberry,36.1058,-82.0454,1219.0,US,North America,rural,-5,o3,North Carolina
+AQS:37-051-0008,AQS,1,Wade,35.158686,-78.728035,45.0,US,North America,rural,-5,o3,North Carolina
+AQS:37-119-0048,AQS,1,Friendship Park,35.281791,-80.851473,224.0,US,North America,urban and center city,-5,pm25,North Carolina
+AQS:39-047-9991,AQS,1,Deer Creek,39.6359,-83.2605,267.0,US,North America,rural,-5,o3,Ohio
+AQS:41-043-2003,AQS,1,Lyons - Mari-Lynn Elementary School (Lms),44.778743,-122.617048,202.0,US,North America,rural,-8,pm25,Oregon
+AQS:42-115-0215,AQS,1,New Milford,41.867331,-75.686219,426.0,US,North America,rural,-5,pm25,Pennsylvania
+AQS:45-003-0003,AQS,1,Jackson Middle School,33.342226,-81.788731,107.0,US,North America,suburban,-5,o3,South Carolina
+AQS:45-007-0006,AQS,1,Garrison Arena,34.635958,-82.810667,221.6,US,North America,rural,-5,o3,South Carolina
+AQS:45-015-1002,AQS,1,Moncks Corner National Guard,33.183016,-80.030712,20.7,US,North America,suburban,-5,o3,South Carolina
+AQS:45-031-0003,AQS,1,Pee Dee Experimental Station,34.285696,-79.744859,36.0,US,North America,rural,-5,o3,South Carolina
+AQS:45-063-0010,AQS,1,Cayce City Hall,33.969145,-81.06629,67.0,US,North America,urban and center city,-5,pm10,South Carolina
+AQS:45-079-0021,AQS,1,Congaree Bluff,33.81468,-80.781135,33.9,US,North America,rural,-5,o3,South Carolina
+AQS:45-083-0009,AQS,1,North Spartanburg Fire Station #2,34.988706,-82.075802,265.0,US,North America,rural,-5,o3,South Carolina
+AQS:45-091-0008,AQS,1,York (Landfill),34.977,-81.207,215.0,US,North America,rural,-5,o3,South Carolina
+AQS:47-065-0031,AQS,1, East Ridge City Hall,34.99438,-85.24293,0.0,US,North America,urban and center city,-5,pm25_frm,Tennessee
+AQS:47-125-2001,AQS,1,Clarksville,36.611411,-87.384666,149.0,US,North America,suburban,-6,pm25,Tennessee
+AQS:48-041-1086,AQS,1,Bryan Finfeather Road,30.628336,-96.362821,103.3,US,North America,rural,-6,pm25,Texas
+AQS:48-255-1070,AQS,1,Karnes County,28.880444,-97.888053,131.7,US,North America,rural,-6,no2,Texas
+AQS:48-493-1038,AQS,1,Floresville Hospital Boulevard,29.130677,-98.148076,123.0,US,North America,rural,-6,no2,Texas
+AQS:54-021-9991,AQS,1,Cedar Creek,38.8795,-80.8477,234.0,US,North America,rural,-5,o3,West Virginia
+AQS:72-021-0010,AQS,1,Bayamon,18.420089,-66.150615,70.0,US,North America,suburban,-4,pm25_frm,Puerto Rico

@@ -1,0 +1,86 @@
+site_id,network,tier,name,lat,lon,elev,country,region,setting,utc_offset,params,note
+EMB:Abidjan,Embassy,2,Abidjan,5.36,-4.0083,,IV,Africa,urban,0.0,pm25,U.S. Department of State Ivory Coast - Abidjan
+EMB:AbuDhabi,Embassy,2,Abu Dhabi,24.42431,54.433874,,AE,Middle East,urban,4.0,pm25,U.S. Department of State UAE - Abu Dhabi
+EMB:Abuja,Embassy,2,Abuja,9.041648,7.477374,,NI,Africa,urban,1.0,pm25,U.S. Department of State Nigeria - Abuja
+EMB:Accra,Embassy,2,Accra,5.580642,-0.170724,,GH,Africa,urban,0.0,pm25,U.S. Department of State Ghana - Accra
+EMB:AddisAbabaCentral,Embassy,2,Addis Ababa Central,9.058498,38.761641,,ET,Africa,urban,3.0,pm25,U.S. Department of State Ethiopia - Addis Ababa
+EMB:AddisAbabaJacros,Embassy,2,Addis Ababa Jacros,9.011444,38.820909,,ET,Africa,urban,3.0,pm25,U.S. Department of State Ethiopia - Addis Ababa
+EMB:Algiers,Embassy,2,Algiers,36.755798,3.039114,,AG,Europe,urban,1.0,pm25,U.S. Department of State Algeria - Algiers
+EMB:Almaty,Embassy,2,Almaty,43.252855,76.93118,,KZ,Central Asia,urban,6.0,pm25,U.S. Department of State Kazakhstan - Almaty
+EMB:Amman,Embassy,2,Amman,31.945021,35.880501,,JO,Middle East,urban,2.0,pm25,U.S. Department of State Jordan - Amman
+EMB:Antananarivo,Embassy,2,Antananarivo,-18.90848,47.53751,,MA,Africa,urban,3.0,pm25,U.S. Department of State Madagascar- Antananarivo
+EMB:Ashgabat,Embassy,2,Ashgabat,37.9415,58.3879,,TX,Middle East,urban,5.0,pm25,U.S. Department of State Turkmenistan - Ashgabat
+EMB:Astana,Embassy,2,Astana,51.125287,71.467217,,KZ,Central Asia,urban,6.0,pm25,U.S. Department of State Kazakhstan - Astana
+EMB:Asuncion,Embassy,2,Asuncion,-25.293536,-57.60395,,PA,Latin America,urban,-4.0,pm25,U.S. Department of State Paraguay - Asuncion
+EMB:Baghdad,Embassy,2,Baghdad,33.3128,44.3615,,IZ,Middle East,urban,3.0,pm25,U.S. Department of State Iraq - Baghdad
+EMB:Baku,Embassy,2,Baku,40.386992,49.842946,,AJ,Middle East,urban,4.0,pm25,U.S. Department of State Azerbaijan - Baku
+EMB:Bamako,Embassy,2,Bamako,12.632524,-8.036911,,ML,Africa,urban,0.0,pm25,U.S. Department of State Mali - Bamako
+EMB:BanjaLuka,Embassy,2,Banja Luka,44.7725,17.185556,,BK,Europe,urban,1.0,pm25,U.S. Department of State Bosnia Herzegovina - Banja Luka
+EMB:Beijing,Embassy,2,Beijing,39.953352,116.466258,,CH,East Asia,urban,8.0,pm25,U.S. Department of State China - Beijing
+EMB:Belmopan,Embassy,2,Belmopan,17.256124,-88.773876,,BH,North America,urban,-6.0,pm25,U.S. Department of State Belize - Belmopan
+EMB:Bishkek,Embassy,2,Bishkek,42.827626,74.58384,,KG,Central Asia,urban,6.0,pm25,U.S. Department of State Kyrgyzstan - Bishkek
+EMB:Bogota,Embassy,2,Bogota,4.637735,-74.094856,,CO,Latin America,urban,-5.0,pm25,U.S. Department of State Colombia - Bogota
+EMB:BuenosAires,Embassy,2,Buenos Aires,-34.6037,-58.3816,,AR,Latin America,urban,-3.0,pm25,U.S. Department of State Argentina - Buenos Aires
+EMB:Cairo,Embassy,2,Cairo,30.04147,31.23289,,EG,Africa,urban,2.0,pm25,U.S. Department of State Egypt - Cairo
+EMB:Chengdu,Embassy,2,Chengdu,30.6247,104.068388,,CH,East Asia,urban,8.0,pm25,U.S. Department of State China - Chengdu
+EMB:Chennai,Embassy,2,Chennai,13.08784,80.278475,,IN,South Asia,urban,5.5,pm25,U.S. Department of State India - Chennai
+EMB:Chisinau,Embassy,2,Chisinau,47.021561,28.81938,,MD,Europe,urban,2.0,pm25,U.S. Department of State Moldova - Chisinau
+EMB:Colombo,Embassy,2,Colombo,6.909445,79.875341,,CE,South Asia,urban,5.5,pm25,U.S. Department of State Sri Lanka - Colombo
+EMB:Conakry,Embassy,2,Conakry,9.5951,-13.6364,,GV,Africa,urban,0.0,pm25,U.S. Department of State Guinea - Conakry
+EMB:Curacao,Embassy,2,Curacao,12.1696,-68.99,,UC,Latin America,urban,-4.0,pm25,U.S. Department of State Curacao
+EMB:Dakar,Embassy,2,Dakar,14.744791,-17.526484,,SG,Africa,urban,0.0,pm25,U.S. Department of State Senegal - Dakar
+EMB:Dhahran,Embassy,2,Dhahran,26.276861,50.147232,,SA,Middle East,urban,3.0,pm25,U.S. Department of State Saudi Arabia - Dhahran
+EMB:Dhaka,Embassy,2,Dhaka,23.796374,90.424614,,BG,South Asia,urban,6.0,pm25,U.S. Department of State Bangladesh - Dhaka
+EMB:Doha,Embassy,2,Doha,25.3337,51.22953,,QA,Middle East,urban,3.0,pm25,U.S. Department of State Qatar - Doha
+EMB:Dubai,Embassy,2,Dubai,25.258481,55.309165,,AE,Middle East,urban,4.0,pm25,U.S. Department of State UAE - Dubai
+EMB:Dushanbe,Embassy,2,Dushanbe,38.557671,68.775917,,TI,Central Asia,urban,5.0,pm25,U.S. Department of State Tajikistan - Dushanbe
+EMB:EmbassyKathmandu,Embassy,2,Embassy Kathmandu,27.738703,85.336206,,NP,South Asia,urban,5.75,pm25,U.S. Department of State Nepal - Kathmandu
+EMB:Guangzhou,Embassy,2,Guangzhou,23.116785,113.318088,,CH,East Asia,urban,8.0,pm25,U.S. Department of State China - Guangzhou
+EMB:GuatemalaCity,Embassy,2,Guatemala City,14.61858,-90.48391,,GT,North America,urban,-6.0,pm25,U.S. Department of State Guatemala - Guatemala City
+EMB:Hanoi,Embassy,2,Hanoi,21.021939,105.818806,,VM,East Asia,urban,7.0,pm25,U.S. Department of State Vietnam - Hanoi
+EMB:HoChiMinhCity,Embassy,2,Ho Chi Minh City,10.782773,106.700035,,VM,Southeast Asia,urban,7.0,pm25,U.S. Department of State Vietnam - Ho Chi Minh
+EMB:Hyderabad,Embassy,2,Hyderabad,17.38405,78.45636,,IN,South Asia,urban,5.5,pm25,U.S. Department of State India - Hyderabad
+EMB:Islamabad,Embassy,2,Islamabad,33.725614,73.11602,,PK,South Asia,urban,5.0,pm25,U.S. Department of State Pakistan - Islamabad
+EMB:JakartaCentral,Embassy,2,Jakarta Central,-6.182536,106.834235,,ID,Southeast Asia,urban,7.0,pm25,U.S. Department of State Indonesia - Jakarta
+EMB:JakartaSouth,Embassy,2,Jakarta South,-6.236704,106.793244,,ID,Southeast Asia,urban,7.0,pm25,U.S. Department of State Indonesia - Jakarta
+EMB:Jeddah,Embassy,2,Jeddah,21.543486,39.172989,,SA,Middle East,urban,3.0,pm25,U.S. Department of State Saudi Arabia - Jeddah
+EMB:Kabul,Embassy,2,Kabul,34.554384,69.204597,,AF,South Asia,urban,4.5,pm25,U.S. Department of State Afghanistan - Kabul
+EMB:Kampala,Embassy,2,Kampala,0.300225,32.591554,,UG,Africa,urban,3.0,pm25,U.S. Department of State Uganda - Kampala
+EMB:Karachi,Embassy,2,Karachi,24.8415,67.0091,,PK,South Asia,urban,5.0,pm25,U.S. Department of State Pakistan - Karachi
+EMB:KhartoumEmbassy,Embassy,2,Khartoum Embassy,15.5007,32.5599,,SU,Africa,urban,2.0,pm25,U.S. Department of State Sudan - Khartoum
+EMB:KhartoumResidential,Embassy,2,Khartoum Residential,15.610262,32.576758,,SU,Africa,urban,2.0,pm25,U.S. Department of State Sudan - Khartoum
+EMB:Kigali,Embassy,2,Kigali,-1.936231,30.077952,,RW,Africa,urban,2.0,pm25,U.S. Department of State Rwanda - Kigali
+EMB:Kinshasa,Embassy,2,Kinshasa,-4.300578,15.313658,,CF,Africa,urban,1.0,pm25,U.S. Department of State Congo- Kinshasa
+EMB:Kolkata,Embassy,2,Kolkata,22.56263,88.36304,,IN,South Asia,urban,5.5,pm25,U.S. Department of State India - Kolkata
+EMB:KualaLumpur,Embassy,2,Kuala Lumpur,3.15675,101.72145,,MY,Southeast Asia,urban,8.0,pm25,U.S. Department of State Malaysia - Kuala Lumpur
+EMB:KuwaitCity,Embassy,2,Kuwait City,29.292317,48.047679,,KU,Middle East,urban,3.0,pm25,U.S. Department of State Kuwait - Kuwait City
+EMB:Lagos,Embassy,2,Lagos,6.440483,3.406815,,NI,Africa,urban,1.0,pm25,U.S. Department of State Nigeria - Lagos
+EMB:Lahore,Embassy,2,Lahore,31.560078,74.33589,,PK,South Asia,urban,5.0,pm25,U.S. Department of State Pakistan - Lahore
+EMB:Libreville,Embassy,2,Libreville,0.3902,9.44436,,GB,Africa,urban,1.0,pm25,U.S. Department of State Gabon - Libreville
+EMB:Lima,Embassy,2,Lima,-12.099398,-76.968882,,PE,Latin America,urban,-5.0,pm25,U.S. Department of State Peru - Lima
+EMB:Lome,Embassy,2,Lome,6.185167,1.214166,,TO,Africa,urban,0.0,pm25,U.S. Department of State Togo - Lome
+EMB:Manama,Embassy,2,Manama,26.204697,50.570833,,BA,Middle East,urban,3.0,pm25,U.S. Department of State Bahrain - Manama
+EMB:Manila,Embassy,2,Manila,14.57711,120.9778,,RP,Southeast Asia,urban,8.0,pm25,U.S. Department of State Philippines - Manila
+EMB:Maputo,Embassy,2,Maputo,-25.90382,32.62835,,MZ,Africa,urban,2.0,pm25,U.S. Department of State Mozambique - Maputo
+EMB:Mumbai,Embassy,2,Mumbai,19.07283,72.88261,,IN,South Asia,urban,5.5,pm25,U.S. Department of State India - Mumbai
+EMB:NDjamena,Embassy,2,N'Djamena,12.1348,15.0557,,CD,Africa,urban,1.0,pm25,U.S. Department of State Chad - N'Djamena
+EMB:Nairobi,Embassy,2,Nairobi,-1.232511,36.81732,,KE,Africa,urban,3.0,pm25,U.S. Department of State Kenya - Nairobi
+EMB:NairobiCMR,Embassy,2,Nairobi CMR,-1.232511,36.81732,,KE,Africa,urban,3.0,pm25,U.S. Department of State Kenya - Nairobi
+EMB:NairobiRR,Embassy,2,Nairobi RR,-1.22291,36.80549,,KE,Africa,urban,3.0,pm25,U.S. Department of State Kenya - Nairobi
+EMB:NewDelhi,Embassy,2,New Delhi,28.63576,77.22445,,IN,South Asia,urban,5.5,pm25,U.S. Department of State India - New Delhi
+EMB:Ouagadougou,Embassy,2,Ouagadougou,12.304907,-1.497184,,UV,Africa,urban,0.0,pm25,U.S. Department of State Burkina Faso - Ouagadougou
+EMB:Peshawar,Embassy,2,Peshawar,34.005852,71.53775,,PK,South Asia,urban,5.0,pm25,U.S. Department of State Pakistan - Peshawar
+EMB:PhoraDurbarKathmandu,Embassy,2,Phora Durbar Kathmandu,27.712464,85.315703,,NP,South Asia,urban,5.75,pm25,U.S. Department of State Nepal - Kathmandu
+EMB:Pristina,Embassy,2,Pristina,42.655959,21.139953,,KV,Europe,urban,1.0,pm25,U.S. Department of State Kosovo - Pristina
+EMB:Rangoon,Embassy,2,Rangoon,16.8256,96.1445,,BM,South Asia,urban,6.5,pm25,U.S. Department of State Burma - Rangoon
+EMB:Riyadh,Embassy,2,Riyadh,24.68122,46.62074,,SA,Middle East,urban,3.0,pm25,U.S. Department of State Saudi Arabia - Riyadh
+EMB:SanJose,Embassy,2,San Jose,9.949488,-84.142878,,CS,Latin America,urban,-6.0,pm25,U.S. Department of State Costa Rica - San Jose
+EMB:SaoPaulo,Embassy,2,Sao Paulo,-23.629158,-46.696558,,BR,Latin America,urban,-3.0,pm25,U.S. Department of State Brazil - Sao Paulo
+EMB:Sarajevo,Embassy,2,Sarajevo,43.856665,18.398205,,BK,Europe,urban,1.0,pm25,U.S. Department of State Bosnia Herzegovina - Sarajevo
+EMB:Shanghai,Embassy,2,Shanghai,31.210683,121.448226,,CH,East Asia,urban,8.0,pm25,U.S. Department of State China - Shanghai
+EMB:Shenyang,Embassy,2,Shenyang,41.78351,123.424434,,CH,East Asia,urban,8.0,pm25,U.S. Department of State China - Shenyang
+EMB:Tashkent,Embassy,2,Tashkent,41.3672,69.2725,,UZ,Central Asia,urban,5.0,pm25,U.S. Department of State Uzbekistan - Tashkent
+EMB:Tijuana,Embassy,2,Tijuana,32.523366,-116.952495,,MX,North America,urban,-8.0,pm25,U.S. Department of State Mexico - Tijuana
+EMB:Ulaanbaatar,Embassy,2,Ulaanbaatar,47.928385,106.92947,,MG,East Asia,urban,8.0,pm25,U.S. Department of State Mongolia - Ulaanbaatar
+EMB:Vientiane,Embassy,2,Vientiane,17.896122,102.64,,LA,Southeast Asia,urban,7.0,pm25,U.S. Department of State Laos - Vientiane
+EMB:Yerevan,Embassy,2,Yerevan,40.16515,44.48171,,AM,Middle East,urban,4.0,pm25,U.S. Department of State Armenia - Yerevan
