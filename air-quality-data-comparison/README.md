@@ -6,7 +6,7 @@ daily and monthly scales. Does it matter whether a product uses the monitors its
 far do products disagree with each other away from any monitor?
 
 **What was done.**
-- **Products.** Point time series were extracted from 15 product streams at 1,671 sites:
+- **Products.** Point time series were extracted from 13 product streams (11 products) at 1,671 sites:
   - Atmospheric models: GEOS-CF v1 and v2, MERRA-2 aerosols, MERRA-2 GMI, GEOS-FP aerosols, NOAA NAQFC/AQM (raw and bias-corrected), HAQES and HRRR-Smoke.
   - Machine-learning or satellite-calibrated products: the bias-corrected MERRA-2 PM2.5 `MERRA2_CNN_HAQAST_PM25`, ACAG V6 and GHAP.
 - **Comparison.** Each product was compared with:
