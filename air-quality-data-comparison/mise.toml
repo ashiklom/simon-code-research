@@ -6,3 +6,58 @@ node = "22"
 [env]
 ICECHUNK_LOG = "error"
 UV_PYTHON_DOWNLOADS = "automatic"
+
+[tasks.sites]
+description = "Build site tables (results/sites/*.csv): AQS, IMPROVE/CSN, embassies, SPARTAN, Sensor.Community, remote points"
+run = "uv run aqc sites --networks aqs,speciation,embassy,spartan,lowcost,remote"
+
+[tasks.obs]
+description = "Ingest observations into the store (AQS, IMPROVE/CSN, embassies, SPARTAN, Sensor.Community)"
+run = "uv run aqc obs --networks aqs,speciation,embassy,spartan,lowcost"
+
+[tasks.extract]
+description = "Extract products at sites: mise run extract -- <product...> --sites pilot|tier1|...|all"
+run = "uv run aqc extract"
+
+[tasks.update]
+description = "Bring every product up to its latest available time (re-reads only the missing span)"
+run = "uv run aqc update --sites all"
+
+[tasks.test]
+run = "uv run pytest -q"
+
+[tasks.metrics]
+description = "Skill metrics for all sites (data/results/metrics_all.parquet) and the committed summary"
+run = ["uv run aqc metrics --sites all --workers 2", "uv run python scripts/summarize.py"]
+
+[tasks.figures]
+run = "uv run aqc figures"
+
+[tasks.sitedata]
+description = "Export per-site website data to site/public/data"
+run = "uv run aqc sitedata --sites all"
+
+[tasks.pack-site]
+description = "Pack site/public/data into site/site-data.tar (release asset)"
+run = "tar -cf site/site-data.tar -C site/public data"
+
+[tasks.site]
+description = "Build the static site into _site (from site/site-data.tar if present, else site/public/data)"
+dir = "site"
+run = [
+  "if [ -f site-data.tar ]; then rm -rf public/data && mkdir -p public && tar -xf site-data.tar -C public; fi",
+  "npm ci --no-audit --no-fund",
+  "npx vite build",
+]
+
+[tasks.all]
+description = "Everything after the one-off site tables: obs, extraction/update, metrics, figures, site data, site"
+run = [
+  "mise run obs",
+  "mise run update",
+  "mise run metrics",
+  "mise run figures",
+  "mise run sitedata",
+  "mise run pack-site",
+  "mise run site",
+]
