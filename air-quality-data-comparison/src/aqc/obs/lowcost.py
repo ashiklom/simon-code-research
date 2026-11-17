@@ -156,8 +156,14 @@ def hourly(site_table: pd.DataFrame, workers: int = 24, log=print) -> dict[str, 
             listings[d] = _day_listing(d)
         return listings[d]
 
+    # keep only our sensors' file names (a full day listing has ~50k entries)
+    wanted = {f"_sensor_{int(x)}.csv" for x in pd.concat([site_table.pm_sensor, site_table.rh_sensor])}
+
+    def small(d):
+        return {f for f in _day_listing(d) if f[f.find("_sensor_"):].replace(".gz", "") in wanted}
+
     with ThreadPoolExecutor(8) as ex:
-        for d, L in zip(days, ex.map(_day_listing, days)):
+        for d, L in zip(days, ex.map(small, days)):
             listings[d] = L
     log(f"[SC] {len(days)} day listings")
     jobs = [(s, d) for s in site_table.itertuples() for d in days]
