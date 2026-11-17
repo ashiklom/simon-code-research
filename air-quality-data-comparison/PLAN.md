@@ -164,6 +164,40 @@ A static Vite app, adapted from the climate site:
 7. **Ask before publishing.** First the release `air-quality-data-comparison` with the files and sizes listed. If it's refused, the assets repo with one final commit, pinned.
 8. Finalize: README (question, key results, `mise run all`, site link, requirements), the root README line, and TRANSCRIPT.md (skimmed for anything sensitive). **Ask before fast-forwarding and pushing `main`.**
 
+## Publishing (decided at the end: assets repo, then main)
+
+Steps 1–6 and 8 are done and pushed to `ccr-10acad54-bjhr7u`. The final metrics have 267,652 rows; `site/public/data` holds 433 MB in 6,688 files (`site/site-data.tar` 439.5 MB). The site build and the headless check pass. This session cannot create releases, so you chose the **assets repo**, followed by **pushing main**.
+
+1. **Attach and clone the assets repo.**
+   - Attach `ashiklom/simon-code-research-assets` with push access (`add_repo`, access `push`).
+   - Clone it with `--filter=blob:none --sparse` into `/home/user/simon-code-research-assets`, checking out only `air-quality-data-comparison/`, so the climate experiment's 576 MB is not downloaded.
+2. **Add the files to the assets repo.**
+   - `air-quality-data-comparison/README.md` says what the files are: the per-site Parquet/JSON for the air-quality site, read by `site/src/main.js` via `VITE_DATA_BASE`, produced by `mise run sitedata`.
+   - `air-quality-data-comparison/data/` is a copy of `site/public/data`.
+3. **Push in batches.**
+   - Write `scripts/publish_site_data.sh` in the experiment, vendored from `climate-product-compare/scripts/publish_site_data.sh` with the folder name changed.
+   - It commits the metadata JSON first, then site directories in batches of about 150 (~10 MB each), pushes after each batch, and finally pins the commit SHA.
+   - This departs from CLAUDE.md's "one commit at the very end": one commit would be a single ~433 MB push through the proxy, which risks being cut off. The batches are all pushed in one go now, at the end, and nothing is stacked later. To update in future, rewrite and force-push this experiment's commits.
+4. **Pin the site to that commit.**
+   - New `site/.env.production`, with `VITE_DATA_BASE=https://raw.githubusercontent.com/ashiklom/simon-code-research-assets/<sha>/air-quality-data-comparison/data`.
+   - `publish.toml`: drop the `[[assets]]` release entry and add a comment like climate's.
+   - `mise.toml`: the `site` task stops unpacking the tar (keep `pack-site` as optional); the `all` task stays.
+   - README "Publishing the site data": describe the assets repo, the pin and how to update, as in climate-product-compare. "Requirements" has no release step.
+5. **Verify.**
+   - `uv run _helpers/build_site.py --only air-quality-data-comparison --skip-assets` passes. The `_site` output should be small, with no `data/` copied, since `site/public/data` is moved aside for the build check.
+   - Serve `_site` locally and run the Playwright check (pick Fresno, load the 2023 hourly data, switch to New Delhi monthly, open Summary). Data now loads from raw.githubusercontent at the pinned SHA, with no console errors.
+   - Spot-check one URL with `curl -I` for 200 and CORS.
+6. **Merge to main.**
+   - Commit the experiment changes on the session branch and push.
+   - `git fetch origin main`, rebase onto `origin/main`, fast-forward `main` and push `main`.
+   - The session branch stays (the environment requires it), so it is not deleted.
+   - Update TRANSCRIPT.md last, then push both branches.
+
+Not done, and raised in the final message:
+- **CAMS:** accept the ADS licences.
+- **OpenAQ / AirGradient:** set `OPENAQ_API_KEY`.
+- **AirQo:** provide a token.
+
 ## Verification
 - **Unit tests** (pytest):
   - stencil and bilinear indexing on each grid, including NAQFC's Lambert conformal and HRRR's grid;
