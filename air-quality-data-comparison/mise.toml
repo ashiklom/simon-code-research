@@ -43,14 +43,17 @@ description = "Export per-site website data to site/public/data"
 run = "uv run aqc sitedata --sites all"
 
 [tasks.pack-site]
-description = "Pack site/public/data into site/site-data.tar (release asset)"
+description = "Pack site/public/data into site/site-data.tar (optional; the site reads data from the assets repo)"
 run = "tar -cf site/site-data.tar -C site/public data"
 
+[tasks.publish-site-data]
+description = "Copy site/public/data to an assets-repo clone, push it and re-pin site/.env.production"
+run = "scripts/publish_site_data.sh"
+
 [tasks.site]
-description = "Build the static site into _site (from site/site-data.tar if present, else site/public/data)"
+description = "Build the static site into _site (data is read from the assets repo pinned in site/.env.production)"
 dir = "site"
 run = [
-  "if [ -f site-data.tar ]; then rm -rf public/data && mkdir -p public && tar -xf site-data.tar -C public; fi",
   "npm ci --no-audit --no-fund",
   "npx vite build",
 ]
@@ -63,6 +66,5 @@ run = [
   "mise run metrics",
   "mise run figures",
   "mise run sitedata",
-  "mise run pack-site",
   "mise run site",
 ]

@@ -1,11 +1,9 @@
-# Builds the static site from committed code plus the site-data release asset (no analysis is re-run).
+# Builds the static site (no analysis is re-run). Site data is fetched by the browser from the assets repo.
 build = "mise install && mise run site"
 output = "_site"
 
 models = ["claude-opus-5-5"]
 tools = ["python", "uv", "icechunk", "zarr", "xarray", "pcodec", "h5py", "rasterio", "gribberish", "pandas", "vite", "leaflet", "uplot", "hyparquet"]
 
-# Per-site Parquet/JSON for the website, packed by `mise run pack-site`.
-[[assets]]
-name = "site-data.tar"
-dest = "site/site-data.tar"
+# Site data is NOT a release asset: the site reads it from ashiklom/simon-code-research-assets at the
+# commit pinned in site/.env.production (see README, "Publishing the site data").

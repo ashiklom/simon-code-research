@@ -332,10 +332,25 @@ Point everything at another backend with `--store` or `AQC_STORE`, for example
 
 ## Publishing the site data
 
-The site's per-site Parquet and metrics JSON files (`mise run sitedata` → `site/public/data`)
-are not committed. `mise run pack-site` packs them into `site/site-data.tar`, which is uploaded
-as the asset of the GitHub release `air-quality-data-comparison` (listed in `publish.toml`).
-`mise run site` unpacks it before building, so CI only renders.
+The site's per-site Parquet and metrics JSON files (`mise run sitedata` → `site/public/data`,
+433 MB in 6,688 files) are not committed here. GitHub releases could not be created from the
+session that built this experiment, so the data lives in
+[ashiklom/simon-code-research-assets](https://github.com/ashiklom/simon-code-research-assets/tree/main/air-quality-data-comparison)
+under `air-quality-data-comparison/data/`.
+
+- **How the site reads it.** The browser fetches the files from `raw.githubusercontent.com` at
+  the commit pinned in `site/.env.production` (`VITE_DATA_BASE`). raw.githubusercontent.com serves
+  CORS headers and byte ranges, which the in-browser Parquet reader uses. CI only builds the
+  JavaScript bundle.
+- **Local builds.** Without that variable (`npm run dev`), the site reads the local `./data`.
+- **Updating.** Run `mise run publish-site-data -- <assets-clone>`, i.e.
+  `scripts/publish_site_data.sh`. It copies the data, commits and pushes it in batches of 150
+  sites, and re-pins `.env.production`; then commit that file here.
+  - A sparse clone is enough: `git clone --filter=blob:none --sparse …` followed by
+    `git sparse-checkout set air-quality-data-comparison`.
+  - Per the repository's rules, an update should rewrite and force-push this experiment's
+    commits in the assets repo rather than stack new ones.
+- **Tarball.** `mise run pack-site` still makes a `site-data.tar`, if a release asset is preferred later.
 
 Data files:
 
