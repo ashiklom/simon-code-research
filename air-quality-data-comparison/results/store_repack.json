@@ -6,5 +6,61 @@
   "objects_after": 11,
   "bytes": 213710,
   "seconds": 14
+ },
+ "obs-Embassy": {
+  "status": "done",
+  "snapshot": "XYG4SZY1WMD669E12SQ0",
+  "objects_before": 510,
+  "objects_after": 26,
+  "bytes": 2746373,
+  "seconds": 20
+ },
+ "obs-OpenAQ-LC": {
+  "status": "done",
+  "snapshot": "VVJR6ZRS65KPE3NE0CB0",
+  "objects_before": 383,
+  "objects_after": 26,
+  "bytes": 2369098,
+  "seconds": 19
+ },
+ "obs-SensorCommunity": {
+  "status": "done",
+  "snapshot": "NSRATNJJBGKTTZ69KHNG",
+  "objects_before": 465,
+  "objects_after": 23,
+  "bytes": 4289280,
+  "seconds": 24
+ },
+ "obs-SPEC": {
+  "status": "done",
+  "snapshot": "8WCJ18R0D0PMKGBWQGS0",
+  "objects_before": 1785,
+  "objects_after": 49,
+  "bytes": 2925202,
+  "seconds": 45
+ },
+ "obs-AirNow": {
+  "status": "done",
+  "snapshot": "NKD447K9PRRCMT2FNZNG",
+  "objects_before": 3973,
+  "objects_after": 153,
+  "bytes": 18800677,
+  "seconds": 84
+ },
+ "obs-OpenAQ": {
+  "status": "done",
+  "snapshot": "XZQFDCH46EK24XYZMRTG",
+  "objects_before": 10540,
+  "objects_after": 255,
+  "bytes": 69114456,
+  "seconds": 180
+ },
+ "obs-AQS": {
+  "status": "done",
+  "snapshot": "QM79N86AHYJVQYS7CZ0G",
+  "objects_before": 17441,
+  "objects_after": 481,
+  "bytes": 85251007,
+  "seconds": 258
  }
 }
