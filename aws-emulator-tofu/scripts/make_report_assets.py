@@ -172,6 +172,8 @@ def differences(findings):
             out.append(f"- **AWS:** {f['aws']}")
             out.append(f"- **aws-emulator:** {f['emulator']}")
             out.append(f"- **Workaround:** {f['workaround']}")
+            if f.get("aws_verified"):
+                out.append(f"- **Checked on real AWS:** {f['aws_verified']}")
             out.append(f"- **Evidence:** {ev}" + (f"; upstream issue(s): {issues}" if issues else ""))
             out.append("")
     write("differences.md", "\n".join(out))

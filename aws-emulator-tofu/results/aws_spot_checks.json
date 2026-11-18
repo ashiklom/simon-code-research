@@ -1,0 +1,48 @@
+{
+ "date": "2026-11-18",
+ "account": "YCGS (Cognito service-credentials stack)",
+ "checks": [
+  {
+   "finding": "cognito-identity-pool-roles",
+   "check": "role outside the user's groups is refused",
+   "matches_documented_aws": true,
+   "detail": "ycgs-aws-creds: GetCredentialsForIdentity: NotAuthorizedException: CustomRoleARN: arn:aws:iam::587663518001:role/all-buckets-writer is not present in the token in the cognito:roles claim"
+  },
+  {
+   "finding": "cognito-identity-pool-roles",
+   "check": "session ARN and lifetime",
+   "matches_documented_aws": true,
+   "detail": "assumed-role/all-buckets-reader/CognitoIdentityCredentials; credentials expire in <= 28 min (cached)"
+  },
+  {
+   "finding": "cognito-identity-pool-roles",
+   "check": "implicit deny enforced on S3 for the vended role",
+   "matches_documented_aws": true,
+   "detail": "nitoIdentityCredentials is not authorized to perform: s3:PutObject on resource: \"arn:aws:s3:::ycgs-aws-misc/simon-code-research/_aws_spot_checks/reader.txt\" because no identity-based policy allows the s3:PutObject action"
+  },
+  {
+   "finding": "iam-enforced-in-lambda",
+   "check": "explicit Deny (bucket policy) beats the role's Allow",
+   "matches_documented_aws": true,
+   "detail": "ject operation: User: arn:aws:sts::587663518001:assumed-role/all-buckets-writer/CognitoIdentityCredentials is not authorized to perform: s3:GetObject on resource: \"arn:aws:s3:::ycgs-use1-public/_healthcheck.txt\" with an explicit deny in a resource-based policy"
+  },
+  {
+   "finding": "s3-virtual-host-tls",
+   "check": "virtual-hosted HTTPS, presigned URL, ranged GET, anonymous 403",
+   "matches_documented_aws": true,
+   "detail": "presigned host ycgs-aws-misc.s3.us-east-1.amazonaws.com; ranged GET 206 b'0123456789'; anonymous GET on private bucket 403"
+  },
+  {
+   "finding": "s3-multipart-etag",
+   "check": "multipart ETag is not the MD5",
+   "matches_documented_aws": true,
+   "detail": "ETag 74e41402ed9bee5debdacab3d3c314e6-3 vs MD5 b04bd04d6d503b41a4975f82b852490c (20 MiB via aws s3 cp, 8 MiB parts)"
+  },
+  {
+   "finding": "cognito-identity-pool-roles",
+   "check": "fallback-role check possible? (GetIdentityPoolRoles)",
+   "matches_documented_aws": null,
+   "detail": "denied: aws"
+  }
+ ]
+}

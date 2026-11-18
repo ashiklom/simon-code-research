@@ -15,6 +15,7 @@
 #   evidence            probe:<name> | e2e:<route/check> | deploy:<field> | unit:<test> | source:<path>
 #   crates, issues      aws-emulator repo paths / issue file names whose change should trigger a re-test
 #   last_verified_version
+#   aws_verified        optional: what was checked on real AWS, when (scripts/aws_spot_checks.py)
 
 # ------------------------------------------------------------------------------------- Lambda
 [[finding]]
@@ -446,8 +447,25 @@ evidence = ["probe:cognito-identity-pool-roles"]
 crates = ["services/service-com-amazonaws-cognitoidentity-awscognitoidentityservice/src", "services/common/src/iam_authorization.rs"]
 issues = []
 last_verified_version = "1.0.367"
+aws_verified = "2026-11-18, scripts/aws_spot_checks.py against a live user pool -> identity pool -> role stack: off-group CustomRoleArn refused (NotAuthorizedException: '... is not present in the token in the cognito:roles claim', not the emulator's InvalidIdentityPoolConfigurationException); sessions are assumed-role/<role>/CognitoIdentityCredentials; implicit deny ('no identity-based policy allows the s3:PutObject action') and a bucket-policy explicit Deny ('explicit deny in a resource-based policy') both enforced on S3. The fallback-role case could not be checked (GetIdentityPoolRoles needs IAM permissions these roles lack)."
 
 # -------------------------------------------------------------------------------- RDS / Aurora
+
+[[finding]]
+id = "cognito-offgroup-role-exception"
+title = "Off-group CustomRoleArn: different exception than AWS"
+category = "Cognito"
+severity = "minor"
+emulator_only = true
+status = "partial"
+aws = "GetCredentialsForIdentity with a CustomRoleArn that is not in the ID token's cognito:roles claim fails with NotAuthorizedException ('CustomRoleARN: <arn> is not present in the token in the cognito:roles claim'), observed 2026-11-18."
+emulator = "Refuses the role too, but with InvalidIdentityPoolConfigurationException."
+workaround = "Treat both exceptions as 'role not allowed' in clients (ycgs-aws-creds reports either)."
+evidence = ["probe:cognito-identity-pool-roles"]
+crates = ["services/service-com-amazonaws-cognitoidentity-awscognitoidentityservice/src"]
+issues = []
+last_verified_version = "1.0.367"
+aws_verified = "2026-11-18, scripts/aws_spot_checks.py (check_off_group_role)"
 [[finding]]
 id = "rds-describeglobalclusters-filter"
 title = "aws_rds_cluster cannot be created: DescribeGlobalClusters rejects the provider's filter"
@@ -616,6 +634,7 @@ evidence = ["probe:s3-addressing-limits"]
 crates = ["vendor/server/src/tls_certificate_authority.rs"]
 issues = ["20261029T083133Z-s3-virtual-hosted-style-bucket-addressing-is-unreachable.md"]
 last_verified_version = "1.0.336"
+aws_verified = "2026-11-18, scripts/aws_spot_checks.py against a live user pool -> identity pool -> role stack: virtual-hosted-style HTTPS, presigned GET on a private bucket, ranged GET (206) and anonymous 403 all as documented."
 
 [[finding]]
 id = "s3-multipart-etag"
@@ -631,6 +650,7 @@ evidence = ["deploy:plan_after_apply"]
 crates = []
 issues = []
 last_verified_version = "1.0.336"
+aws_verified = "2026-11-18, scripts/aws_spot_checks.py against a live user pool -> identity pool -> role stack: a 20 MiB `aws s3 cp` upload got ETag '<hex>-3', not the MD5."
 
 [[finding]]
 id = "s3-getobjectattributes-no-getobject-check"

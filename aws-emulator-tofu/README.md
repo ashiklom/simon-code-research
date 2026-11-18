@@ -58,8 +58,18 @@ other services.
     `repository_url` from ECR (1.0.336) is rejected by Lambda's CreateFunction;
   - EventBridge schedules, Step Functions, SQS/SNS, DynamoDB streams, S3 notifications,
     KMS/Secrets Manager and ALB → Lambda work.
-- **Findings.** 54 of them, each marked *emulator-only* or *also true on AWS*, are in
+- **Findings.** 59 of them, each marked *emulator-only* or *also true on AWS*, are in
   [`findings.toml`](findings.toml) and on the site's differences page.
+- **Real-AWS spot checks (2026-11-18).** `scripts/aws_spot_checks.py` ran the S3- and
+  Cognito-identity findings against a live stack of the same shape: the YCGS service-credentials
+  user pool -> identity pool -> bucket-scoped roles (`results/aws_spot_checks.json`).
+  - Confirmed: sessions are `assumed-role/<role>/CognitoIdentityCredentials`; implicit and
+    bucket-policy explicit denies are enforced on S3; virtual-hosted HTTPS, presigned URLs,
+    ranged GETs and anonymous 403s; multipart ETags are `<hex>-N`.
+  - New difference: AWS refuses an off-group `CustomRoleArn` with `NotAuthorizedException`, the
+    emulator with `InvalidIdentityPoolConfigurationException` (`cognito-offgroup-role-exception`).
+  - Not checkable with these roles: anything that needs deploy permissions (API Gateway,
+    Lambda, CloudFront), and the fallback-role case (`GetIdentityPoolRoles` is denied).
 
 Agent-facing docs:
 
@@ -94,7 +104,7 @@ github.com and the two public data buckets (Element 84 Sentinel-2 COGs, Copernic
 | `lambdas/` | authorizer (pure-Python ES256/RS256 JWT), token service, titiler-lite, tipg-lite, future-API stand-in, shared `apigw.py` |
 | `tests/` | conformance tests vs real titiler/tipg (local PostGIS), authorizer/token tests, `e2e.py` matrix |
 | `probes/` | capability probes: one tofu root + `check.py` each; `run.py` runs them |
-| `scripts/` | emulator install/start, data fetch, vector loader, Aurora escape hatch, deploy measurement, update check, report tables |
+| `scripts/` | emulator install/start, data fetch, vector loader, Aurora escape hatch, deploy measurement, update check, report tables, real-AWS spot checks |
 | `results/`, `figures/` | committed outputs that the site renders |
 | `report/` | Quarto site |
 
