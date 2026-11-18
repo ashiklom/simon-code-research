@@ -50,8 +50,8 @@ def cmd_obs(a):
             from .obs import openaq
             for oaq_net in ("OpenAQ", "OpenAQ-LC"):
                 st = sites.load(oaq_net)
-                if len(st):
-                    ingest.write(oaq_net, "1h", openaq.hourly(st, log=_log),
+                for i in range(0, len(st), 40):  # batches of sites keep memory bounded (~1 GB)
+                    ingest.write(oaq_net, "1h", openaq.hourly(st.iloc[i:i + 40], log=_log),
                                  attrs={"source": "OpenAQ archive (openaq-data-archive), provider values as published"},
                                  store_url=a.store, log=_log)
         elif net == "speciation":
