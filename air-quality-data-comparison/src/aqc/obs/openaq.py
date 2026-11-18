@@ -215,7 +215,7 @@ def _parse(b: bytes, eea: bool) -> pd.DataFrame:
     d = pd.read_csv(io.BytesIO(gzip.decompress(b)), usecols=["datetime", "parameter", "units", "value"])
     d = d[d.parameter.isin(PARAMS)]
     if d.empty:
-        return d
+        return pd.DataFrame(columns=["time", "var", "value"])
     t = pd.to_datetime(d.datetime, utc=True, format="ISO8601").dt.tz_localize(None) + pd.Timedelta(hours=1)
     v = d.value.astype(float).to_numpy()
     u = d.units.str.lower().str.replace("µ", "u").str.replace("μ", "u")
@@ -241,7 +241,9 @@ def _site_hourly(row, start: pd.Timestamp, end: pd.Timestamp) -> pd.DataFrame:
                 pass
     if not parts:
         return pd.DataFrame(columns=["site_id", "time", "var", "value"])
-    d = pd.concat(parts)
+    d = pd.concat([p for p in parts if len(p)]) if any(len(p) for p in parts) else None
+    if d is None:
+        return pd.DataFrame(columns=["site_id", "time", "var", "value"])
     lim = {"pm25": 1500, "pm10": 3000, "o3": 500, "no2": 1000}
     d = d[(d.value >= 0) & (d.value < d["var"].map(lim))]
     d = d.groupby(["time", "var"])["value"].mean().reset_index()
@@ -262,10 +264,16 @@ def hourly(site_table: pd.DataFrame, start=None, end=None, workers: int = 48, lo
                 days = pd.date_range(max(start, pd.Timestamp(getattr(r, "first", start)) - pd.Timedelta(days=1)).normalize(),
                                      min(end, pd.Timestamp(getattr(r, "last", end)) + pd.Timedelta(days=1)).normalize())
                 list(ex.map(lambda dd: _day(int(r.site_id.split(":", 1)[1]), dd), days))
-            return _site_hourly(r, start, end)
+            try:
+                return _site_hourly(r, start, end)
+            except Exception as e:  # one bad location should not stop the network
+                log(f"[OpenAQ] {r.site_id}: failed ({e!r}); skipped")
+                return None
 
         for k, d in enumerate(ex_sites.map(one, rows)):
             out.append(d)
+            if d is None:
+                continue
             if (k + 1) % 20 == 0 or k + 1 == len(rows):
                 log(f"[OpenAQ] {k + 1}/{len(rows)} sites")
     d = pd.concat(out, ignore_index=True)
