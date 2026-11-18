@@ -14,5 +14,61 @@
   "objects_after": 34,
   "bytes": 3624948,
   "seconds": 23
+ },
+ "obs-AMERIFLUX": {
+  "status": "done",
+  "snapshot": "WJVA563TS2M74ZCMPZBG",
+  "objects_before": 230,
+  "objects_after": 47,
+  "bytes": 15717848,
+  "seconds": 27
+ },
+ "obs-NEON": {
+  "status": "done",
+  "snapshot": "0N0NH9R78AZFNYVHAG7G",
+  "objects_before": 462,
+  "objects_after": 55,
+  "bytes": 20978255,
+  "seconds": 31
+ },
+ "obs-SCAN": {
+  "status": "done",
+  "snapshot": "8E5KGPJGBRB7WT644630",
+  "objects_before": 304,
+  "objects_after": 82,
+  "bytes": 13502627,
+  "seconds": 47
+ },
+ "obs-SURFRAD": {
+  "status": "done",
+  "snapshot": "X8164269PE5Z9PFCHFE0",
+  "objects_before": 112,
+  "objects_after": 35,
+  "bytes": 9466086,
+  "seconds": 23
+ },
+ "obs-USCRN": {
+  "status": "done",
+  "snapshot": "8J2JH92TNRYBXK0FSC50",
+  "objects_before": 5158,
+  "objects_after": 1119,
+  "bytes": 235417744,
+  "seconds": 199
+ },
+ "products-chirps3": {
+  "status": "done",
+  "snapshot": "REJ9H39KTEAYEZ54Z8M0",
+  "objects_before": 385,
+  "objects_after": 31,
+  "bytes": 7066073,
+  "seconds": 22
+ },
+ "products-imerg_late": {
+  "status": "done",
+  "snapshot": "X6658S6SJREYGQXT3XQ0",
+  "objects_before": 688,
+  "objects_after": 392,
+  "bytes": 56821875,
+  "seconds": 55
  }
 }
