@@ -30,6 +30,8 @@ def cmd_obs(a):
 
     sites = sitesmod.load(a.sites)
     for net in (a.network or sorted(sites.network.unique())):
+        if net == "REMOTE":  # station-remote points have no observations
+            continue
         ingest.run(net, sites, root=a.store, force=a.force)
 
 
