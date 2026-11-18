@@ -159,8 +159,17 @@ class ChunkedStoreProduct(Product):
         needed = sorted({s for v in self.variables.values() for s in v.src})
 
         def one(k):
+            import time
+
             iy, ix = st.iy[k], st.ix[k]
-            raw = {s: self.read_box(arrays[s], it0, it1, iy, ix) for s in needed if s in arrays}
+            for attempt in range(6):  # transient 5xx from remote ARCO stores (e.g. ECMWF 503)
+                try:
+                    raw = {s: self.read_box(arrays[s], it0, it1, iy, ix) for s in needed if s in arrays}
+                    break
+                except Exception:
+                    if attempt == 5:
+                        raise
+                    time.sleep(15 * 2 ** attempt)
             return k, self.convert_all(raw)
 
         for k, data in bounded_map(one, range(len(sites)), self.site_workers):
