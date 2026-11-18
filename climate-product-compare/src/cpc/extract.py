@@ -15,7 +15,48 @@ import pandas as pd
 
 from . import config, store
 from .products import registry
-from .products.base import px_distance_km
+from .products.base import Block, px_distance_km
+
+# Steps per write. On an object store every write rewrites the touched (whole-record) time
+# chunks, so many small time blocks (a month of a daily product) cost one full chunk rewrite
+# each; merging consecutive blocks for the same sites into ~a year per write avoids that.
+BATCH_STEPS = {"30min": 48 * 31, "1h": 24 * 92, "3h": 8 * 183, "1d": 366}
+
+
+def _batched(blocks, freq: str):
+    """Merge consecutive, contiguous blocks with the same site list into larger blocks."""
+    limit = BATCH_STEPS.get(freq, 1)
+    pending: list = []
+
+    def merge():
+        if len(pending) == 1:
+            return pending[0]
+        keys = sorted(set().union(*[b.data.keys() for b in pending]))
+        data = {}
+        for k in keys:
+            parts = []
+            for b in pending:
+                if k in b.data:
+                    parts.append(b.data[k])
+                else:
+                    ref = next(iter(b.data.values()))
+                    parts.append(np.full(ref.shape[:-1] + (len(b.times),), np.nan, dtype="f4"))
+            data[k] = np.concatenate(parts, axis=-1)
+        times = pending[0].times.append([b.times for b in pending[1:]])
+        out = Block(pending[0].site_ids, times, data)
+        out.final = getattr(pending[-1], "final", True)
+        return out
+
+    n = 0
+    for blk in blocks:
+        if pending and (blk.site_ids != pending[0].site_ids or n + len(blk.times) > limit
+                        or not getattr(pending[-1], "final", True) is getattr(blk, "final", True)):
+            yield merge()
+            pending, n = [], 0
+        pending.append(blk)
+        n += len(blk.times)
+    if pending:
+        yield merge()
 
 
 def _fmt_bytes(n: float) -> str:
@@ -93,7 +134,7 @@ def run(name: str, sites: pd.DataFrame, *, t_end: pd.Timestamp | None = None, st
         session = repo.writable_session("main")
         w = store.GroupWriter(session, path, product.freq, has_px=True, t_origin=origin)
         finished: dict[str, str] = {}
-        for blk in product.fetch(sub, sub_st, t0, t_end):
+        for blk in _batched(product.fetch(sub, sub_st, t0, t_end), product.freq):
             w.write(blk.site_ids, blk.times, blk.data, specs)
             nbytes += sum(a.nbytes for a in blk.data.values())
             if getattr(blk, "final", True):
