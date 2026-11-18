@@ -2,7 +2,7 @@ import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import uPlot from 'uplot'
 import 'uplot/dist/uPlot.min.css'
-import { parquetReadObjects } from 'hyparquet'
+import { parquetMetadata, parquetReadObjects } from 'hyparquet'
 import { compressors } from 'hyparquet-compressors'
 import STORAGE from './storage.json'
 
@@ -50,18 +50,24 @@ let SITES = [], PRODMETA = {}, SUMMARY = [], SCALES = {}
 const state = { site: null, daily: null, varKey: 'tair', agg: 'daily', hidden: new Set(), hourly: null, hourlyYear: null }
 
 // ---- data loading ------------------------------------------------------------------------
-async function readParquet(url) {
-  // Whole-file GET instead of byte-range reads: every file is small (< 1.1 MB), and CloudFront
-  // intermittently omits the CORS header on 206 responses (e.g. hyparquet's 512 KiB footer read).
+async function readSite(url) {
+  // One Parquet file per site (daily rows scale=0, hourly rows scale=1; metrics in the file's
+  // key-value metadata), fetched whole: CloudFront intermittently omits the CORS header on 206.
   const res = await fetch(url)
   if (!res.ok) throw new Error(`${res.status} ${url}`)
   const file = await res.arrayBuffer()
-  return parquetReadObjects({ file, compressors })
+  const meta = Object.fromEntries((parquetMetadata(file).key_value_metadata || []).map((kv) => [kv.key, kv.value]))
+  const rows = await parquetReadObjects({ file, compressors })
+  return { rows, metrics: meta.metrics_gz ? JSON.parse(await gunzipB64(meta.metrics_gz)) : [] }
+}
+async function gunzipB64(b64) {
+  const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0))
+  return new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'))).text()
 }
 function toColumns(rows, timeKey) {
   const cols = {}
   if (!rows.length) return { t: [], cols }
-  const keys = Object.keys(rows[0]).filter((k) => k !== timeKey)
+  const keys = Object.keys(rows[0]).filter((k) => k !== timeKey && k !== 'scale')
   const t = new Float64Array(rows.length)
   const sc = Object.fromEntries(keys.map((k) => [k, SCALES[k.split('|')[1]] || 1]))
   for (const k of keys) cols[k] = new Array(rows.length)
@@ -69,6 +75,7 @@ function toColumns(rows, timeKey) {
     t[i] = Number(r[timeKey])
     for (const k of keys) { const v = r[k]; cols[k][i] = v == null ? null : Number(v) / sc[k] }
   })
+  for (const k of keys) if (cols[k].every((v) => v == null)) delete cols[k]  // columns of the other scale
   return { t, cols }
 }
 
@@ -115,9 +122,10 @@ async function selectSite(s) {
     ${s.independence ? `<p class="note">${s.independence}</p>` : ''}
     ${s.d_station_km != null ? `<p class="note">Station-remote point (${s.stratum}); nearest station ${s.d_station_km} km. No observations: products are compared with each other.</p>` : ''}
     <p class="muted">Loading…</p>`
-  const rows = await readParquet(`${DATA}/site/${s.id}/daily.parquet`)
-  state.daily = toColumns(rows, 'day')
-  state.metrics = await (await fetch(`${DATA}/site/${s.id}/metrics.json`)).json().catch(() => [])
+  const { rows, metrics } = await readSite(`${DATA}/site/${s.id}.parquet`)
+  state.daily = toColumns(rows.filter((r) => Number(r.scale) === 0), 't')
+  state.hourlyRows = rows.filter((r) => Number(r.scale) === 1)
+  state.metrics = metrics
   renderPanel()
 }
 
@@ -260,8 +268,8 @@ function drawDaily(v, srcs) {
 
 async function loadHourly(year) {
   const s = state.site
-  const rows = await readParquet(`${DATA}/site/${s.id}/hourly/${year}.parquet`)
-  state.hourly = toColumns(rows, 'hour')
+  const t0 = Date.UTC(year, 0, 1) / 3.6e6, t1 = Date.UTC(year + 1, 0, 1) / 3.6e6  // hours since 1970
+  state.hourly = toColumns((state.hourlyRows || []).filter((r) => Number(r.t) >= t0 && Number(r.t) < t1), 't')
   state.hourlyYear = year
   renderPanel()
 }

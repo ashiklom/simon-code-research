@@ -3,9 +3,11 @@
     data/sites.json                  site list + metadata + headline metrics (for the map)
     data/products.json               product metadata (title, source, notes, variables)
     data/summary.json                cross-site medians of metrics (heatmaps, rankings)
-    data/site/<id>/daily.parquet     daily series: obs (UTC day) + every product (bilinear)
-    data/site/<id>/metrics.json      this site's metrics (bilinear and nearest)
-    data/site/<id>/hourly/<YYYY>.parquet   hourly series for selected variables (recent years)
+    data/site/<id>.parquet           ONE file per site (few, larger S3 objects):
+        rows with scale=0: daily series, t = days since 1970-01-01 (obs UTC day + every product)
+        rows with scale=1: hourly series for selected variables (recent years), t = hours since 1970
+        key-value metadata "metrics_gz": this site's metrics (bilinear and nearest), JSON records,
+        gzipped + base64
 
 Parquet columns are "<source>|<var>" (source = network name for obs, product name otherwise),
 stored as nullable int32 = round(value * SCALE[var]) with DELTA_BINARY_PACKED + ZSTD (about 3x
@@ -39,16 +41,35 @@ def safe_id(site_id: str) -> str:
     return site_id.replace(":", "_")
 
 
-def _write_parquet(df: pd.DataFrame, path: Path):
-    path.parent.mkdir(parents=True, exist_ok=True)
+SCALE_CODE = {"daily": 0, "hourly": 1}
+
+
+def _table(df: pd.DataFrame, code: int) -> pa.Table:
+    """int32-scaled '<source>|<var>' columns plus t (int64) and scale (int8)."""
     df = df[[c for c in df.columns if c.split("|")[1] in SCALE]].dropna(axis=1, how="all")
-    idx_name = df.index.name
-    cols = {idx_name: pa.array(df.index.values.astype("int32"))}
+    cols = {"t": pa.array(np.asarray(df.index.values).astype("int64")),
+            "scale": pa.array(np.full(len(df), code, dtype="int8"))}
     for c in df.columns:
         v = df[c].to_numpy(dtype="f8") * SCALE[c.split("|")[1]]
         ok = np.isfinite(v)
         cols[c] = pa.array(np.where(ok, np.round(v), 0).astype("int32"), mask=~ok)
-    t = pa.table(cols)
+    return pa.table(cols)
+
+
+def _gz_b64(obj) -> str:
+    """Compact JSON, gzipped and base64-encoded: Parquet footer metadata is stored uncompressed
+    (metrics are ~1 MB of JSON per site); the browser inflates it with DecompressionStream."""
+    import base64
+    import gzip
+
+    raw = json.dumps(obj, separators=(",", ":"), default=str).encode()
+    return base64.b64encode(gzip.compress(raw, 9)).decode()
+
+
+def _write_site(path: Path, tables: list[pa.Table], meta: dict):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    t = pa.concat_tables(tables, promote_options="default")
+    t = t.replace_schema_metadata({k: (_gz_b64(v) if k.endswith("_gz") else str(v)) for k, v in meta.items()})
     pq.write_table(t, path, compression="zstd", compression_level=9, use_dictionary=False,
                    column_encoding={c: "DELTA_BINARY_PACKED" for c in t.column_names})
 
@@ -127,8 +148,7 @@ def export(sites: pd.DataFrame, metrics: pd.DataFrame, hourly_years: int = 2, ro
         if d.empty:
             continue
         d.index = (d.index - pd.Timestamp("1970-01-01")).days
-        d.index.name = "day"
-        _write_parquet(d, OUT / "site" / sid / "daily.parquet")
+        tables = [_table(d, SCALE_CODE["daily"])]
         years = []
         if not h.empty:
             last = h.index.max().year
@@ -137,14 +157,14 @@ def export(sites: pd.DataFrame, metrics: pd.DataFrame, hourly_years: int = 2, ro
                 if hy.dropna(how="all").empty:
                     continue
                 hy.index = ((hy.index - pd.Timestamp("1970-01-01")) // pd.Timedelta(hours=1)).astype("int64")
-                hy.index.name = "hour"
-                _write_parquet(hy, OUT / "site" / sid / "hourly" / f"{y}.parquet")
+                tables.append(_table(hy, SCALE_CODE["hourly"]))
                 years.append(y)
         m = metrics[metrics.site == s.site_id] if len(metrics) else metrics
         cols = [c for c in ("product", "var", "obs_var", "kind", "scale", "window", "method", "n", "bias", "mae", "rmse",
                             "ubrmse", "r", "kge", "anom_r", "ratio", "csi_1.0", "pod_1.0", "far_1.0", "mean_obs", "mean_prod")
                 if c in m]
-        (OUT / "site" / sid / "metrics.json").write_text(m[cols].round(4).to_json(orient="records"))
+        mrec = json.loads(m[cols].round(4).to_json(orient="records")) if len(m) else []
+        _write_site(OUT / "site" / f"{sid}.parquet", tables, {"metrics_gz": mrec, "site_id": s.site_id})
         srcs = sorted({c.split("|")[0] for c in d.columns})
         site_rows.append({**{c: (None if pd.isna(s.get(c)) else s.get(c)) for c in ("site_id", "network", "tier", "name", "state", "lat", "lon", "elev_m")},
                           "id": sid, "sources": srcs, "hourly_years": years,
