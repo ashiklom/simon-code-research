@@ -36,7 +36,8 @@ HOURLY_VARS = ["pm25", "pm10", "o3", "no2", "pm25_smoke"]
 SPEC = ["so4", "no3", "nh4", "om", "bc", "dust", "ss"]
 SCALE = {"pm25": 10, "pm10": 10, "pm25_frm": 10, "pm25_smoke": 10, "o3": 10, "o3_mda8": 10, "no2": 10,
          "pm25_raw": 10, **{f"spec_{s}": 100 for s in SPEC}}
-OBS_NET = {"AQS": "AQS", "Embassy": "Embassy", "SPARTAN": "SPARTAN", "SensorCommunity": "SensorCommunity"}
+OBS_NET = {"AQS": "AQS", "Embassy": "Embassy", "SPARTAN": "SPARTAN", "SensorCommunity": "SensorCommunity",
+           "OpenAQ": "OpenAQ", "OpenAQ-LC": "OpenAQ-LC"}
 
 
 def safe_id(site_id: str) -> str:

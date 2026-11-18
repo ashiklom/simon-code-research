@@ -33,6 +33,10 @@ def build(networks=("aqs", "embassy", "spartan"), log=print) -> pd.DataFrame:
         elif n == "remote":
             from . import remote as m
             df = m.sample(load(), log=log)
+        elif n == "openaq":
+            from .obs import openaq as m
+            ref = load()
+            df = m.sites(ref[ref.tier.isin([1, 2]) & ~ref.network.str.startswith("OpenAQ")], log=log)
         elif n == "embassy":
             from .obs import embassy as m
             df = m.sites(log=log)

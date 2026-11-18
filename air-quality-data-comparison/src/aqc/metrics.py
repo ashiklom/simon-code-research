@@ -131,7 +131,8 @@ def _windows_for(product: str) -> list[str]:
 def site_obs(site: pd.Series, root: str | None = None) -> dict:
     """{'hourly': df, 'daily': df, 'filter_daily': df, 'species': df} (any may be None)."""
     off = A.site_offset(site)
-    net = {"AQS": "AQS", "Embassy": "Embassy", "SPARTAN": "SPARTAN", "SensorCommunity": "SensorCommunity"}.get(site.network)
+    net = {"AQS": "AQS", "Embassy": "Embassy", "SPARTAN": "SPARTAN", "SensorCommunity": "SensorCommunity",
+           "OpenAQ": "OpenAQ", "OpenAQ-LC": "OpenAQ-LC"}.get(site.network)
     out = {"hourly": None, "daily": None, "frm": None, "species": None}
     if net:
         h = A.obs_series(net, site.site_id, "1h", root)
@@ -291,9 +292,9 @@ def site_metrics(site: pd.Series, products: list[str], root: str | None = None) 
                                      "region": site.region, "product": name, "var": v, "scale": sc_out,
                                      "window": w, "method": method, **m})
     # low-cost sensor vs its co-located reference monitor
-    if site.network == "SensorCommunity" and "with " in str(site.note) and obs["hourly"] is not None:
+    if site.network in ("SensorCommunity", "OpenAQ-LC") and "with " in str(site.note) and obs["hourly"] is not None:
         ref_id = str(site.note).split("with ")[1].split(" ")[0]
-        ref_net = "AQS" if ref_id.startswith("AQS:") else ("Embassy" if ref_id.startswith("EMB:") else "SPARTAN")
+        ref_net = {"AQS": "AQS", "EMB": "Embassy", "SPARTAN": "SPARTAN", "OAQ": "OpenAQ"}[ref_id.split(":")[0]]
         ref = A.obs_series(ref_net, ref_id, "1h", root)
         if ref is not None and "pm25" in ref:
             for v in ("pm25", "pm25_raw", "pm25_kappa"):

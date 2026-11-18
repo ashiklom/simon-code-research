@@ -46,6 +46,14 @@ def cmd_obs(a):
             from .obs import lowcost
             ingest.write("SensorCommunity", "1h", lowcost.hourly(sites.load("sensorcommunity"), log=_log),
                          attrs={"correction": "RH<=75%, kappa-Koehler kappa=0.4"}, store_url=a.store, log=_log)
+        elif net == "openaq":
+            from .obs import openaq
+            for oaq_net in ("OpenAQ", "OpenAQ-LC"):
+                st = sites.load(oaq_net)
+                if len(st):
+                    ingest.write(oaq_net, "1h", openaq.hourly(st, log=_log),
+                                 attrs={"source": "OpenAQ archive (openaq-data-archive), provider values as published"},
+                                 store_url=a.store, log=_log)
         elif net == "speciation":
             from .obs import speciation
             data, _ = speciation.load()

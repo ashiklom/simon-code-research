@@ -4,10 +4,9 @@
   coarsened to 0.5 deg (s3://satpmdata, anonymous). Land from the `global-land-mask` package
   (GLOBE 1 km), excluding coastal cells; 56S-70N.
 * Known monitors: every AQS site open after 2017, AirNow's site list (US, Canada, Mexico,
-  State Department posts), SPARTAN, Sensor.Community live nodes, and all sites in our tables.
-  Government networks outside North America (China, India, Europe, ...) are only partly
-  covered until OpenAQ locations can be listed (needs OPENAQ_API_KEY), so "remote" there means
-  remote from the monitors we know about.
+  State Department posts), SPARTAN, Sensor.Community live nodes, every OpenAQ location reporting
+  PM2.5 (reference and low-cost; needs OPENAQ_API_KEY, otherwise skipped), and all sites in our
+  tables. Networks absent from OpenAQ (e.g. most of mainland China's) are still only partly known.
 * Strata: world region (regions.py) x ACAG PM2.5 class (<5, 5-10, 10-25, 25-50, >50 ug m-3).
   Allocation proportional to sqrt(stratum area), at least 1 per stratum with eligible cells.
 * Within a stratum, a random eligible cell (>= 100 km from any monitor; fixed seed), keeping
@@ -69,6 +68,12 @@ def known_monitors(sites: pd.DataFrame) -> pd.DataFrame:
             continue
     sc = lowcost.live_nodes()
     pts.append(sc[["lat", "lon"]])
+    from .obs import openaq
+
+    if openaq.key():
+        oaq = openaq.locations()
+        pts.append(pd.DataFrame({"lat": [x["coordinates"]["latitude"] for x in oaq],
+                                 "lon": [x["coordinates"]["longitude"] for x in oaq]}))
     p = pd.concat(pts).dropna()
     p = p[(p.lat != 0) | (p.lon != 0)]
     return p.round(2).drop_duplicates()
