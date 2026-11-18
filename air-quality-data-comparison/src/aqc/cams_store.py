@@ -21,8 +21,9 @@ EAC4 has no nitrate or ammonium aerosol.
 
 Layout: one shard per variable and 31-day block (248 3-hourly steps x the full grid, one S3
 object of ~5-30 MB), (248, 32, 32) inner chunks, so a point's complete record is 271 small byte-
-range reads. Each block is two ADS requests (surface; model level 60), downloaded by a few
-threads ahead of a single writer. Resumable: ``blocks_done`` lists finished blocks.
+range reads. Downloads are two ADS requests (surface; model level 60) per group of up to 3 consecutive blocks
+(the ADS queue, hours per request, dominates), 2018-2025 first; a few threads download ahead of a
+single writer. Resumable: ``blocks_done`` lists finished blocks.
 """
 
 from __future__ import annotations
@@ -94,13 +95,15 @@ def block_days(b: int) -> tuple[pd.Timestamp, pd.Timestamp]:
     return d0, min(d0 + pd.Timedelta(days=DAYS - 1), T1.normalize())
 
 
-def _download(b: int) -> tuple[Path, Path]:
+def _download(bs: list[int]) -> tuple[Path, Path]:
+    """One ADS request per file type for a run of consecutive blocks (the ADS queue, hours per
+    request, dominates; larger requests mean fewer waits)."""
     CACHE.mkdir(parents=True, exist_ok=True)
-    d0, d1 = block_days(b)
+    d0, d1 = block_days(bs[0])[0], block_days(bs[-1])[1]
     date = f"{d0:%Y-%m-%d}/{d1:%Y-%m-%d}"
     out = []
     for tag, req in (("sfc", {"variable": list(SFC)}), ("ml", {"variable": list(ML), "model_level": ["60"]})):
-        f = CACHE / f"b{b:03d}_{tag}.nc"
+        f = CACHE / f"b{bs[0]:03d}-{bs[-1]:03d}_{tag}.nc"
         if not f.exists():
             paths = None
             for k in range(4):
@@ -120,6 +123,24 @@ def _download(b: int) -> tuple[Path, Path]:
                     p.unlink(missing_ok=True)
         out.append(f)
     return out[0], out[1]
+
+
+PRIORITY = (pd.Timestamp("2018-01-01"), pd.Timestamp("2025-12-31"))  # the site-comparison window first
+
+
+def plan_groups(todo: list[int], group: int) -> list[list[int]]:
+    """Order: blocks overlapping PRIORITY first, then the rest; runs of <= `group` consecutive blocks."""
+    def prio(b):
+        d0, d1 = block_days(b)
+        return 0 if (d1 >= PRIORITY[0] and d0 <= PRIORITY[1]) else 1
+    order = sorted(todo, key=lambda b: (prio(b), b))
+    groups: list[list[int]] = []
+    for b in order:
+        if groups and len(groups[-1]) < group and groups[-1][-1] == b - 1 and prio(groups[-1][-1]) == prio(b):
+            groups[-1].append(b)
+        else:
+            groups.append([b])
+    return groups
 
 
 def _open(f: Path) -> xr.Dataset:
@@ -201,8 +222,8 @@ def _layout(g: zarr.Group):
             a.attrs.update({"units": units, "kind": kind, "desc": desc, "quantum": store.QUANTA.get(kind)})
 
 
-def build(blocks: list[int] | None = None, root: str | None = None, workers: int = 3, keep_raw: bool = False,
-          log=print):
+def build(blocks: list[int] | None = None, root: str | None = None, workers: int = 2, group: int = 3,
+          keep_raw: bool = False, log=print):
     repo = store.open_repo(NAME, root)
     s = repo.writable_session("main")
     g = zarr.open_group(s.store, mode="a", path=PATH)
@@ -215,18 +236,19 @@ def build(blocks: list[int] | None = None, root: str | None = None, workers: int
     done = set(g.attrs.get("blocks_done", []))
     todo = [b for b in (blocks if blocks is not None else range(nblocks())) if b not in done]
     log(f"[{NAME}] {len(done)} blocks done, {len(todo)} to go")
+    groups = plan_groups(todo, group)
     q: queue.Queue = queue.Queue(maxsize=workers)
     errors: list = []
 
     def producer(items):
-        for b in items:
+        for bs in items:
             try:
-                q.put((b, _download(b)))
+                q.put((bs, _download(bs)))
             except Exception as e:  # leave it for the next run
-                errors.append((b, repr(e)))
-                log(f"[{NAME}] block {b} download failed: {e!r}")
+                errors.append((bs, repr(e)))
+                log(f"[{NAME}] blocks {bs} download failed: {e!r}")
 
-    chunks = [todo[i::workers] for i in range(workers)]
+    chunks = [groups[i::workers] for i in range(workers)]
     th = [threading.Thread(target=producer, args=(c,), daemon=True) for c in chunks]
     for x in th:
         x.start()
@@ -234,27 +256,27 @@ def build(blocks: list[int] | None = None, root: str | None = None, workers: int
     n = 0
     while any(x.is_alive() for x in th) or not q.empty():
         try:
-            b, (fs, fm) = q.get(timeout=30)
+            bs, (fs, fm) = q.get(timeout=30)
         except queue.Empty:
             continue
         t, data = derive(fs, fm)
-        i0 = b * BLOCK
-        exp = tsteps[i0:i0 + BLOCK]
-        if not t.equals(exp):
-            raise RuntimeError(f"block {b}: times {t[0]}..{t[-1]} ({len(t)}) != {exp[0]}..{exp[-1]} ({len(exp)})")
+        i0 = bs[0] * BLOCK
+        exp = tsteps[i0:i0 + len(t)]
+        if len(t) != min(len(bs) * BLOCK, len(tsteps) - i0) or not t.equals(exp):
+            raise RuntimeError(f"blocks {bs}: times {t[0]}..{t[-1]} ({len(t)}) do not match the store axis")
         s = repo.writable_session("main")
         g = zarr.open_group(s.store, mode="a", path=PATH)
-        for k, x in data:
+        for k, x in data:  # whole shards (one per block): no read-back
             g[k][i0:i0 + len(t)] = x
             del x
-        done = set(g.attrs.get("blocks_done", [])) | {b}
+        done = set(g.attrs.get("blocks_done", [])) | set(bs)
         g.attrs["blocks_done"] = sorted(done)
-        s.commit(f"{NAME}: block {b} {t[0]:%Y-%m-%d}..{t[-1]:%Y-%m-%d}")
+        s.commit(f"{NAME}: blocks {bs[0]}-{bs[-1]} {t[0]:%Y-%m-%d}..{t[-1]:%Y-%m-%d}")
         if not keep_raw:
             fs.unlink(missing_ok=True)
             fm.unlink(missing_ok=True)
-        n += 1
-        log(f"[{NAME}] block {b} ({t[0]:%Y-%m-%d}..{t[-1]:%Y-%m-%d}) written; {len(done)}/{nblocks()} done")
+        n += len(bs)
+        log(f"[{NAME}] blocks {bs[0]}-{bs[-1]} ({t[0]:%Y-%m-%d}..{t[-1]:%Y-%m-%d}) written; {len(done)}/{nblocks()} done")
     if errors:
-        log(f"[{NAME}] {len(errors)} block(s) failed; rerun to retry: {[b for b, _ in errors]}")
+        log(f"[{NAME}] {len(errors)} group(s) failed; rerun to retry: {[b for b, _ in errors]}")
     return n

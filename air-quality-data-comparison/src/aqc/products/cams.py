@@ -174,13 +174,13 @@ class CAMSEAC4(ChunkedStoreProduct):
     def source_times(self):
         from .. import cams_store
 
-        done = sorted(self.group.attrs.get("blocks_done", []))
+        done = set(self.group.attrs.get("blocks_done", []))
         t = cams_store.times()
-        # only the leading run of finished blocks counts as available
-        n = 0
-        while n < len(done) and done[n] == n:
-            n += 1
-        return t[: min(len(t), n * cams_store.BLOCK)]
+        # available: the contiguous run of finished blocks from the one holding self.start
+        b = int((self.start - cams_store.T0) // pd.Timedelta(days=cams_store.DAYS))
+        while b in done:
+            b += 1
+        return t[: min(len(t), b * cams_store.BLOCK)]
 
     def available_end(self) -> pd.Timestamp:
         t = self.source_times()
