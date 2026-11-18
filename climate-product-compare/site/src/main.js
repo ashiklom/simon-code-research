@@ -2,12 +2,12 @@ import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import uPlot from 'uplot'
 import 'uplot/dist/uPlot.min.css'
-import { asyncBufferFromUrl, parquetReadObjects } from 'hyparquet'
+import { parquetReadObjects } from 'hyparquet'
 import { compressors } from 'hyparquet-compressors'
 import STORAGE from './storage.json'
 
-// Site data base URL: local ./data by default; production builds read it from the assets repo
-// at a pinned commit (site/.env.production, VITE_DATA_BASE).
+// Site data base URL: local ./data by default; production builds read it from S3 via CloudFront
+// at a pinned, content-hashed version (site/.env.production, VITE_DATA_BASE).
 const DATA = (import.meta.env.VITE_DATA_BASE || './data').replace(/\/$/, '')
 
 // ---- fixed product styling (color follows the product, never its rank) -------------------
@@ -51,7 +51,11 @@ const state = { site: null, daily: null, varKey: 'tair', agg: 'daily', hidden: n
 
 // ---- data loading ------------------------------------------------------------------------
 async function readParquet(url) {
-  const file = await asyncBufferFromUrl({ url })
+  // Whole-file GET instead of byte-range reads: every file is small (< 1.1 MB), and CloudFront
+  // intermittently omits the CORS header on 206 responses (e.g. hyparquet's 512 KiB footer read).
+  const res = await fetch(url)
+  if (!res.ok) throw new Error(`${res.status} ${url}`)
+  const file = await res.arrayBuffer()
   return parquetReadObjects({ file, compressors })
 }
 function toColumns(rows, timeKey) {

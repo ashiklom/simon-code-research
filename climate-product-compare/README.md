@@ -382,19 +382,25 @@ and copy with `mise run store-copy -- file://$PWD/data/store s3://bucket/prefix`
 
 ## Publishing the site data
 
-Each site's daily/hourly Parquet and metrics JSON files (`mise run sitedata` → `site/public/data`,
-576 MB, 1,224 files) are not committed here. GitHub releases could not be created from the session
-that built this experiment, so the data lives in
-[ashiklom/simon-code-research-assets](https://github.com/ashiklom/simon-code-research-assets/tree/main/climate-product-compare)
-under `climate-product-compare/data/`.
+The site's per-site Parquet and metrics JSON files (`mise run sitedata` → `site/public/data`,
+576 MB, 1,224 files) are not committed here. They live in the public S3 bucket `ycgs-use1-public` under
+`simon-code-research/climate-product-compare/site-data/<version>/` and are served through CloudFront.
 
-- **How the site reads it.** The browser fetches the files from `raw.githubusercontent.com` at the
-  commit pinned in `site/.env.production` (`VITE_DATA_BASE`). raw.githubusercontent.com serves CORS
-  headers and byte ranges, which the in-browser Parquet reader uses.
+- **How the site reads it.** The browser fetches the files from CloudFront at the version pinned
+  in `site/.env.production` (`VITE_DATA_BASE`), currently `v20261118-f09d87a9`. The version is a date plus a
+  hash of the file contents, and objects under it are immutable (`Cache-Control: immutable`), so
+  the site and its data always match. Each Parquet file is fetched whole (they are all under
+  1.1 MB): CloudFront intermittently omits the CORS header on byte-range (206) responses.
+  CI only builds the JavaScript bundle.
 - **Local builds.** Without that variable (`npm run dev`), the site reads the local `./data`.
-- **Updating.** Run `scripts/publish_site_data.sh <assets-clone>`. It copies the data, commits and
-  pushes it in batches, and re-pins `.env.production`. Then commit that file here.
-- **Tarball.** `mise run pack-site` still makes a `site-data.tar`, if a release asset is preferred later.
+- **Updating.** `mise run publish-site-data` runs `_helpers/publish_s3.py site`, which uploads a
+  new version (Intelligent-Tiering storage class) and re-pins `.env.production`; commit that file
+  here. Once `main` pins the new version, `uv run ../_helpers/publish_s3.py prune climate-product-compare --keep <version>`
+  removes the old ones.
+- **History.** Until 2026-11 the data lived in
+  [ashiklom/simon-code-research-assets](https://github.com/ashiklom/simon-code-research-assets/tree/2a480a7ec34d18b1d8d99c27bb711810ed26b04a/climate-product-compare)
+  at commit `2a480a7`; those files are unchanged there.
+- **Tarball.** `mise run pack-site` still makes a `site-data.tar`.
 
 ## Limitations
 

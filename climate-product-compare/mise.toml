@@ -50,8 +50,12 @@ description = "Export per-site website data to site/public/data"
 run = "uv run cpc sitedata --sites all --metrics all"
 
 [tasks.pack-site]
-description = "Pack site/public/data into site/site-data.tar (optional; the site reads data from the assets repo)"
+description = "Pack site/public/data into site/site-data.tar (optional; the site reads data from S3 via CloudFront)"
 run = "tar -cf site/site-data.tar -C site/public data"
+
+[tasks.publish-site-data]
+description = "Upload site/public/data to S3 as a new immutable version and re-pin site/.env.production (asks nothing: run it only after agreeing the upload)"
+run = "uv run ../_helpers/publish_s3.py site climate-product-compare site/public/data"
 
 [tasks.site]
 description = "Build the static site into _site (from site/site-data.tar if present, else site/public/data)"

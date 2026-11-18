@@ -1,9 +1,9 @@
-# Builds the static site (no analysis is re-run). Site data is fetched by the browser from the assets repo.
+# Builds the static site (no analysis is re-run). Site data is fetched by the browser from S3 via CloudFront.
 build = "mise install && mise run site"
 output = "_site"
 
 models = ["claude-opus-5-5"]
 tools = ["python", "uv", "icechunk", "zarr", "xarray", "pcodec", "rasterio", "h5py", "vite", "leaflet", "uplot", "hyparquet"]
 
-# Site data is NOT a release asset: the site reads it from ashiklom/simon-code-research-assets at the
-# commit pinned in site/.env.production (see README, "Publishing the site data").
+# Site data is NOT a release asset: the site reads it from s3://ycgs-use1-public (CloudFront) at the
+# version pinned in site/.env.production (see README, "Publishing the site data").
