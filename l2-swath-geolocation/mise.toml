@@ -29,6 +29,10 @@ run = "pixi run python scripts/20_footprints.py"
 description = "Part C: read benchmark through the network simulator"
 run = "pixi run python scripts/30_bench_read.py"
 
+[tasks.readbench-real]
+description = "Part C: read benchmark on the real AWS S3 (us-east-1) and CloudFront profiles (needs AWS creds)"
+run = "pixi run python scripts/30_bench_read.py --profiles aws_s3_use1,aws_cloudfront --steps virtual,build,read"
+
 [tasks.figures]
 description = "Make figures and site data from results/"
 run = ["pixi run python scripts/40_figures.py", "pixi run python scripts/41_diagrams.py"]

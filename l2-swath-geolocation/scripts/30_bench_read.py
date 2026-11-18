@@ -23,6 +23,7 @@ need AWS credentials (aws_profile) / the URL env var named in the profile:
   python scripts/30_bench_read.py --profiles aws_s3_use1,aws_cloudfront --steps virtual,build,read
 
 Usage: python scripts/30_bench_read.py [--profiles a,b] [--sensors modis,viirs] [--reps N]
+                                      [--tasks window_site,...] [--readers h5py,...] [--steps ...]
 """
 
 from __future__ import annotations
@@ -337,7 +338,8 @@ def _read_worker(reader_name, profile, ports, sensor, task, window, reps, q):
     q.put(None)
 
 
-def bench_reads(profiles, sensors, ports, reps_override=None):
+def bench_reads(profiles, sensors, ports, reps_override=None, tasks=("window_site", "window_poly", "full"),
+                readers=None):
     ctx = mp.get_context("spawn")
     windows = json.loads((config.RESULTS / "read_windows.json").read_text())
     path = config.RESULTS / "read_bench.csv"
@@ -345,11 +347,11 @@ def bench_reads(profiles, sensors, ports, reps_override=None):
     done = {(r["sensor"], r["task"], r["profile"], r["reader"]) for r in rows}
     for sensor in sensors:
         fmt = FILES[sensor]["geo"][1]
-        for task in ("window_site", "window_poly", "full"):
+        for task in tasks:
             window = None if task == "full" else windows[sensor][task]
             for profile in profiles:
                 acc = access_for(profile, ports)
-                for reader_name in READERS:
+                for reader_name in readers or READERS:
                     if (sensor, task, profile, reader_name) in done:
                         continue
                     if (sensor == "ecostress" and task == "window_poly" and reader_name == "gdal"
@@ -420,6 +422,8 @@ def main():
     ap.add_argument("--profiles", default=",".join(PROFILES))
     ap.add_argument("--sensors", default="modis,viirs,ecostress")
     ap.add_argument("--reps", type=int, default=None)
+    ap.add_argument("--tasks", default="window_site,window_poly,full")
+    ap.add_argument("--readers", default=None, help="only these readers (default: all)")
     ap.add_argument("--steps", default="windows,virtual,build,read")
     ap.add_argument("--build-parsers", default=None, help="only these virtual-build parsers (e.g. dmrpp)")
     a = ap.parse_args()
@@ -437,7 +441,8 @@ def main():
         if "build" in steps:
             bench_virtual_build([p for p in profiles if not p.startswith("zero")], ports, parsers=a.build_parsers)
         if "read" in steps:
-            bench_reads(profiles, a.sensors.split(","), ports, a.reps)
+            bench_reads(profiles, a.sensors.split(","), ports, a.reps, a.tasks.split(","),
+                        a.readers.split(",") if a.readers else None)
     finally:
         for p in procs:
             p.terminate()
