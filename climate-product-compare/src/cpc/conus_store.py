@@ -113,7 +113,8 @@ def build(end: pd.Timestamp | None = None, variables: list[str] | None = None, r
                                    shards=(BLOCK, -(-len(lat) // INNER[1]) * INNER[1], -(-len(lon) // INNER[2]) * INNER[2]), serializer=store._serializer(),
                                    fill_value=np.nan, dimension_names=["time", "lat", "lon"])
                 a.attrs.update({"units": var.units, "kind": kind, "quantum": store.QUANTA.get(kind), **var.attrs})
-    s.commit(f"{NAME}: layout to {end:%Y-%m-%d}")
+    if s.has_uncommitted_changes:  # nothing to do when resuming
+        s.commit(f"{NAME}: layout to {end:%Y-%m-%d}")
     for name in names:
         src = prod.variables[name].src[0]
         for b in range(nblock):
