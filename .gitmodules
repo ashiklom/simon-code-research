@@ -2,7 +2,9 @@
 	path = l2-swath-geolocation/vendor/VirtualiZarr
 	url = https://github.com/zarr-developers/VirtualiZarr
 	shallow = true
+	ignore = dirty
 [submodule "l2-swath-geolocation/vendor/kerchunk"]
 	path = l2-swath-geolocation/vendor/kerchunk
 	url = https://github.com/fsspec/kerchunk
 	shallow = true
+	ignore = dirty
