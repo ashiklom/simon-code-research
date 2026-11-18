@@ -333,25 +333,24 @@ Point everything at another backend with `--store` or `AQC_STORE`, for example
 ## Publishing the site data
 
 The site's per-site Parquet and metrics JSON files (`mise run sitedata` → `site/public/data`,
-433 MB in 6,688 files) are not committed here. GitHub releases could not be created from the
-session that built this experiment, so the data lives in
-[ashiklom/simon-code-research-assets](https://github.com/ashiklom/simon-code-research-assets/tree/main/air-quality-data-comparison)
-under `air-quality-data-comparison/data/`.
+433 MB in 6,688 files) are not committed here. They live in the public S3 bucket `ycgs-use1-public` under
+`simon-code-research/air-quality-data-comparison/site-data/<version>/` and are served through CloudFront.
 
-- **How the site reads it.** The browser fetches the files from `raw.githubusercontent.com` at
-  the commit pinned in `site/.env.production` (`VITE_DATA_BASE`), currently
-  [`d9d0f12`](https://github.com/ashiklom/simon-code-research-assets/tree/d9d0f1229235b73c2a226c77174becccfae63af3/air-quality-data-comparison). raw.githubusercontent.com serves
-  CORS headers and byte ranges, which the in-browser Parquet reader uses. CI only builds the
-  JavaScript bundle.
+- **How the site reads it.** The browser fetches the files from CloudFront at the version pinned
+  in `site/.env.production` (`VITE_DATA_BASE`), currently `v20261118-dd7c8af7`. The version is a date plus a
+  hash of the file contents, and objects under it are immutable (`Cache-Control: immutable`), so
+  the site and its data always match. Each Parquet file is fetched whole (they are all under
+  1.1 MB): CloudFront intermittently omits the CORS header on byte-range (206) responses.
+  CI only builds the JavaScript bundle.
 - **Local builds.** Without that variable (`npm run dev`), the site reads the local `./data`.
-- **Updating.** Run `mise run publish-site-data -- <assets-clone>`, i.e.
-  `scripts/publish_site_data.sh`. It copies the data, commits and pushes it in batches of 150
-  sites, and re-pins `.env.production`; then commit that file here.
-  - A sparse clone is enough: `git clone --filter=blob:none --sparse …` followed by
-    `git sparse-checkout set air-quality-data-comparison`.
-  - Per the repository's rules, an update should rewrite and force-push this experiment's
-    commits in the assets repo rather than stack new ones.
-- **Tarball.** `mise run pack-site` still makes a `site-data.tar`, if a release asset is preferred later.
+- **Updating.** `mise run publish-site-data` runs `_helpers/publish_s3.py site`, which uploads a
+  new version (Intelligent-Tiering storage class) and re-pins `.env.production`; commit that file
+  here. Once `main` pins the new version, `uv run ../_helpers/publish_s3.py prune air-quality-data-comparison --keep <version>`
+  removes the old ones.
+- **History.** Until 2026-11 the data lived in
+  [ashiklom/simon-code-research-assets](https://github.com/ashiklom/simon-code-research-assets/tree/d9d0f1229235b73c2a226c77174becccfae63af3/air-quality-data-comparison)
+  at commit `d9d0f12`; those files are unchanged there.
+- **Tarball.** `mise run pack-site` still makes a `site-data.tar`.
 
 Data files:
 

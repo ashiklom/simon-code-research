@@ -43,12 +43,12 @@ description = "Export per-site website data to site/public/data"
 run = "uv run aqc sitedata --sites all"
 
 [tasks.pack-site]
-description = "Pack site/public/data into site/site-data.tar (optional; the site reads data from the assets repo)"
+description = "Pack site/public/data into site/site-data.tar (optional; the site reads data from S3 via CloudFront)"
 run = "tar -cf site/site-data.tar -C site/public data"
 
 [tasks.publish-site-data]
-description = "Copy site/public/data to an assets-repo clone, push it and re-pin site/.env.production"
-run = "scripts/publish_site_data.sh"
+description = "Upload site/public/data to S3 as a new immutable version and re-pin site/.env.production (asks nothing: run it only after agreeing the upload)"
+run = "uv run ../_helpers/publish_s3.py site air-quality-data-comparison site/public/data"
 
 [tasks.site]
 description = "Build the static site into _site (data is read from the assets repo pinned in site/.env.production)"
