@@ -17,7 +17,47 @@ import pandas as pd
 
 from . import config, store
 from .products import registry
-from .products.base import px_distance_km
+from .products.base import Block, px_distance_km
+
+# Steps per write (adapted from climate-product-compare/src/cpc/extract.py). On an object store
+# every write rewrites the touched time chunks for every site, so one write per daily file
+# (24 h x 2,178 sites) costs a full chunk rewrite each; merging consecutive blocks for the same
+# sites into ~2 months (hourly) per write avoids that. Memory: ~0.5 GB per hourly batch.
+BATCH_STEPS = {"1h": 24 * 61, "3h": 8 * 92, "1d": 366}
+
+
+def _batched(blocks, freq: str):
+    """Merge consecutive blocks with the same site list into larger blocks."""
+    limit = BATCH_STEPS.get(freq, 1)
+    pending: list = []
+
+    def merge():
+        if len(pending) == 1:
+            return pending[0]
+        keys = sorted(set().union(*[b.data.keys() for b in pending]))
+        data = {}
+        for k in keys:
+            parts = []
+            for b in pending:
+                if k in b.data:
+                    parts.append(b.data[k])
+                else:
+                    ref = next(iter(b.data.values()))
+                    parts.append(np.full(ref.shape[:-1] + (len(b.times),), np.nan, dtype="f4"))
+            data[k] = np.concatenate(parts, axis=-1)
+        out = Block(pending[0].site_ids, pending[0].times.append([b.times for b in pending[1:]]), data)
+        out.final = getattr(pending[-1], "final", True)
+        return out
+
+    n = 0
+    for blk in blocks:
+        if pending and (blk.site_ids != pending[0].site_ids or n + len(blk.times) > limit):
+            yield merge()
+            pending, n = [], 0
+        pending.append(blk)
+        n += len(blk.times)
+    if pending:
+        yield merge()
 
 
 def _fmt_bytes(n: float) -> str:
@@ -104,7 +144,7 @@ def run(name: str, sites: pd.DataFrame, *, t_end: pd.Timestamp | None = None, t_
         w = store.GroupWriter(session, path, product.freq, has_px=True, t_origin=origin)
         finished: dict[str, str] = {}
         n_since, t_commit = 0, time.time()
-        for blk in product.fetch(sub, sub_st, t0, t_end):
+        for blk in _batched(product.fetch(sub, sub_st, t0, t_end), product.freq):
             w.write(blk.site_ids, blk.times, blk.data, specs)
             nbytes += sum(a.nbytes for a in blk.data.values())
             for s in blk.site_ids:
