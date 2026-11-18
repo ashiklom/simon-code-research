@@ -62,5 +62,13 @@
   "objects_after": 481,
   "bytes": 85251007,
   "seconds": 258
+ },
+ "products-merra2": {
+  "status": "done",
+  "snapshot": "W1T1JZT99QQNTTXGFXY0",
+  "objects_before": 116699,
+  "objects_after": 1662,
+  "bytes": 1049823006,
+  "seconds": 968
  }
 }
