@@ -1,0 +1,18 @@
+{
+ "obs-SNOTEL": {
+  "status": "done",
+  "snapshot": "BCDV8FR2J9A2HQKCNZ30",
+  "objects_before": 187,
+  "objects_after": 34,
+  "bytes": 2725856,
+  "seconds": 29
+ },
+ "obs-ISUSM": {
+  "status": "done",
+  "snapshot": "QRQ02341QR6GYM6PKBD0",
+  "objects_before": 88,
+  "objects_after": 34,
+  "bytes": 3624948,
+  "seconds": 23
+ }
+}

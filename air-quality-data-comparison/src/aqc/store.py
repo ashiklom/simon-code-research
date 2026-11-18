@@ -62,8 +62,12 @@ QUANTA = {
 }
 
 FREQ_SECONDS = {"1h": 3600, "3h": 10800, "1d": 86400}
-# hourly chunks hold one year so a monthly write only rewrites that year's chunk
-TIME_CHUNK = {"1h": 8784, "3h": 2928, "1d": 4096}
+# Object-store layout: each (site, [px,] time) array is sharded as SITE_SHARD sites x TIME_CHUNK
+# steps per S3 object, with one inner chunk per site (a single-site read is a byte-range read of
+# ~10-40 KB; a shard is one ~0.3-1 MB object). Writers fill whole shards where they can, so
+# nothing has to be read back and re-encoded. (Layout shared with climate-product-compare.)
+SITE_SHARD = 64
+TIME_CHUNK = {"1h": 2208, "3h": 2928, "1d": 1464}  # 92 days, 1 year, 4 years
 
 
 def lossless() -> bool:
@@ -198,8 +202,10 @@ def _open_url(url: str, create: bool) -> icechunk.Repository:
     return icechunk.Repository.create(st, config=repo_config(url))
 
 
-def copy_repo(src: str, dst: str) -> None:
-    """Copy the latest snapshot of `main` from one repo URL to another (data, not history)."""
+def copy_repo(src: str, dst: str, log=print) -> None:
+    """Copy the latest snapshot of `main` from one repo URL to another (data, not history),
+    converting (site, ...) arrays to the current sharded layout (see SITE_SHARD). Writes whole
+    site-shard slabs, so each destination shard is written exactly once."""
     s_repo = _open_url(src, create=False)
     d_repo = _open_url(dst, create=True)
     s = s_repo.readonly_session("main")
@@ -207,19 +213,31 @@ def copy_repo(src: str, dst: str) -> None:
     sroot = zarr.open_group(s.store, mode="r")
     droot = zarr.open_group(d.store, mode="a")
 
-    def walk(sg, dg):
+    def walk(sg, dg, freq):
         dg.attrs.update(dict(sg.attrs))
+        freq = sg.attrs.get("freq", freq)
         for name, arr in sg.arrays():
-            da = dg.create_array(name, shape=arr.shape, dtype=arr.dtype, chunks=arr.chunks,
-                                 serializer=_serializer(), fill_value=arr.fill_value, overwrite=True,
-                                 dimension_names=arr.metadata.dimension_names)
+            dims = tuple(arr.metadata.dimension_names or ())
+            if dims[:1] == ("site",):
+                has_t = dims[-1:] == ("time",)
+                tail = arr.shape[1:-1] if has_t else arr.shape[1:]
+                lay = layout(tuple(tail), freq if has_t else None, arr.shape[0])
+            else:
+                lay = {"chunks": arr.chunks}
+            da = dg.create_array(name, shape=arr.shape, dtype=arr.dtype, serializer=_serializer(),
+                                 fill_value=arr.fill_value, overwrite=True, dimension_names=dims or None, **lay)
             da.attrs.update(dict(arr.attrs))
-            da[...] = arr[...]
+            if dims[:1] == ("site",) and arr.shape[0] > SITE_SHARD:
+                for i0 in range(0, arr.shape[0], SITE_SHARD):
+                    da[i0:i0 + SITE_SHARD] = arr[i0:i0 + SITE_SHARD]
+            else:
+                da[...] = arr[...]
         for name, sub in sg.groups():
-            walk(sub, dg.require_group(name))
+            walk(sub, dg.require_group(name), freq)
 
-    walk(sroot, droot)
-    d.commit(f"copy from {src}")
+    walk(sroot, droot, None)
+    d.commit(f"repacked (sharded layout) from {src}")
+    log(f"copied {src} -> {dst}")
 
 
 def _serializer():
@@ -255,6 +273,25 @@ def time_axis(t0: pd.Timestamp, t1: pd.Timestamp, freq: str) -> np.ndarray:
 
 def _to_seconds(t) -> np.ndarray:
     return pd.DatetimeIndex(t).as_unit("s").asi8.astype("i8")
+
+
+SHARD_VALUES = 500_000  # minimum values per shard (~0.3-1 MB compressed, above the 128 KB IT minimum)
+
+
+def time_chunk_for(nsite: int, shape_tail: tuple, freq: str) -> int:
+    """Shard time length: a multiple of TIME_CHUNK[freq], long enough that a shard of
+    min(nsite, SITE_SHARD) sites holds >= SHARD_VALUES values (few-site obs repos get longer shards)."""
+    t = TIME_CHUNK[freq]
+    per_step = max(1, min(nsite, SITE_SHARD)) * int(np.prod(shape_tail or (1,)))
+    return t * max(1, -(-SHARD_VALUES // (per_step * t)))
+
+
+def layout(shape_tail: tuple, freq: str | None, nsite: int = SITE_SHARD) -> dict:
+    """chunks/shards for a (site, *tail[, time]) array; see SITE_SHARD."""
+    if freq is None:  # static per-site arrays (stencil): small, one plain chunk per SITE_SHARD sites
+        return {"chunks": (SITE_SHARD, *shape_tail)}
+    t = time_chunk_for(nsite, shape_tail, freq)
+    return {"chunks": (1, *shape_tail, t), "shards": (SITE_SHARD, *shape_tail, t)}
 
 
 class GroupWriter:
@@ -330,9 +367,8 @@ class GroupWriter:
             return self.g[name]
         nsite = len(self.sites)
         shape = (nsite, *shape_tail) + ((ntime,) if ntime else ())
-        chunks = (1, *shape_tail) + ((TIME_CHUNK[self.freq],) if ntime else ())
-        a = self.g.create_array(name, shape=shape, dtype=dtype, chunks=chunks, serializer=_serializer(),
-                                fill_value=np.nan, dimension_names=dims)
+        a = self.g.create_array(name, shape=shape, dtype=dtype, serializer=_serializer(), fill_value=np.nan,
+                                dimension_names=dims, **layout(shape_tail, self.freq if ntime else None, nsite))
         if attrs:
             a.attrs.update(attrs)
         return a
@@ -366,17 +402,17 @@ class GroupWriter:
             tail = (4,) if self.has_px else ()
             a = self._ensure_var(var, tail, len(tax), dims, attrs={"units": sp.units, "kind": sp.kind, **sp.attrs})
             vals = quantize(arr, sp.kind)
-            # one region write when the sites form a contiguous ascending run (zarr then
-            # encodes all touched chunks concurrently); otherwise site by site
-            if contiguous and len(idx) > 1 and np.all(np.diff(idx) == 1):
-                a[(slice(int(idx[0]), int(idx[-1]) + 1), ..., sl)] = vals
-                vmeta[var] = {"units": sp.units, "kind": sp.kind, **sp.attrs}
-                continue
-            for k, si in enumerate(idx):
+            # one write per run of consecutive site indices: with sharded arrays a per-site write
+            # would re-encode the whole shard each time
+            order = np.argsort(idx, kind="stable")
+            idx_s, vals_s = idx[order], vals[order]
+            breaks = np.flatnonzero(np.diff(idx_s) != 1) + 1
+            for run in np.split(np.arange(len(idx_s)), breaks):
+                ssl = slice(int(idx_s[run[0]]), int(idx_s[run[-1]]) + 1)
                 if contiguous:
-                    a[(si, ..., sl)] = vals[k]
+                    a[(ssl, ..., sl)] = vals_s[run]
                 else:
-                    a.set_orthogonal_selection((si, *([slice(None)] if self.has_px else []), it), vals[k])
+                    a.set_orthogonal_selection((ssl, *([slice(None)] if self.has_px else []), it), vals_s[run])
             vmeta[var] = {"units": sp.units, "kind": sp.kind, **sp.attrs}
         self.g.attrs["variables"] = vmeta
 

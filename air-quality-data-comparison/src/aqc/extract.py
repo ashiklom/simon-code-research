@@ -19,23 +19,36 @@ from . import config, store
 from .products import registry
 from .products.base import Block, px_distance_km
 
-# Steps per write (adapted from climate-product-compare/src/cpc/extract.py). On an object store
-# every write rewrites the touched time chunks for every site, so one write per daily file
-# (24 h x 2,178 sites) costs a full chunk rewrite each; merging consecutive blocks for the same
-# sites into ~2 months (hourly) per write avoids that. Memory: ~0.5 GB per hourly batch.
-BATCH_STEPS = {"1h": 24 * 61, "3h": 8 * 92, "1d": 366}
+# Adapted from climate-product-compare/src/cpc/extract.py.
+# Writes are batched to match the store's shard layout (store.SITE_SHARD sites x
+# store.TIME_CHUNK steps): consecutive blocks for the same sites are merged in time up to a
+# time-chunk boundary, and single-site blocks with identical times are stacked up to SITE_SHARD
+# sites. Whole-shard writes need no read-back; on S3 a partial write re-reads and re-encodes the
+# shard, and many small writes were the bottleneck (PRISM: ~5 min per month of data).
 
 
-def _batched(blocks, freq: str):
-    """Merge consecutive blocks with the same site list into larger blocks."""
-    limit = BATCH_STEPS.get(freq, 1)
+def _batched(blocks, freq: str, origin: pd.Timestamp, axis0: pd.Timestamp | None = None,
+             tchunk: int | None = None):
+    """axis0: first stamp of the store's existing time axis (None: derived from the first block,
+    the way GroupWriter lays out a new axis). tchunk: the arrays' shard time length."""
+    dt = pd.Timedelta(seconds=store.FREQ_SECONDS[freq])
+    tchunk = tchunk or store.TIME_CHUNK[freq]
+    base = [axis0]
+
+    def chunk_of(t):
+        if base[0] is None:
+            base[0] = origin + (t - origin) % dt
+        return int((t - base[0]) // dt) // tchunk
+
     pending: list = []
+    mode = None  # "time" | "site"
 
     def merge():
         if len(pending) == 1:
             return pending[0]
         keys = sorted(set().union(*[b.data.keys() for b in pending]))
         data = {}
+        axis = -1 if mode == "time" else 0
         for k in keys:
             parts = []
             for b in pending:
@@ -43,16 +56,31 @@ def _batched(blocks, freq: str):
                     parts.append(b.data[k])
                 else:
                     ref = next(iter(b.data.values()))
-                    parts.append(np.full(ref.shape[:-1] + (len(b.times),), np.nan, dtype="f4"))
-            data[k] = np.concatenate(parts, axis=-1)
-        out = Block(pending[0].site_ids, pending[0].times.append([b.times for b in pending[1:]]), data)
-        out.final = getattr(pending[-1], "final", True)
+                    parts.append(np.full(ref.shape, np.nan, dtype="f4"))
+            data[k] = np.concatenate(parts, axis=axis)
+        if mode == "time":
+            out = Block(pending[0].site_ids, pending[0].times.append([b.times for b in pending[1:]]), data)
+            out.final = getattr(pending[-1], "final", True)
+        else:
+            out = Block([s for b in pending for s in b.site_ids], pending[0].times, data)
+            out.final = all(getattr(b, "final", True) for b in pending)
         return out
 
-    n = 0
     for blk in blocks:
-        if pending and (blk.site_ids != pending[0].site_ids or n + len(blk.times) > limit):
-            yield merge()
+        if pending:
+            last = pending[-1]
+            same_sites = blk.site_ids == last.site_ids
+            same_times = len(blk.times) == len(last.times) and blk.times.equals(last.times)
+            nsite = sum(len(b.site_ids) for b in pending)
+            if (mode in (None, "time") and same_sites and len(blk.times)
+                    and chunk_of(blk.times[-1]) == chunk_of(pending[0].times[0])
+                    and getattr(last, "final", True) == getattr(blk, "final", True)):
+                mode = "time"
+            elif (mode in (None, "site") and same_times and not same_sites
+                  and nsite + len(blk.site_ids) <= store.SITE_SHARD):
+                mode = "site"
+            else:
+                yield merge()
             pending, n = [], 0
         pending.append(blk)
         n += len(blk.times)
@@ -144,7 +172,10 @@ def run(name: str, sites: pd.DataFrame, *, t_end: pd.Timestamp | None = None, t_
         w = store.GroupWriter(session, path, product.freq, has_px=True, t_origin=origin)
         finished: dict[str, str] = {}
         n_since, t_commit = 0, time.time()
-        for blk in _batched(product.fetch(sub, sub_st, t0, t_end), product.freq):
+        axis0 = pd.Timestamp(int(w.g["time"][0]), unit="s") if "time" in w.g else None
+        tarr = [a for n, a in w.g.arrays() if (a.metadata.dimension_names or ())[-1:] == ("time",) and n != "time"]
+        tchunk = (tarr[0].shards or tarr[0].chunks)[-1] if tarr else store.time_chunk_for(len(sites), (4,), product.freq)
+        for blk in _batched(product.fetch(sub, sub_st, t0, t_end), product.freq, origin, axis0, tchunk):
             w.write(blk.site_ids, blk.times, blk.data, specs)
             nbytes += sum(a.nbytes for a in blk.data.values())
             for s in blk.site_ids:
