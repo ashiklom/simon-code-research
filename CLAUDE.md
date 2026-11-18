@@ -93,7 +93,8 @@ reasonably be pinned (e.g. CUDA drivers, credentials), list it in the README und
   raw results only when an interactive visualization reads them.
 - Rule of thumb: files over ~4 MB don't go in git. Put them in the release if the site needs
   them; otherwise leave them unpublished. Exceptions are fine; mention them when you make one.
-- If a release isn't possible, the assets repo is a last resort (see "Assets repo" below).
+- Files the site needs that are too big or too many for a release go to S3 (see "S3 / CloudFront"
+  below). The assets repo is a last resort (see "Assets repo" below).
 
 ## Publishing (GitHub Pages)
 
@@ -142,12 +143,47 @@ dest = "figures/fig-results.png"  # path relative to <folder>/
 - Every uploaded asset must appear in `publish.toml`'s `[[assets]]`, and every listed asset
   must exist in the release.
 
+### S3 / CloudFront (large files)
+
+Large site data and analysis stores go to S3. Releases remain the place for small figures and
+outputs listed in `publish.toml`.
+
+- **Buckets.**
+  - `ycgs-use1-public`: public through CloudFront (`$YCGS_PUBLIC_BUCKET_URL`; CORS `*`, byte
+    ranges) and requester-pays on direct S3 access.
+  - `ycgs-aws-misc`: private, for raw downloads/caches that don't need to be public.
+  - Neither bucket's configuration (lifecycle, policy, CORS) is ours to change: it is managed in
+    `ycgs-lab/ycgs-aws-infra`.
+- **Credentials.** AWS profiles in `~/.aws/config`: `ycgs-all-buckets-reader` (default),
+  `ycgs-all-buckets-writer` (writes), `ycgs-cost-monitor` (Cost Explorer, a paid call: use
+  sparingly). The `AWS_ACCESS_KEY_ID` env var is a proxy placeholder that resolves to the reader
+  role, so writers must name the profile (e.g. icechunk `get_credentials` calling
+  `aws configure export-credentials --profile ycgs-all-buckets-writer --format process`).
+- **Layout.** Everything under `s3://ycgs-use1-public/simon-code-research/<folder>/`:
+  - `site-data/<vYYYYMMDD-hash8>/`: immutable site data (`Cache-Control: immutable`). The site
+    pins a version, e.g. `VITE_DATA_BASE=$YCGS_PUBLIC_BUCKET_URL/simon-code-research/<folder>/site-data/<v>`.
+  - `stores/`: Icechunk repos. Document the snapshot ID the results came from in the README.
+  - Private caches: `s3://ycgs-aws-misc/simon-code-research/<folder>/cache/`.
+- **Upload** with `uv run _helpers/publish_s3.py site <folder> <local-dir>` (versioned upload,
+  rewrites `site/.env.production`). `publish_s3.py summary [<folder>]` lists sizes and estimated
+  monthly cost; `publish_s3.py prune <folder> --keep <v>` removes older site-data versions once
+  `main` pins the new one.
+- **Storage class.** Use `INTELLIGENT_TIERING` for everything (aws CLI `--storage-class`,
+  icechunk `StorageSettings(storage_class=...)`).
+- **Ask me before uploading**, as with releases: list the files/stores, sizes, and estimated
+  monthly cost. Split large stores into cost tiers and let me pick.
+- **Warn me before bulk per-object operations of ~100K objects or more** (e.g. an in-place
+  storage-class rewrite or copy), since they cost about $0.50 per 100K requests.
+- CloudFront caches objects for about a day, so never overwrite a key a published site reads:
+  publish a new version instead. Icechunk repos read over HTTPS can show a stale branch tip
+  for that long; open by snapshot ID when it matters.
+
 ### Assets repo (last resort)
 
 [`ashiklom/simon-code-research-assets`](https://github.com/ashiklom/simon-code-research-assets)
 holds big files when the normal options fail. Example: a session that can't create releases, as
 in `climate-product-compare`.
-- **Use it only as a last resort.** Prefer committing small outputs or a release.
+- **Use it only as a last resort.** Prefer committing small outputs, a release, or S3.
 - **Layout.** Put each experiment's files under `<folder>/` in that repo, with a short
   `<folder>/README.md` saying what they are and what reads them.
 - **Pinning.** Pin the experiment to an assets-repo commit, e.g. a site that fetches from
