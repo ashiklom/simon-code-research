@@ -66,6 +66,15 @@ def cmd_obs(a):
             raise SystemExit(f"unknown network {net}")
 
 
+def cmd_cams_store(a):
+    from . import cams_store
+    blocks = None
+    if a.blocks:
+        lo, _, hi = a.blocks.partition("-")
+        blocks = list(range(int(lo), int(hi or lo) + 1))
+    cams_store.build(blocks=blocks, root=a.store, workers=a.workers, log=_log)
+
+
 def cmd_extract(a):
     from . import extract, sites
     from .products import registry
@@ -164,6 +173,10 @@ def main(argv=None):
         s.add_argument("--dry-run", action="store_true")
         s.set_defaults(fn=cmd_extract)
     s = sub.add_parser("status"); s.set_defaults(fn=cmd_status)
+    s = sub.add_parser("cams-store", help="build the global CAMS EAC4 store (global-cams_eac4) from the ADS")
+    s.add_argument("--blocks", default=None, help="31-day block range, e.g. 0-11 (default: all 271)")
+    s.add_argument("--workers", type=int, default=3, help="parallel ADS downloads")
+    s.set_defaults(fn=cmd_cams_store)
     s = sub.add_parser("figures"); s.set_defaults(fn=cmd_figures)
     s = sub.add_parser("sitedata"); s.add_argument("--sites", default="all"); s.set_defaults(fn=cmd_sitedata)
     s = sub.add_parser("metrics")

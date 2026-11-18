@@ -30,7 +30,7 @@ import xarray as xr
 
 from .. import config
 from ..http import get
-from .base import FieldProduct, Grid, Var, sample_field, scale
+from .base import ChunkedStoreProduct, FieldProduct, Grid, Var, sample_field, scale
 
 ADS = "https://ads.atmosphere.copernicus.eu/api"
 M_AIR = 28.9644
@@ -129,42 +129,62 @@ class _CAMS(FieldProduct):
         return Grid(y=lat, x=lon, x_periodic=360.0, lon360=True)
 
 
-class CAMSEAC4(_CAMS):
+class CAMSEAC4(ChunkedStoreProduct):
+    """EAC4 at the sites, read from our global analysis-ready copy (``aqc cams-store``, repo
+    ``global-cams_eac4``), which is built from the ADS. Species are at model level 60 in ug m-3."""
+
     name = "cams_eac4"
     title = "CAMS global reanalysis EAC4"
-    dataset = "cams-global-reanalysis-eac4"
     freq = "3h"
-    dlat = 0.75
     start = pd.Timestamp("2018-01-01")
-    source = "ADS API cams-global-reanalysis-eac4 (CDSAPI_KEY)"
-    notes = "0.75 deg, 3-hourly instantaneous; PM at surface, O3/NO2 at the lowest model level (60); assimilates satellite AOD/O3/NO2/CO only"
+    site_workers = 8
+    source = "ADS cams-global-reanalysis-eac4 (CDSAPI_KEY), via our global Icechunk copy global-cams_eac4"
+    notes = ("0.75 deg, 3-hourly instantaneous; PM at surface, gases and PM components at the lowest model level "
+             "(60); assimilates satellite AOD/O3/NO2/CO only. No nitrate/ammonium; dust < 0.9 um only.")
     variables = {
-        "pm25": Var(["pm2p5"], "pm", "ug m-3", _pm, attrs={"rh_basis": "ambient (CAMS)", "instantaneous": True}),
-        "pm10": Var(["pm10"], "pm", "ug m-3", _pm, attrs={"rh_basis": "ambient (CAMS)", "instantaneous": True}),
-        "o3": Var(["go3"], "ppb", "ppb", _o3, attrs={"level": "model level 60", "instantaneous": True}),
-        "no2": Var(["no2"], "ppb", "ppb", _no2, attrs={"level": "model level 60", "instantaneous": True}),
+        "pm25": Var(["pm25"], "pm", "ug m-3", None, attrs={"rh_basis": "ambient (CAMS)", "instantaneous": True}),
+        "pm10": Var(["pm10"], "pm", "ug m-3", None, attrs={"rh_basis": "ambient (CAMS)", "instantaneous": True}),
+        "o3": Var(["o3"], "ppb", "ppb", None, attrs={"level": "model level 60", "instantaneous": True}),
+        "no2": Var(["no2"], "ppb", "ppb", None, attrs={"level": "model level 60", "instantaneous": True}),
+        "pm25_so4": Var(["pm25_so4"], "spec", "ug m-3", None, attrs={"level": "model level 60"}),
+        "pm25_om": Var(["pm25_om"], "spec", "ug m-3", None, attrs={"level": "model level 60"}),
+        "pm25_bc": Var(["pm25_bc"], "spec", "ug m-3", None, attrs={"level": "model level 60"}),
+        "pm25_ss": Var(["pm25_ss"], "spec", "ug m-3", None, attrs={"level": "model level 60", "desc": "dry, bins 1-2"}),
+        "pm25_du": Var(["pm25_du"], "spec", "ug m-3", None,
+                       attrs={"level": "model level 60", "desc": "dust < 0.9 um (lower bound for PM2.5 dust)"}),
     }
 
+    @functools.cached_property
+    def group(self):
+        import zarr
+
+        from .. import cams_store, store
+
+        repo = store.open_repo(cams_store.NAME, create=False)
+        return zarr.open_group(repo.readonly_session("main").store, mode="r", path=cams_store.PATH)
+
+    def grid(self) -> Grid:
+        g = self.group
+        return Grid(y=g["lat"][:], x=g["lon"][:], x_periodic=360.0, lon360=True)
+
+    def arrays(self):
+        return {k: self.group[k] for k in {s for v in self.variables.values() for s in v.src}}
+
+    @functools.cache
+    def source_times(self):
+        from .. import cams_store
+
+        done = sorted(self.group.attrs.get("blocks_done", []))
+        t = cams_store.times()
+        # only the leading run of finished blocks counts as available
+        n = 0
+        while n < len(done) and done[n] == n:
+            n += 1
+        return t[: min(len(t), n * cams_store.BLOCK)]
+
     def available_end(self) -> pd.Timestamp:
-        return catalogue_end(self.dataset).normalize() + pd.Timedelta(hours=21)
-
-    def blocks(self, t0, t1):
-        return list(pd.date_range(pd.Timestamp(t0).replace(day=1).normalize(), t1, freq="MS"))
-
-    def read_block(self, m, st):
-        end = min(m + pd.offsets.MonthEnd(0), self.available_end().normalize())
-        date = f"{m:%Y-%m-%d}/{end:%Y-%m-%d}"
-        hours = [f"{h:02d}:00" for h in range(0, 24, 3)]
-        lat = self.grid().y
-        t1, raw = _fields(_retrieve(self.dataset, {
-            "variable": ["particulate_matter_2.5um", "particulate_matter_10um"], "date": date, "time": hours,
-            "data_format": "netcdf"}), st, lat)
-        t2, raw2 = _fields(_retrieve(self.dataset, {
-            "variable": ["ozone", "nitrogen_dioxide"], "model_level": ["60"], "date": date, "time": hours,
-            "data_format": "netcdf"}), st, lat)
-        if not t1.equals(t2):
-            raw2 = {k: _align(t2, v, t1) for k, v in raw2.items()}
-        return t1, {**raw, **raw2}
+        t = self.source_times()
+        return t[-1] if len(t) else self.start
 
 
 class CAMSForecast(_CAMS):

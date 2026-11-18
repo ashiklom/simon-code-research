@@ -31,7 +31,7 @@ from . import config, metrics as M, store
 from .products import registry
 
 OUT = config.ROOT / "site" / "public" / "data"
-HOURLY_YEARS = [2023]
+HOURLY_YEARS = list(range(2018, pd.Timestamp.now().year + 1))  # all years (S3 has room)
 HOURLY_VARS = ["pm25", "pm10", "o3", "no2", "pm25_smoke"]
 SPEC = ["so4", "no3", "nh4", "om", "bc", "dust", "ss"]
 SCALE = {"pm25": 10, "pm10": 10, "pm25_frm": 10, "pm25_smoke": 10, "o3": 10, "o3_mda8": 10, "no2": 10,

@@ -23,10 +23,10 @@ function productStyle(p) {
   return { color: css(`--s${(i % 8) + 1}`), dash: i >= 8 ? [6, 4] : null }
 }
 const TIERS = {
-  1: ['US reference (AQS, IMPROVE, CSN)', '--s1'], 2: ['Global reference (embassies, SPARTAN)', '--s2'],
-  3: ['Low-cost sensors (Sensor.Community)', '--s3'], 4: ['Station-remote points', '--s7'],
+  1: ['US reference (AQS, IMPROVE, CSN)', '--s1'], 2: ['Global reference (embassies, SPARTAN, OpenAQ)', '--s2'],
+  3: ['Low-cost sensors (Sensor.Community, AirGradient, AirQo)', '--s3'], 4: ['Station-remote points', '--s7'],
 }
-const OBS_SOURCES = ['AQS', 'AQS-FRM', 'CSN', 'IMPROVE', 'Embassy', 'SPARTAN', 'SensorCommunity']
+const OBS_SOURCES = ['AQS', 'AQS-FRM', 'CSN', 'IMPROVE', 'Embassy', 'SPARTAN', 'SensorCommunity', 'OpenAQ', 'OpenAQ-LC']
 const UG = 'µg m⁻³'
 const VARS = [
   { key: 'pm25', label: 'PM2.5', units: UG, obs: ['pm25', 'pm25_frm'], prod: ['pm25'], hourly: 'pm25' },
@@ -325,9 +325,9 @@ function renderAbout() {
     </table>
     <h2>Sites</h2><ul class="note">
       <li><b>Tier 1</b>: US EPA AQS continuous monitors (PM2.5, PM10, O3, NO2; ≥ 75 % complete in ≥ 4 of 2018–2023; one per 0.25° cell), 24-h FRM PM2.5 filters, and IMPROVE/CSN speciation filters.</li>
-      <li><b>Tier 2</b>: US State Department embassy/consulate PM2.5 monitors (AirNow) and SPARTAN (nephelometer-based hourly PM2.5).</li>
-      <li><b>Tier 3</b>: Sensor.Community low-cost optical sensors, 2023–2024, raw PM2.5 with hours above 75 % RH dropped (a κ-Köhler correction, κ = 0.4, is kept as pm25_kappa; these sensors already read ~40 % low against co-located monitors).</li>
-      <li><b>Tier 4</b>: 92 land points far from known monitors, stratified by region × ACAG PM2.5 class; products vs the median of the others.</li>
+      <li><b>Tier 2</b>: US State Department embassy/consulate PM2.5 monitors (AirNow), SPARTAN (nephelometer-based hourly PM2.5), and 400 government reference monitors outside the US from OpenAQ (≥ 50 km apart, ≤ 30 per country, records from 2021 or earlier).</li>
+      <li><b>Tier 3</b>: Sensor.Community low-cost optical sensors, 2023–2024, raw PM2.5 with hours above 75 % RH dropped (a κ-Köhler correction, κ = 0.4, is kept as pm25_kappa; these sensors already read ~40 % low against co-located monitors); and AirGradient and AirQo sensors from OpenAQ, as published by the provider.</li>
+      <li><b>Tier 4</b>: 89 land points far from known monitors (including every OpenAQ PM2.5 location), stratified by region × ACAG PM2.5 class; products vs the median of the others.</li>
     </ul><p class="note">See the experiment README for methods, caveats and how to reproduce.</p></div>`
 }
 
