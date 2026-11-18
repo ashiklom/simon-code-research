@@ -16,6 +16,12 @@ Every (reader, profile, task) runs in a fresh subprocess; proxy counters give re
 counts and bytes. Outputs: results/read_bench.csv, results/virtual_build.csv,
 results/read_windows.json.
 
+Real (unsimulated) profiles (`real = true` in config/net_profiles.toml: aws_s3_use1, aws_cloudfront)
+read copies of the benchmark granules from a real S3 bucket / CloudFront distribution. They bypass the
+proxy, so their net_* columns (request/byte counters) are empty. Not in the default --profiles;
+need AWS credentials (aws_profile) / the URL env var named in the profile:
+  python scripts/30_bench_read.py --profiles aws_s3_use1,aws_cloudfront --steps virtual,build,read
+
 Usage: python scripts/30_bench_read.py [--profiles a,b] [--sensors modis,viirs] [--reps N]
 """
 
@@ -64,8 +70,9 @@ HDF4_KEYS = ["modis/MYD03.A2023154.2125.061.2023155150831.hdf", "modis/MYD11_L2.
 VENDOR = [str(config.ROOT / "vendor" / "VirtualiZarr"), str(config.ROOT / "vendor" / "kerchunk")]
 
 PROFILES = ["local", "zero_s3", "zero_http", "s3_in_region", "s3_cross_region", "https_earthdata", "nccs_portal"]
+REAL_PROFILES = ["aws_s3_use1", "aws_cloudfront"]  # opt-in: --profiles aws_s3_use1,aws_cloudfront
 REPS = {"local": 3, "zero_s3": 2, "zero_http": 2, "s3_in_region": 3, "s3_cross_region": 3,
-        "https_earthdata": 3, "nccs_portal": 5}
+        "https_earthdata": 3, "nccs_portal": 5, "aws_s3_use1": 3, "aws_cloudfront": 3}
 TIMEOUT_S = 300
 REP_BUDGET_S = 90
 ECO_FULL_READERS = {"h5py_blockcache", "h5py_ros3", "gdal_tuned", "download_then_read", "icechunk_virtual_retry",
@@ -81,11 +88,19 @@ def free(port):
 
 
 # ---------------------------------------------------------------------------------------
+def net_profiles():
+    return R.config.load_toml("net_profiles.toml")["profile"]
+
+
+def sim_profiles():
+    """Simulated profiles in config order (one proxy port each; real profiles get none)."""
+    return [n for n, c in net_profiles().items() if not c.get("real")]
+
+
 def start_services(profiles):
     procs = []
     env = {**os.environ, "PYTHONUNBUFFERED": "1"}
-    net = [p for p in profiles if p != "local"]
-    allp = list(R.config.load_toml("net_profiles.toml")["profile"])
+    allp = sim_profiles()
     proxy = subprocess.Popen([sys.executable, "-m", "swathgeo.netsim", "--config", str(config.CONFIG / "net_profiles.toml"),
                               "--profiles", ",".join(allp), "--files-root", str(config.RAW), "--base-port", str(BASE_PORT)], stdout=subprocess.PIPE, text=True, env=env)
     line = proxy.stdout.readline()
@@ -114,8 +129,8 @@ def upload():
 def access_for(profile, ports):
     if profile == "local":
         return R.Access("local")
-    kind = R.config.load_toml("net_profiles.toml")["profile"][profile]["kind"]
-    return R.Access(kind, ports[profile], profile)
+    cfg = net_profiles()[profile]
+    return R.Access.from_profile(profile, cfg, None if cfg.get("real") else ports[profile])
 
 
 def stats(port, reset=True):
@@ -207,7 +222,9 @@ def _virtual_build_worker(profile, ports, key, parser_name, q):
             url = acc.url(key) if acc.kind != "local" else "file://" + acc.url(key)
             so = {}
             if acc.kind == "s3":
-                so = {"endpoint_url": acc.endpoint, **R.S3_KW, "client_kwargs": {"region_name": "us-west-2"}}
+                so = R.s3fs_kwargs(acc)
+            elif acc.kind == "http" and acc.real:
+                so = R.http_kwargs(acc)
             vds = open_virtual_dataset(url, registry=reg, parser=HDF4Parser(reader_options={"storage_options": so}))
         elif parser_name == "hdf5_scan":
             url = acc.url(key) if acc.kind != "local" else "file://" + acc.url(key)
@@ -225,9 +242,11 @@ def _virtual_build_worker(profile, ports, key, parser_name, q):
 def bench_virtual_build(profiles, ports, reps=2, parsers=None):
     path = config.RESULTS / "virtual_build.csv"
     rows = []
-    if parsers and path.exists():  # re-run only some parsers: keep the other rows
+    if path.exists() and (parsers or any(net_profiles().get(p, {}).get("real") for p in profiles)):
+        # re-run only some parsers / the real profiles: keep the other rows
         old = pd.read_csv(path)
-        rows = old[~old.parser.isin(parsers.split(","))].to_dict("records")
+        redo = old.profile.isin(profiles) & (old.parser.isin(parsers.split(",")) if parsers else True)
+        rows = old[~redo].to_dict("records")
     ctx = mp.get_context("spawn")
     for key in list(VIRTUAL_GROUPS) + HDF4_KEYS:
         for parser_name in (("hdf4_scan_patched", "hdf4_native") if key.endswith(".hdf") else ("hdf5_scan", "dmrpp")):
@@ -409,8 +428,7 @@ def main():
     if "windows" in steps and not (config.RESULTS / "read_windows.json").exists():
         compute_windows()
     if "virtual_hdf4" in steps:  # child process: the proxy already runs in the parent
-        allp = list(R.config.load_toml("net_profiles.toml")["profile"])
-        build_virtual_hdf4(profiles, {n: BASE_PORT + i for i, n in enumerate(allp)})
+        build_virtual_hdf4(profiles, {n: BASE_PORT + i for i, n in enumerate(sim_profiles())})
         return
     procs, ports = start_services(profiles)
     try:

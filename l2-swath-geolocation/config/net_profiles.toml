@@ -73,3 +73,27 @@ stall_prob = 0.01            # TCP RTO / overload stalls [A]
 stall_ms = [1000, 5000]
 error_prob = 0.005           # 502/503/504 under load [A]
 max_concurrent = 10          # per-IP cap by analogy with NCAR RDA [A]
+
+# ---- Real (unsimulated) profiles: no proxy, no injected delays, no request/byte counters. ----
+# Copies of the 6 benchmark granules (+ DMR++ sidecars) in a real bucket; measured from outside
+# AWS (the benchmark container) -> us-east-1, comparable in spirit to s3_cross_region / https_earthdata.
+#   real        skip the netsim proxy for this profile
+#   bucket/prefix/region   S3 location: s3://<bucket>/<prefix>/<file key under data/raw>
+#   aws_profile AWS CLI profile whose credentials are passed explicitly to every library
+#               (`aws configure export-credentials --profile ...`); requester-pays bucket, but the
+#               reader role belongs to the owner account, so no requester-pays header is sent
+#   url_env     HTTP profiles: env var with the base URL (CloudFront in front of the same bucket)
+
+[profile.aws_s3_use1]        # REAL: outside AWS -> S3 us-east-1 (real AWS endpoint)
+kind = "s3"
+real = true
+bucket = "ycgs-use1-public"
+prefix = "simon-code-research/l2-swath-geolocation/granules"
+region = "us-east-1"
+aws_profile = "ycgs-all-buckets-reader"
+
+[profile.aws_cloudfront]     # REAL: outside AWS -> CloudFront -> the same bucket (HTTPS, range GETs)
+kind = "http"
+real = true
+url_env = "YCGS_PUBLIC_BUCKET_URL"
+prefix = "simon-code-research/l2-swath-geolocation/granules"
