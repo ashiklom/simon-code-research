@@ -276,5 +276,7 @@ def hourly(site_table: pd.DataFrame, start=None, end=None, workers: int = 48, lo
                 continue
             if (k + 1) % 20 == 0 or k + 1 == len(rows):
                 log(f"[OpenAQ] {k + 1}/{len(rows)} sites")
-    d = pd.concat(out, ignore_index=True)
+    d = pd.concat([x for x in out if x is not None and len(x)], ignore_index=True)
+    d["time"] = pd.to_datetime(d["time"])  # empty per-site frames make the column object-typed
+    d["value"] = d["value"].astype("f8")
     return {v: g[["site_id", "time", "value"]].reset_index(drop=True) for v, g in d.groupby("var")}

@@ -25,8 +25,10 @@ def cmd_obs(a):
         if net == "aqs":
             from .obs import aqs
             st = sites.load("aqs")
-            for v in ("pm25", "pm10", "o3", "no2"):  # one variable at a time keeps memory bounded
-                ingest.write("AQS", "1h", {v: aqs.hourly(st, v, log=_log)}, store_url=a.store, log=_log)
+            for v in ("pm25", "pm10", "o3", "no2"):  # one variable and 3 years at a time keeps memory bounded
+                for y0 in range(aqs.YEARS[0], aqs.YEARS[-1] + 1, 3):
+                    ys = [y for y in aqs.YEARS if y0 <= y < y0 + 3]
+                    ingest.write("AQS", "1h", {v: aqs.hourly(st, v, years=ys, log=_log)}, store_url=a.store, log=_log)
             frm = aqs.daily_frm(st).rename(columns={"date": "time"})
             ingest.write("AQS", "1d", {"pm25_frm": frm}, attrs={"day": "local standard day"}, store_url=a.store, log=_log)
         elif net == "embassy":
