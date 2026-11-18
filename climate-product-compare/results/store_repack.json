@@ -118,5 +118,13 @@
   "objects_after": 882,
   "bytes": 1240222171,
   "seconds": 227
+ },
+ "products-prism": {
+  "status": "done",
+  "snapshot": "RPZFFB659DCFP9PMTE3G",
+  "objects_before": 51908,
+  "objects_after": 113,
+  "bytes": 38678499,
+  "seconds": null
  }
 }
