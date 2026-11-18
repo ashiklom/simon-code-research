@@ -126,5 +126,29 @@
   "objects_after": 113,
   "bytes": 38678499,
   "seconds": null
+ },
+ "products-merra2": {
+  "status": "done",
+  "snapshot": "M6676X7J5DATRY2WB0KG",
+  "objects_before": 11673,
+  "objects_after": 1844,
+  "bytes": 2632904913,
+  "seconds": 451
+ },
+ "products-era5land": {
+  "status": "done",
+  "snapshot": "F3SMB8ZEPSJ7J3R5R410",
+  "objects_before": 10990,
+  "objects_after": 1744,
+  "bytes": 2689049590,
+  "seconds": 435
+ },
+ "products-era5": {
+  "status": "done",
+  "snapshot": "K5Q5KYAS8SBBZHZ5HP70",
+  "objects_before": 9941,
+  "objects_after": 1560,
+  "bytes": 2750605171,
+  "seconds": 404
  }
 }
