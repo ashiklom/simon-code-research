@@ -65,9 +65,10 @@ def _decode(da: xr.DataArray) -> np.ndarray:
     raw = da.values
     a = da.attrs
     x = raw.astype("f4")
-    for k in ("_FillValue", "missing_value"):
-        if a.get(k) is not None:
-            x[raw == np.asarray(a[k]).astype(raw.dtype)] = np.nan
+    fills = {np.asarray(a[k]).astype(raw.dtype).item() for k in ("_FillValue", "missing_value") if a.get(k) is not None}
+    for fv in fills:
+        x[raw == fv] = np.nan
+    del raw
     if a.get("scale_factor") is not None:
         x *= np.float32(a["scale_factor"])
     if a.get("add_offset") is not None:
@@ -134,15 +135,19 @@ def build(end: pd.Timestamp | None = None, variables: list[str] | None = None, r
                 t = pd.DatetimeIndex(da.day.values)
                 sel = da.isel(day=np.flatnonzero(t.isin(bd)))
                 parts.append(_decode(sel))
-            x = np.concatenate(parts, axis=0)
+            x = parts[0] if len(parts) == 1 else np.concatenate(parts, axis=0)
+            del parts
             if x.shape[0] != len(bd):
                 raise RuntimeError(f"{key}: {x.shape[0]} days in source, expected {len(bd)}")
             var = prod.variables[name]
             if var.convert is not None:  # float32 throughout: a block is ~0.3 G values
                 x = np.asarray(var.convert(**{src: x}), dtype="f4")
             q = store.QUANTA.get(var.kind)
-            if q is not None and not store.lossless():
-                x = (np.round(x / np.float32(q)) * np.float32(q)).astype("f4")
+            if q is not None and not store.lossless():  # in place: no block-sized temporaries
+                q = np.float32(q)
+                np.divide(x, q, out=x)
+                np.round(x, out=x)
+                np.multiply(x, q, out=x)
             g[name][b * BLOCK:b * BLOCK + len(bd)] = x
             if full:  # a partial last block is rewritten on the next build
                 done.add(key)
