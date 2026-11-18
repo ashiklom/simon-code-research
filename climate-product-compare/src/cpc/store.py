@@ -6,8 +6,12 @@ run concurrently. Backend is chosen by the root URL (``--store`` / ``CPC_STORE``
 local path):
 
     file:///abs/path            local filesystem (read/write)
-    s3://bucket/prefix          S3 (read/write; standard AWS env credentials, or anonymous
-                                with ?anonymous=1; ?region=..&endpoint=..&force_path_style=1)
+    s3://bucket/prefix          S3 (read/write; standard AWS env credentials, a named AWS profile
+                                with ?profile=.. or CPC_AWS_PROFILE (refreshed through
+                                `aws configure export-credentials`), or anonymous with
+                                ?anonymous=1; ?region=..&endpoint=..&force_path_style=1
+                                &requester_pays=1&storage_class=INTELLIGENT_TIERING, the last
+                                also from CPC_STORAGE_CLASS)
     https://host/prefix         Icechunk HTTP storage (read-only), e.g. CloudFront over S3
 
 Layout (all arrays Zarr v3, pcodec-compressed):
@@ -76,6 +80,38 @@ def quantize(x: np.ndarray, kind: str | None) -> np.ndarray:
 # --- backends -----------------------------------------------------------------------
 
 
+def _profile_credentials(profile: str):
+    """Credential callback for an AWS CLI profile (e.g. a credential_process profile); icechunk
+    calls it again when the returned credentials expire."""
+    import datetime as dt
+    import json
+    import subprocess
+
+    def get() -> icechunk.S3StaticCredentials:
+        j = json.loads(subprocess.check_output(
+            ["aws", "configure", "export-credentials", "--profile", profile, "--format", "process"]))
+        exp = j.get("Expiration")
+        exp = dt.datetime.fromisoformat(exp.replace("Z", "+00:00")) if exp else None
+        return icechunk.S3StaticCredentials(access_key_id=j["AccessKeyId"], secret_access_key=j["SecretAccessKey"],
+                                            session_token=j.get("SessionToken"), expires_after=exp)
+
+    return get
+
+
+def repo_config(url: str) -> icechunk.RepositoryConfig | None:
+    """Repository config for writes: S3 storage class from ?storage_class= or CPC_STORAGE_CLASS."""
+    u = urlsplit(url)
+    if u.scheme != "s3":
+        return None
+    qs = {k: v[-1] for k, v in parse_qs(u.query).items()}
+    sc = qs.get("storage_class") or os.environ.get("CPC_STORAGE_CLASS")
+    if not sc:
+        return None
+    cfg = icechunk.RepositoryConfig.default()
+    cfg.storage = icechunk.StorageSettings(storage_class=sc)
+    return cfg
+
+
 def storage_from_url(url: str) -> icechunk.Storage:
     u = urlsplit(url)
     qs = {k: v[-1] for k, v in parse_qs(u.query).items()}
@@ -89,8 +125,13 @@ def storage_from_url(url: str) -> icechunk.Storage:
             kw["allow_http"] = ep.startswith("http://")
         if qs.get("force_path_style", "0") == "1":
             kw["force_path_style"] = True
+        if qs.get("requester_pays", "0") == "1":
+            kw["requester_pays"] = True
+        profile = qs.get("profile") or os.environ.get("CPC_AWS_PROFILE")
         if anon:
             kw["anonymous"] = True
+        elif profile:
+            kw["get_credentials"] = _profile_credentials(profile)
         else:
             kw["from_env"] = True
         return icechunk.s3_storage(**kw)
@@ -110,10 +151,10 @@ def open_repo(name: str, root: str | None = None, *, create: bool = True) -> ice
     url = repo_url(root, name)
     st = storage_from_url(url)
     if icechunk.Repository.exists(st):
-        return icechunk.Repository.open(st)
+        return icechunk.Repository.open(st, config=repo_config(url))
     if not create or urlsplit(url).scheme in ("http", "https"):
         raise FileNotFoundError(f"no Icechunk repo at {url}")
-    return icechunk.Repository.create(st)
+    return icechunk.Repository.create(st, config=repo_config(url))
 
 
 def list_repos(root: str | None = None) -> list[str]:
@@ -147,10 +188,10 @@ def copy_store(src_root: str, dst_root: str) -> None:
 def _open_url(url: str, create: bool) -> icechunk.Repository:
     st = storage_from_url(url)
     if icechunk.Repository.exists(st):
-        return icechunk.Repository.open(st)
+        return icechunk.Repository.open(st, config=repo_config(url))
     if not create:
         raise FileNotFoundError(url)
-    return icechunk.Repository.create(st)
+    return icechunk.Repository.create(st, config=repo_config(url))
 
 
 def copy_repo(src: str, dst: str) -> None:
