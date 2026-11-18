@@ -70,5 +70,53 @@
   "objects_after": 392,
   "bytes": 56821875,
   "seconds": 55
+ },
+ "products-geosfp": {
+  "status": "done",
+  "snapshot": "WN6C8T2CZDJ3M1PS9HG0",
+  "objects_before": 5783,
+  "objects_after": 229,
+  "bytes": 182327057,
+  "seconds": 175
+ },
+ "products-hrrr": {
+  "status": "done",
+  "snapshot": "4D1TCRBQRNRCVSZJRGZ0",
+  "objects_before": 5596,
+  "objects_after": 679,
+  "bytes": 852488158,
+  "seconds": 217
+ },
+ "products-nldas2_mosaic": {
+  "status": "done",
+  "snapshot": "AYN5B47EGES5JXG7HB70",
+  "objects_before": 2318,
+  "objects_after": 402,
+  "bytes": 397719462,
+  "seconds": 110
+ },
+ "products-nldas2_vic": {
+  "status": "done",
+  "snapshot": "J7SCQBXPW7FDF9X7V9VG",
+  "objects_before": 2318,
+  "objects_after": 402,
+  "bytes": 459333114,
+  "seconds": 107
+ },
+ "products-nldas2_noah": {
+  "status": "done",
+  "snapshot": "84GJ15PYXVWZGF9KSP00",
+  "objects_before": 6159,
+  "objects_after": 1074,
+  "bytes": 1049684857,
+  "seconds": 268
+ },
+ "products-nldas2_forcing": {
+  "status": "done",
+  "snapshot": "6T9BWTSADTJH3BV4W8Y0",
+  "objects_before": 5123,
+  "objects_after": 882,
+  "bytes": 1240222171,
+  "seconds": 227
  }
 }
