@@ -6,10 +6,12 @@ Adapted from climate-product-compare/src/cpc/export_site.py.
     products.json                   product metadata (title, source, notes, freq, independence)
     summary.json                    medians of metrics across sites (by tier / network / region)
     scales.json                     integer scale per variable
-    site/<id>/daily.parquet         daily LST series: obs + every sub-daily/daily product (bilinear)
-    site/<id>/monthly.parquet       monthly means: obs + every product (incl. monthly-only ACAG/GHAP-m)
-    site/<id>/hourly/<YYYY>.parquet hourly pm25/pm10/o3/no2 (+ smoke) for HOURLY_YEARS
-    site/<id>/metrics.json          this site's metrics (full/common/recent windows, both methods)
+    site/<id>.parquet               ONE file per site (few, larger S3 objects), rows by `scale`:
+        0 daily LST series (t = days since 1970): obs + every sub-daily/daily product (bilinear)
+        2 monthly means (t = days since 1970 of the month start), incl. monthly-only ACAG/GHAP-m
+        1 hourly pm25/pm10/o3/no2 (+ smoke) for HOURLY_YEARS (t = hours since 1970)
+        footer metadata "metrics_gz": this site's metrics (all windows, both methods), JSON,
+        gzipped + base64
 
 Columns are "<source>|<var>"; values are int32 = round(value * SCALE[var]) with
 DELTA_BINARY_PACKED + ZSTD.
@@ -44,17 +46,38 @@ def safe_id(site_id: str) -> str:
     return site_id.replace(":", "_")
 
 
-def _write_parquet(df: pd.DataFrame, path: Path, index_name: str):
-    path.parent.mkdir(parents=True, exist_ok=True)
+SCALE_CODE = {"daily": 0, "hourly": 1, "monthly": 2}
+
+
+def _table(df: pd.DataFrame, code: int) -> pa.Table | None:
+    """int32-scaled '<source>|<var>' columns plus t (int64) and scale (int8); None if empty."""
     df = df[[c for c in df.columns if c.split("|")[1] in SCALE]].dropna(axis=1, how="all").dropna(how="all")
     if df.empty:
-        return False
-    cols = {index_name: pa.array(df.index.values.astype("int32"))}
+        return None
+    cols = {"t": pa.array(np.asarray(df.index.values).astype("int64")),
+            "scale": pa.array(np.full(len(df), code, dtype="int8"))}
     for c in df.columns:
         v = df[c].to_numpy(dtype="f8") * SCALE[c.split("|")[1]]
         ok = np.isfinite(v)
         cols[c] = pa.array(np.where(ok, np.round(v), 0).astype("int32"), mask=~ok)
-    t = pa.table(cols)
+    return pa.table(cols)
+
+
+def _gz_b64(obj) -> str:
+    """Compact JSON, gzipped and base64-encoded (Parquet footer metadata is not compressed)."""
+    import base64
+    import gzip
+
+    return base64.b64encode(gzip.compress(json.dumps(obj, separators=(",", ":"), default=str).encode(), 9)).decode()
+
+
+def _write_site(path: Path, tables: list, meta: dict) -> bool:
+    tables = [t for t in tables if t is not None]
+    if not tables:
+        return False
+    path.parent.mkdir(parents=True, exist_ok=True)
+    t = pa.concat_tables(tables, promote_options="default")
+    t = t.replace_schema_metadata({k: (_gz_b64(v) if k.endswith("_gz") else str(v)) for k, v in meta.items()})
     pq.write_table(t, path, compression="zstd", compression_level=9, use_dictionary=False,
                    column_encoding={c: "DELTA_BINARY_PACKED" for c in t.column_names})
     return True
@@ -148,20 +171,23 @@ def export(sites: pd.DataFrame, metrics: pd.DataFrame, root=None, log=print):
             continue
         d.index = (pd.DatetimeIndex(d.index) - epoch).days
         m.index = (pd.DatetimeIndex(m.index) - epoch).days
-        has_d = _write_parquet(d, OUT / "site" / sid / "daily.parquet", "day")
-        has_m = _write_parquet(m, OUT / "site" / sid / "monthly.parquet", "day")
-        years = []
+        td, tm = _table(d, SCALE_CODE["daily"]), _table(m, SCALE_CODE["monthly"])
+        has_d, has_m = td is not None, tm is not None
+        tables, years = [td, tm], []
         if not h.empty:
             for y in HOURLY_YEARS:
                 hy = h[h.index.year == y]
                 if hy.dropna(how="all").empty:
                     continue
                 hy.index = ((hy.index - epoch) // pd.Timedelta(hours=1)).astype("int64")
-                if _write_parquet(hy, OUT / "site" / sid / "hourly" / f"{y}.parquet", "hour"):
+                th = _table(hy, SCALE_CODE["hourly"])
+                if th is not None:
+                    tables.append(th)
                     years.append(y)
         mm = metrics[metrics.site == s.site_id] if len(metrics) else metrics
         cols = [c for c in keep if c in mm]
-        (OUT / "site" / sid / "metrics.json").write_text(mm[cols].round(3).to_json(orient="records"))
+        mrec = json.loads(mm[cols].round(3).to_json(orient="records")) if len(mm) else []
+        _write_site(OUT / "site" / f"{sid}.parquet", tables, {"metrics_gz": mrec, "site_id": s.site_id})
         site_rows.append({"site_id": s.site_id, "id": sid, "network": s.network, "tier": int(s.tier), "name": s["name"],
                           "lat": round(float(s.lat), 4), "lon": round(float(s.lon), 4), "region": s.region,
                           "setting": s.setting if isinstance(s.setting, str) else "",
