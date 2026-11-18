@@ -174,9 +174,12 @@ outputs listed in `publish.toml`.
   monthly cost. Split large stores into cost tiers and let me pick.
 - **Warn me before bulk per-object operations of ~100K objects or more** (e.g. an in-place
   storage-class rewrite or copy), since they cost about $0.50 per 100K requests.
-- **Read big things through CloudFront, not S3.** Direct S3 GETs from outside AWS cost ~$0.09/GB of
-  egress; S3 -> CloudFront transfer is free and CloudFront's free tier covers 1 TB/month. Icechunk
-  stores open read-only over `https://<cloudfront>/...` (writes still go to `s3://`).
+- **Reading.** Direct S3 GETs from outside AWS cost ~$0.09/GB of egress; S3 -> CloudFront transfer
+  is free and CloudFront's free tier covers 1 TB/month. But the CloudFront distribution has a WAF
+  rate limit ("Request blocked" 403) that bursts of small requests (e.g. reading many Zarr chunks)
+  trip. So: moderate reads (sites, single stores, a few thousand requests) can go through
+  CloudFront (Icechunk opens read-only over `https://<cloudfront>/...`); bulk reads of whole stores
+  (metrics over every site) read S3 directly and accept the egress. Writes always go to `s3://`.
 - **Caching.** CloudFront caches only objects with a `Cache-Control` header (e.g. immutable site
   data, kept for a long time); objects without one (Icechunk's) are fetched from S3 on every
   request, so reads are always current. Never overwrite a cached key a published site reads:
