@@ -292,3 +292,202 @@ Remaining steps, in order:
 - `metrics_all.parquet` covers all 17 products and 264 sites with observations or remote points.
 - The site build passes and the smoke test shows no console errors.
 - README numbers are re-checked against `metrics_all.parquet`.
+
+
+---
+
+# Follow-up plan (2026-11-17): S3 storage, new credentials, volume-limited datasets
+
+Approved in plan mode; shared across air-quality-data-comparison, climate-product-compare,
+aws-emulator-tofu and l2-swath-geolocation. The original plan for this experiment is above.
+
+
+## Context
+
+The session now has credentials it lacked before. All of these were checked with read-only probes:
+- OpenAQ, NEON, AmeriFlux and Earthdata all return 200. The CDS and ADS token works, and ADS shows `cc-by` and `terms-of-use-ads` accepted.
+- AWS works through Cognito `credential_process` profiles in `~/.aws/config`:
+  - `ycgs-all-buckets-reader` is the default profile.
+  - `ycgs-all-buckets-writer` is the "read-write-cost" user.
+  - `ycgs-cost-monitor` covers costs.
+- `ycgs-use1-public` is public in two ways:
+  - Through CloudFront at `$YCGS_PUBLIC_BUCKET_URL`. This sends `ACAO: *` and serves byte ranges (206), so hyparquet and Icechunk HTTP reads work.
+  - Directly on S3 as requester-pays.
+- `ycgs-aws-misc` is private and bucket-owner-pays.
+- Neither bucket has versioning or lifecycle rules.
+
+Experiments this affects:
+- **air-quality-data-comparison (AQ)**
+  - CAMS EAC4 and the CAMS forecast were skipped, because ADS returned 403. Readers exist in `src/aqc/products/cams.py`.
+  - OpenAQ reference monitors, AirGradient and AirQo were skipped for lack of a key. OpenAQ also carries AirQo as a provider, so no separate AirQo token is needed.
+  - Because of that, Tier 2 has only 104 sites and Tier 3 only 60 Sensor.Community sensors.
+  - Site data is 433 MB in 6,688 files in the assets repo, pinned at `d9d0f12`.
+  - Only 2023 is published at hourly resolution, to keep the repo small.
+- **climate-product-compare (CPC)**
+  - NEON (28 towers) and AmeriFlux (13 sites) are wired but have never run.
+    - The code reads `NEON_API_TOKEN` and `AMERIFLUX_EMAIL`.
+    - The environment provides `NEON_API_KEY` and `AMERIFLUX_USER_EMAIL`, so the code must accept both names.
+  - PRISM is 4 km only. A measured 800 m daily file is 19 MB (ppt) or 52 MB (temperature/VPD), about 175 MB per day for 4 core variables. It downloads at about 10 MB/s.
+  - ERA5 lags by a quarter, because the free Earthmover copy is used.
+  - Site data is 576 MB in 1,224 files in the assets repo, pinned at `2a480a7`.
+- Both AQ and CPC already support Icechunk stores on `s3://…` (writes) and `https://…` (CloudFront, reads) via `AQC_STORE` / `CPC_STORE`, `store.py:_storage()`, and `store-copy`.
+  - The original stores (AQ about 15 GB, CPC 13 GB) were local and are **gone**.
+  - Writing them to S3 means re-running extraction.
+- **l2-swath-geolocation**: S3 behaviour was simulated with moto plus a throttling proxy, and the virtual-Zarr Icechunk repos stayed local.
+- **aws-emulator-tofu**: several Cognito-identity → role → S3 findings are marked "unverified against AWS". The org's live Cognito identity pool is the same pattern.
+
+Goal:
+1. Move the site data from the assets repo to S3/CloudFront.
+2. Ingest the newly unblocked sources.
+3. Store the extraction stores durably in S3, at the cost tiers the user picks.
+4. Add a few datasets that volume previously ruled out.
+
+## Storage cost tiers
+
+Prices are for us-east-1:
+- S3 Standard: $0.023/GB-month.
+- Intelligent-Tiering (IT): about $0.004/GB-month after 90 days without access. IT is for stores over 100 GB with chunks of at least 128 KB.
+- CloudFront: the first 1 TB per month is free.
+- Reading a store out of AWS from here costs about $0.09/GB per full read.
+
+| Tier | Contents | Size | $/month |
+|---|---|---|---|
+| 0 | Site data for AQ and CPC (replaces the assets repo), plus the full AQ hourly record and the new sites | 1 GB now, 3–5 GB after | < $0.15 |
+| 1 | Rebuilt site-extract Icechunk stores for AQ and CPC, including new sites and products (~35 GB), raw observation caches in the private bucket (~5–15 GB), and l2-swath granules plus virtual stores (~8 GB) | ~50–60 GB | ~$1.3 |
+| 2a | PRISM 800 m **site extractions only**, common window, in the CPC site store. No CONUS grid. | < 1 GB (in Tier 1) | ~0 |
+| 2b | CAMS EAC4 global gridded store, **complete record 2003-01→2025-12**, 12 AQ surface variables (pm2p5, pm10, go3, no2, so2, co, plus dust, sea salt, OM, BC, sulphate, nitrate at the lowest level), plus a **gridMET full-record CONUS** optimized store | 66–140 GB + 51–75 GB ≈ 120–215 GB | ~$0.5–0.9 idle / $2.8–5 hot |
+| 3 | (not chosen) TB-scale stores | — | — |
+| — | Not stored: PRISM 800 m CONUS grid, PRISM 4 km CONUS grid, the CAMS forecast grid (site extracts only), ERA5, ERA5-Land, HRRR, IMERG, CHIRPS, Daymet and CHELSA grids | | |
+
+**User's choices:**
+- Tiers 0, 1, 2a (site extracts only) and 2b (CAMS EAC4 12 variables full record plus gridMET), all **Intelligent-Tiering**.
+- Total: about 175–280 GB, an estimated **$1–2/month** once idle and up to about $6/month while hot.
+- **CAMS EAC4 estimate:**
+  - 241×480 cells × 67,208 3-hourly steps gives 7.8e9 values per variable.
+  - At an assumed 0.7–1.5 B/value, that is 66–140 GB for 12 variables.
+  - This is the riskiest number. Measure B/value on the first year written, and stop and ask if the full-record projection exceeds 140 GB by more than 50 %.
+  - Fetching it takes about 276 months × 2 ADS requests (surface and model level 60), about 200–300 GB downloaded and streamed. ADS queue time dominates.
+- **CAMS forecast:** site extracts only.
+- **How IT gets applied:**
+  - The aws CLI and `publish_s3.py` upload with `--storage-class INTELLIGENT_TIERING`.
+  - Icechunk writes set `StorageSettings(storage_class="INTELLIGENT_TIERING")`, checked in step 0.
+  - Objects under 128 KB are billed at the Standard rate with no monitoring fee, which is fine.
+  - Fallback if Icechunk can't set it: rewrite the store's storage class in place with the aws CLI.
+  - **Before any in-place storage-class rewrite, or a similar per-object bulk operation, of about 100K objects or more (about $0.50), stop and warn the user.** Count the objects first with `aws s3 ls --summarize`.
+  - I will not change bucket lifecycle or other bucket config, because both buckets are managed by OpenTofu in `ycgs-lab/ycgs-aws-infra`.
+- A size check runs after each upload. If a store would exceed its estimate by more than 50 %, I stop and ask.
+- Full re-run of extraction into S3.
+- **Assets repo:** these two experiments' files stay there untouched. The repo stays documented in CLAUDE.md as a last resort, not deprecated. Its README gets a short note that these two experiments now read from S3, and I ask before pushing that.
+- Both enhancements to the other experiments are included.
+
+## Layout and conventions (new)
+
+- **Public data:** `s3://ycgs-use1-public/simon-code-research/<folder>/`
+  - `site-data/<vYYYYMMDD-hash8>/…` is immutable, with `Cache-Control: public, max-age=31536000, immutable`. The site pins it through `VITE_DATA_BASE=$YCGS_PUBLIC_BUCKET_URL/simon-code-research/<folder>/site-data/<v>`.
+  - `stores/<kind>-<name>.icechunk` holds the Icechunk repos. They pin by snapshot ID, recorded in the README.
+  - `README.md` describes the contents, licences/attribution and readers.
+- **Private data:** `s3://ycgs-aws-misc/simon-code-research/<folder>/cache/…` holds raw downloads, so no redistribution question arises.
+- **Shared helper:** `_helpers/publish_s3.py` (uv inline script) handles uploads.
+  - Uploads use the writer profile and set the content type.
+  - It computes a content-hash version, writes `site/.env.production`, and prints the size, object count and estimated $/month.
+  - With `--prune`, it deletes older `site-data/` versions after the new pin is on `main`.
+  - This replaces both experiments' `scripts/publish_site_data.sh`, through a mise task `publish-site-data`.
+- **Credentials:** the env `AWS_ACCESS_KEY_ID` is a proxy placeholder.
+  - For Icechunk and obstore, run with `AWS_PROFILE=ycgs-all-buckets-writer`, or use `eval "$(aws configure export-credentials --profile … --format env)"`.
+  - Step 0 checks that requester-pays as owner works without `x-amz-request-payer`.
+- **CLAUDE.md:** add an "S3 / CloudFront" section covering the layout above.
+  - Large files go to S3, using Intelligent-Tiering.
+  - Releases stay for small figures.
+  - Ask before uploading, listing files and sizes, as for releases.
+  - Warn before bulk per-object operations of ≥ 100K objects.
+  - Keep "Assets repo (last resort)" as is, with one line saying S3 is preferred over it.
+
+## Work items
+
+### 0. Infrastructure (branch `claude/sharp-cannon-82c4l5`)
+- Install mise.
+- Run a write, read, range and delete probe in a scratch prefix with the aws CLI and with Icechunk.
+- Add `_helpers/publish_s3.py`.
+- Update CLAUDE.md.
+
+### 1. Move site data from the assets repo (Tier 0)
+- `add_repo ashiklom/simon-code-research-assets` (read), then a sparse clone at the pinned SHAs.
+- Upload with `publish_s3.py`.
+- Repoint `.env.production`.
+- Update the "Publishing the site data" README sections and the `publish.toml` comments.
+- Build with `uv run _helpers/build_site.py --only <folder>`, then check in Playwright that the map and a site's time series load from CloudFront.
+- Assets repo: add a README note only, with permission asked before pushing.
+
+### 2. CPC: unblocked sources, PRISM 800 m, ERA5 recent months
+- `src/cpc/obs/neon.py` and `ameriflux.py` accept both env-var names. Run their readers for the first time on 2 sites, fix them, then `cpc obs --networks neon,ameriflux`.
+- ERA5 fill from 2026-07 to the present via the CDS `reanalysis-era5-single-levels-timeseries` point dataset, appended to the `era5` series and flagged in metadata.
+- **gridMET CONUS store (Tier 2b)** goes in `stores/conus-gridmet.icechunk`.
+  - Source: annual per-variable NetCDFs from the gridMET HTTP server, 1979→now. About 50–115 GB downloaded, roughly 3 h.
+  - Same quantization and pcodec as the site store, with (time, y, x) chunks of (366, 64, 64) or larger.
+  - Written one variable-year at a time, staying within the ~30 GB disk allowance. Raw files are deleted after each year.
+  - New code in `src/cpc/conus_store.py`, with the CLI `cpc conus-store gridmet`.
+- Re-extract every product with `CPC_STORE=s3://ycgs-use1-public/simon-code-research/climate-product-compare/stores`.
+  - Field products cost the same regardless of site count, so a full re-run costs about as much as adding sites. Estimate 15–25 h.
+- Then run `metrics`, `figures`, `sitedata` and `publish-site-data`, and update the README key results, data sources, limitations, storage table and Tier 2 counts.
+- **PRISM 800 m site extractions are deferred to the end of the plan** (step 6), because a better cloud-optimized copy may become available.
+
+### 6. Last: PRISM 800 m site extractions (CPC)
+- Before starting, check with the user whether a cloud-optimized copy is now available.
+- Add product `prism800`, with `src/cpc/products/prism.py` parameterised by resolution. Sample the sites only, over the common window, and store nothing gridded.
+- **Fallback source:** the PRISM daily zips, about 175 MB per day for ppt/tmin/tmax/tmean, roughly 450 GB streamed over about 12 h at 10 MB/s.
+  - Use 3–4 parallel downloads.
+  - Each file is read in memory and discarded.
+- Then rerun metrics, sitedata and publish for CPC, and update the README.
+
+### 3. AQ: CAMS, OpenAQ, AirGradient, AirQo, full hourly site data
+- Run CAMS EAC4 and the CAMS forecast with the existing readers.
+  - Fetch the global surface fields by year and month through `cdsapi` against ADS.
+  - Extract the sites for the 4 scored variables.
+  - EAC4 also streams the 12-variable global fields into `stores/global-cams_eac4.icechunk` over the complete record, 2003-01 → 2025-12.
+    - The two products share one pass: each monthly download feeds both.
+    - Raw NetCDFs are deleted after each month.
+    - Chunk sizes are measured on the first year.
+  - The CAMS forecast is site extracts only.
+  - Add the 8 extra EAC4 variables to the component comparisons against IMPROVE/CSN where they match (sulphate, nitrate, OM, BC, dust, sea salt). SO2 and CO are stored but not scored.
+- New `src/aqc/obs/openaq.py`:
+  - The v3 API lists locations (reference monitors, `monitor=true`; AirGradient and AirQo providers).
+  - Hourly data comes from the public `openaq-data-archive` S3 (per-location daily csv.gz), cached privately.
+  - Site selection reuses the existing thinning and record-length rules. The aim is about 400 Tier 2 reference sites outside the US, and about 150 Tier 3 low-cost sites (AirGradient and AirQo plus Sensor.Community).
+- Recompute the Tier 4 "remote" points against the larger monitor set (`src/aqc/remote.py`).
+- Re-extract all products for the expanded site list into `AQC_STORE=s3://…/air-quality-data-comparison/stores`. Estimate 30–40 h.
+- Export hourly parquet for all years, not just 2023. `export_site.py` drops the 800 MB budget.
+- Then run metrics, figures, sitedata and publish, and update the README and site text (CAMS and OpenAQ now included).
+
+### 4. Other experiments (both selected)
+- **l2-swath-geolocation:** upload the granules and virtual Icechunk repos to S3.
+  - Re-run `scripts/30_bench_read.py` against real S3 (us-east-1, from this container) and CloudFront HTTPS, alongside the moto and throttle profiles.
+  - Report measured versus simulated results.
+  - Publish the virtual stores so readers can open them.
+- **aws-emulator-tofu:** add real-AWS spot checks of the Cognito-identity findings through the live org pool. These calls are read-only:
+  - an off-group role is refused;
+  - the reader role is denied `PutObject`;
+  - explicit and implicit deny are enforced on S3.
+  - Record them in `findings.toml` as `aws_verified`.
+  - It cannot deploy API Gateway, Lambda or CloudFront: the roles are scoped to buckets.
+
+### 5. Wrap-up (per experiment, per CLAUDE.md)
+- **PROMPT.md:** in each touched experiment, append a `## Follow-up: S3 + new credentials` entry with this prompt verbatim, plus my AskUserQuestion questions, options and answers.
+- **PLAN.md:** append the approved plan verbatim as a new section, keeping the original experiment plan above it. Update the experiment README as well.
+- **Commits:** PROMPT/PLAN updates go in their own commits.
+- **Long runs** (re-extraction and CONUS stores) run in the background with resumable logs.
+  - Order: CPC first, because it is shorter, then AQ, then the CAMS EAC4 global store, which is bounded by the ADS queue. PRISM 800 m comes last (step 6).
+  - Each finished store is checked with `aws s3 ls --summarize` against its estimate.
+- Run `uv run _helpers/transcript.py -o <folder>/TRANSCRIPT.md`.
+- Update the root README summaries.
+- Make one commit per logical change, prefixed `<folder>: `, and push the branch regularly.
+- At the end: rebase onto `origin/main`, fast-forward `main`, push.
+- Make one Cost Explorer call (`ycgs-cost-monitor`, about $0.01) after the uploads to confirm the S3 line items.
+
+## Verification
+- Step 0 probe passes: write, read, 206 range over CloudFront, delete.
+- `build_site.py --only <folder>` passes for every touched experiment.
+- Playwright on the built `_site`: no failed network requests, and data loads from `d3v5kb9d29awwb.cloudfront.net`.
+- `aws s3 ls --summarize --recursive` per prefix matches the tier budget.
+- Each experiment's `mise run test` passes.
+- The NEON, AmeriFlux, OpenAQ and CAMS readers have unit tests on small real samples.
+- Icechunk stores open read-only over the CloudFront HTTPS URL (`store.py` `https://` backend).
