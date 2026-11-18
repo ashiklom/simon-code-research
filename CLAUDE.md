@@ -174,9 +174,16 @@ outputs listed in `publish.toml`.
   monthly cost. Split large stores into cost tiers and let me pick.
 - **Warn me before bulk per-object operations of ~100K objects or more** (e.g. an in-place
   storage-class rewrite or copy), since they cost about $0.50 per 100K requests.
-- CloudFront caches objects for about a day, so never overwrite a key a published site reads:
-  publish a new version instead. Icechunk repos read over HTTPS can show a stale branch tip
-  for that long; open by snapshot ID when it matters.
+- **Read big things through CloudFront, not S3.** Direct S3 GETs from outside AWS cost ~$0.09/GB of
+  egress; S3 -> CloudFront transfer is free and CloudFront's free tier covers 1 TB/month. Icechunk
+  stores open read-only over `https://<cloudfront>/...` (writes still go to `s3://`).
+- **Caching.** CloudFront caches only objects with a `Cache-Control` header (e.g. immutable site
+  data, kept for a long time); objects without one (Icechunk's) are fetched from S3 on every
+  request, so reads are always current. Never overwrite a cached key a published site reads:
+  publish a new version instead (invalidations are not available to us).
+- **Few, large objects.** Every PUT costs, and objects under 128 KB never leave Intelligent-Tiering's
+  frequent tier. Shard Zarr/Icechunk arrays (e.g. many sites x a long time span per shard), batch
+  writes to whole shards, and pack site data into one file per site rather than many small ones.
 
 ### Assets repo (last resort)
 
