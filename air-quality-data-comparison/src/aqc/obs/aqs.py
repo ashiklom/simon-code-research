@@ -104,22 +104,38 @@ def select_sites(min_years: int = 4, cell_deg: float = 0.25) -> pd.DataFrame:
 def _hourly_year(param: int, year: int, site_ids: set[str]) -> pd.DataFrame:
     cols = ["State Code", "County Code", "Site Num", "POC", "Date GMT", "Time GMT", "Sample Measurement",
             "Units of Measure", "Method Name"]
-    with zipfile.ZipFile(download(f"hourly_{param}_{year}")) as z:
-        d = pd.read_csv(z.open(z.namelist()[0]), usecols=cols, engine="pyarrow",
-                        dtype={"State Code": str, "County Code": str, "Site Num": str, "Date GMT": str,
-                               "Time GMT": str, "Units of Measure": str, "Method Name": str})
-    d["site_id"] = site_id(d)
-    d = d[d.site_id.isin(site_ids)]
-    d["site_id"] = d["site_id"].astype("category")
-    # AQS hours are labelled by their start; stamp at the end of the hour (UTC)
-    d["time"] = pd.to_datetime(d["Date GMT"] + " " + d["Time GMT"]) + pd.Timedelta(hours=1)
-    d["value"] = d["Sample Measurement"] * d["Units of Measure"].map(UNIT_SCALE).fillna(1.0)
-    if param in (88101, 88502):
-        t640 = d["Method Name"].str.contains("T640", na=False)
-        corr = d["Method Name"].str.contains("Corrected", na=False)
-        has_corr = d[t640 & corr].groupby(["site_id", "time"]).size()
+    import pyarrow as pa
+    import pyarrow.csv as pacsv
+
+    strs = ["State Code", "County Code", "Site Num", "Date GMT", "Time GMT", "Units of Measure", "Method Name"]
+    parts = []
+    with zipfile.ZipFile(download(f"hourly_{param}_{year}")) as z, z.open(z.namelist()[0]) as fh:
+        # stream 64 MB blocks and keep only our sites: a year's file is ~10 M rows (several GB in pandas)
+        reader = pacsv.open_csv(fh, read_options=pacsv.ReadOptions(block_size=64 << 20),
+                                convert_options=pacsv.ConvertOptions(include_columns=cols,
+                                                                     column_types={c: pa.string() for c in strs}))
+        for batch in reader:
+            b = batch.to_pandas()
+            b["site_id"] = site_id(b)
+            b = b[b.site_id.isin(site_ids)]
+            if b.empty:
+                continue
+            # numeric-only per block: AQS hours are labelled by their start; stamp at the end (UTC)
+            parts.append(pd.DataFrame({
+                "site_id": b["site_id"].astype("category"),
+                "time": pd.to_datetime(b["Date GMT"] + " " + b["Time GMT"]) + pd.Timedelta(hours=1),
+                "value": (b["Sample Measurement"] * b["Units of Measure"].map(UNIT_SCALE).fillna(1.0)).astype("f4"),
+                "t640": b["Method Name"].str.contains("T640", na=False).values,
+                "corr": b["Method Name"].str.contains("Corrected", na=False).values}))
+    if not parts:
+        return pd.DataFrame(columns=["site_id", "time", "value"])
+    d = pd.concat(parts, ignore_index=True)
+    del parts
+    d["site_id"] = d["site_id"].astype(str).astype("category")
+    if param in (88101, 88502):  # prefer the corrected T640 series where both are reported
+        has_corr = d[d.t640 & d.corr].groupby(["site_id", "time"], observed=True).size()
         key = pd.MultiIndex.from_frame(d[["site_id", "time"]])
-        d = d[~(t640 & ~corr & key.isin(has_corr.index))]
+        d = d[~(d.t640 & ~d.corr & key.isin(has_corr.index))]
     out = d.groupby(["site_id", "time"], observed=True)["value"].mean().reset_index()
     out["value"] = out["value"].astype("f4")
     return out
