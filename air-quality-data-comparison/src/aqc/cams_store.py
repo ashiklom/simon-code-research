@@ -123,7 +123,7 @@ def _download(b: int) -> tuple[Path, Path]:
 
 
 def _open(f: Path) -> xr.Dataset:
-    ds = xr.open_dataset(f, engine="netcdf4")
+    ds = xr.open_dataset(f, engine="netcdf4", cache=False)  # load one variable at a time
     tdim = "valid_time" if "valid_time" in ds.dims else "time"
     ds = ds.rename({tdim: "time"})
     for d in [d for d in ds.dims if d not in ("time", "latitude", "longitude")]:
@@ -136,28 +136,52 @@ def _open(f: Path) -> xr.Dataset:
     return ds
 
 
-def derive(fs: Path, fm: Path) -> tuple[pd.DatetimeIndex, dict[str, np.ndarray]]:
-    with _open(fs) as s, _open(fm) as m:
-        t = pd.DatetimeIndex(s.time.values)
-        if not t.equals(pd.DatetimeIndex(m.time.values)):
-            m = m.reindex(time=s.time)
-        g = lambda ds, v: ds[v].values.astype("f4")  # noqa: E731
-        sp, temp = g(s, "sp"), g(m, "t")
-        rho = (B60 * sp / (RD * temp)).astype("f4")  # kg m-3
-        mmr = lambda *vs: sum(g(m, v) for v in vs) * rho * np.float32(1e9)  # noqa: E731  kg/kg -> ug m-3
-        out = {
-            "pm25": g(s, "pm2p5") * np.float32(1e9),
-            "pm10": g(s, "pm10") * np.float32(1e9),
-            **{k: g(m, src) * np.float32(M_AIR / MW[src] * 1e9) for k, src in
-               (("o3", "go3"), ("no2", "no2"), ("so2", "so2"), ("co", "co"))},
-            "pm25_so4": mmr("aermr11"),
-            "pm25_om": mmr("aermr07", "aermr08"),
-            "pm25_bc": mmr("aermr09", "aermr10"),
-            "pm25_ss": mmr("aermr01", "aermr02") / np.float32(4.3),
-            "pm25_du": mmr("aermr04", "aermr05"),
-            "dust_coarse": mmr("aermr06"),
-        }
-    return t, out
+RECIPES = {  # name -> (dataset 's'|'m', source vars, factor); species are multiplied by air density
+    "pm25": ("s", ["pm2p5"], 1e9), "pm10": ("s", ["pm10"], 1e9),
+    "o3": ("m", ["go3"], M_AIR / MW["go3"] * 1e9), "no2": ("m", ["no2"], M_AIR / MW["no2"] * 1e9),
+    "so2": ("m", ["so2"], M_AIR / MW["so2"] * 1e9), "co": ("m", ["co"], M_AIR / MW["co"] * 1e9),
+    "pm25_so4": ("m*", ["aermr11"], 1e9), "pm25_om": ("m*", ["aermr07", "aermr08"], 1e9),
+    "pm25_bc": ("m*", ["aermr09", "aermr10"], 1e9), "pm25_ss": ("m*", ["aermr01", "aermr02"], 1e9 / 4.3),
+    "pm25_du": ("m*", ["aermr04", "aermr05"], 1e9), "dust_coarse": ("m*", ["aermr06"], 1e9),
+}
+
+
+def _quantize_f4(x: np.ndarray, kind: str) -> np.ndarray:
+    q = store.QUANTA.get(kind)
+    if q is None or store.lossless():
+        return x
+    q = np.float32(q)
+    np.divide(x, q, out=x)
+    np.round(x, out=x)
+    np.multiply(x, q, out=x)
+    return x
+
+
+def derive(fs: Path, fm: Path):
+    """-> (valid times, iterator of (name, float32 (nt, lat, lon) quantized)). One variable in
+    memory at a time (~115 MB each), so a block needs well under 1 GB."""
+    s, m = _open(fs), _open(fm)
+    t = pd.DatetimeIndex(s.time.values)
+    if not t.equals(pd.DatetimeIndex(m.time.values)):
+        m = m.reindex(time=s.time)
+
+    def it():
+        try:
+            rho = (np.float32(B60) * s["sp"].values.astype("f4")) / (np.float32(RD) * m["t"].values.astype("f4"))
+            for name, (src, vs, f) in RECIPES.items():
+                ds = s if src == "s" else m
+                x = ds[vs[0]].values.astype("f4")
+                for v in vs[1:]:
+                    x += ds[v].values.astype("f4")
+                x *= np.float32(f)
+                if src == "m*":
+                    x *= rho
+                yield name, _quantize_f4(x, VARS[name][0])
+        finally:
+            s.close()
+            m.close()
+
+    return t, it()
 
 
 def _layout(g: zarr.Group):
@@ -220,8 +244,9 @@ def build(blocks: list[int] | None = None, root: str | None = None, workers: int
             raise RuntimeError(f"block {b}: times {t[0]}..{t[-1]} ({len(t)}) != {exp[0]}..{exp[-1]} ({len(exp)})")
         s = repo.writable_session("main")
         g = zarr.open_group(s.store, mode="a", path=PATH)
-        for k, x in data.items():
-            g[k][i0:i0 + len(t)] = store.quantize(x, VARS[k][0])
+        for k, x in data:
+            g[k][i0:i0 + len(t)] = x
+            del x
         done = set(g.attrs.get("blocks_done", [])) | {b}
         g.attrs["blocks_done"] = sorted(done)
         s.commit(f"{NAME}: block {b} {t[0]:%Y-%m-%d}..{t[-1]:%Y-%m-%d}")

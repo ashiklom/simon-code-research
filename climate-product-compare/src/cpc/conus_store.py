@@ -57,8 +57,22 @@ def _annual(v: str, year: int) -> xr.DataArray:
                 if k == 4:
                     raise
                 _time.sleep(10 * (k + 1))
-    ds = xr.open_dataset(f, mask_and_scale=True)
+    ds = xr.open_dataset(f, mask_and_scale=False, cache=False)  # packed uint16: decoded per block in float32 (memory)
     return ds[SRC_VAR[v]]
+
+
+def _decode(da: xr.DataArray) -> np.ndarray:
+    raw = da.values
+    a = da.attrs
+    x = raw.astype("f4")
+    for k in ("_FillValue", "missing_value"):
+        if a.get(k) is not None:
+            x[raw == np.asarray(a[k]).astype(raw.dtype)] = np.nan
+    if a.get("scale_factor") is not None:
+        x *= np.float32(a["scale_factor"])
+    if a.get("add_offset") is not None:
+        x += np.float32(a["add_offset"])
+    return x
 
 
 def _drop_old(v: str, keep_years: set[int]):
@@ -118,7 +132,7 @@ def build(end: pd.Timestamp | None = None, variables: list[str] | None = None, r
                 da = _annual(src, y)
                 t = pd.DatetimeIndex(da.day.values)
                 sel = da.isel(day=np.flatnonzero(t.isin(bd)))
-                parts.append(sel.astype("f4").values)
+                parts.append(_decode(sel))
             x = np.concatenate(parts, axis=0)
             if x.shape[0] != len(bd):
                 raise RuntimeError(f"{key}: {x.shape[0]} days in source, expected {len(bd)}")
