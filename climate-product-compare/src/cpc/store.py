@@ -80,22 +80,25 @@ def quantize(x: np.ndarray, kind: str | None) -> np.ndarray:
 # --- backends -----------------------------------------------------------------------
 
 
-def _profile_credentials(profile: str):
-    """Credential callback for an AWS CLI profile (e.g. a credential_process profile); icechunk
-    calls it again when the returned credentials expire."""
+def _profile_credentials_now(profile: str) -> icechunk.S3StaticCredentials:
     import datetime as dt
     import json
     import subprocess
 
-    def get() -> icechunk.S3StaticCredentials:
-        j = json.loads(subprocess.check_output(
-            ["aws", "configure", "export-credentials", "--profile", profile, "--format", "process"]))
-        exp = j.get("Expiration")
-        exp = dt.datetime.fromisoformat(exp.replace("Z", "+00:00")) if exp else None
-        return icechunk.S3StaticCredentials(access_key_id=j["AccessKeyId"], secret_access_key=j["SecretAccessKey"],
-                                            session_token=j.get("SessionToken"), expires_after=exp)
+    j = json.loads(subprocess.check_output(
+        ["aws", "configure", "export-credentials", "--profile", profile, "--format", "process"]))
+    exp = j.get("Expiration")
+    exp = dt.datetime.fromisoformat(exp.replace("Z", "+00:00")) if exp else None
+    return icechunk.S3StaticCredentials(access_key_id=j["AccessKeyId"], secret_access_key=j["SecretAccessKey"],
+                                        session_token=j.get("SessionToken"), expires_after=exp)
 
-    return get
+
+def _profile_credentials(profile: str):
+    """Credential callback for an AWS CLI profile (e.g. a credential_process profile); icechunk
+    pickles it and calls it again when the returned credentials expire."""
+    import functools
+
+    return functools.partial(_profile_credentials_now, profile)
 
 
 def repo_config(url: str) -> icechunk.RepositoryConfig | None:
