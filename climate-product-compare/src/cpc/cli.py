@@ -43,6 +43,12 @@ def cmd_extract(a):
         extract.run(name, sites, t_end=a.t_end, store_url=a.store, dry_run=a.dry_run)
 
 
+def cmd_conus_store(a):
+    from . import conus_store
+
+    conus_store.build(end=a.end, variables=a.var, root=a.store)
+
+
 def cmd_update(a):
     from . import extract
     from .products import registry
@@ -260,6 +266,11 @@ def main(argv=None):
     s = sub.add_parser("storage", help="storage-volume estimates per product (results/storage_estimates.csv)")
     s.add_argument("--measure", action="store_true", help="re-measure full-grid bytes/value (network)")
     s.set_defaults(fn=cmd_storage)
+
+    s = sub.add_parser("conus-store", help="build the analysis-ready CONUS gridMET store (conus-gridmet)")
+    s.add_argument("--var", action="append", help="limit to these variables")
+    s.add_argument("--end", default=None)
+    s.set_defaults(fn=cmd_conus_store)
 
     s = sub.add_parser("store-copy", help="copy the store between backends")
     s.add_argument("src")
