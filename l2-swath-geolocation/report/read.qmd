@@ -54,6 +54,76 @@ readers pay per request — icechunk needs ~3,000 requests for VIIRS lat/lon/LST
 over HTTPS/NCCS because a single unretried 5xx aborts the read; ROS3 takes 185 s for ECOSTRESS in-region
 (4,000 requests). Tuned GDAL is a robust all-rounder (22–84 s for ECOSTRESS).
 
+## Measured on real S3 and CloudFront
+
+The profiles above are simulated. To check them, the 6 benchmark granules (1.18 GB, plus DMR++
+sidecars) were copied to a real bucket in `us-east-1` (`ycgs-use1-public`, Intelligent-Tiering) and
+the whole benchmark was run against it from the benchmark container, which is **outside AWS**,
+through two endpoints:
+
+- **`aws_s3_use1`**: the S3 API, signed requests.
+- **`aws_cloudfront`**: plain HTTPS range GETs through the bucket's CloudFront distribution.
+
+These real runs bypass the proxy, so they have no request or byte counts (2026-11-19, 2–3
+repetitions). A link probe from the same container measured:
+
+| Endpoint | Median time to first byte | One 64 MB range GET |
+|---|---|---|
+| S3 | 70 ms (min 63, p90 90) | 51–88 MB/s |
+| CloudFront | 40 ms | ~24 MB/s |
+
+That latency is close to the simulated cross-region profile (100 ms). S3's per-stream bandwidth is
+close to the simulated in-region profile (58 MB/s).
+
+| Reader (median s) | VIIRS 33 × 33: sim in-region | sim cross-region | **real S3** | **real CloudFront** | ECOSTRESS full: sim in-region | sim cross-region | **real S3** | **real CloudFront** |
+|---|---|---|---|---|---|---|---|---|
+| icechunk virtual refs (+ retry) | 0.55 | 1.18 | **1.10** | **0.84** | fail | 89 | **47** | **36** |
+| h5py ROS3 | 1.8 | 4.9 | 3.6 | 3.5 | 185 | timeout | timeout | fail |
+| h5py + blockcache 8 MiB | 2.3 | 5.4 | 3.3 | 4.6 | 15 | 30 | 20 | 27 |
+| h5py + fsspec defaults | 9.7 | 27 | 8.2 | 6.0 | — | — | — | — |
+| GDAL tuned / defaults | 6.3 / 41 | 13 / 108 | 7.0 / 91 | 10 / 68 | 23 | 50 | 35 | 39 |
+| xarray + h5netcdf (fsspec) | 26 | 54 | 27 | 17 | — | — | — | — |
+| download whole file | 2.1 | 6.5 | 2.4 | 6.9 | 21 | 48 | 22 | 44 |
+
+- **The simulation ranks the readers correctly.** Across all 57 (sensor, task, reader)
+  combinations measured on both, real-S3 medians have a Spearman correlation of 0.97 with the
+  simulated in-region medians and 0.98 with the cross-region ones. For CloudFront the figures are
+  0.93 and 0.94. Counting the two icechunk variants as one reader, the fastest reader matches the
+  in-region simulation in 8 of 9 sensor × task cells on each endpoint.
+  - On S3, the one exception is a near tie: for the MODIS county window, downloading takes 1.14 s
+    and icechunk 1.18 s.
+  - On CloudFront, the exception is the VIIRS full granule, where icechunk wins (5.6 s against
+    7.3 s for a download) because single-stream downloads are slower through CloudFront.
+- **Absolute times fall between the in-region and cross-region profiles.**
+  - Real S3 takes a median 1.25× the in-region time (IQR 0.95–1.9) and 0.60× the cross-region
+    time.
+  - CloudFront takes 1.65× the in-region time and 0.72× the cross-region time.
+  - Windowed reads, which are dominated by request count × latency, sit nearer the cross-region
+    profile. Whole-file reads, which are dominated by bandwidth, sit nearer the in-region profile
+    over S3.
+- **Icechunk hit no transient errors.** Full-granule icechunk reads take thousands of requests
+  and fail in the simulator, because injected 5xx responses are not retried. On the real
+  endpoints they succeeded every time: 36–47 s for ECOSTRESS, versus 22 s to download the file
+  over S3. The no-retry gap is real, but it only bites on links that return 5xx or SlowDown
+  responses, and in this run neither endpoint returned any.
+- **ROS3 works through CloudFront**, because CloudFront serves the file directly instead of
+  redirecting the way Earthdata does. It manages 3.5 s for a window. It still cannot finish a
+  whole ECOSTRESS granule: over S3 it timed out at 300 s, and over CloudFront it failed with a
+  curl error.
+- **fsspec defaults hurt less over HTTPS.**
+  - For windowed reads, h5py and xarray with default settings are 1.0–2.5× faster through
+    CloudFront than through S3, because fsspec's HTTP filesystem uses 5 MiB blocks where s3fs
+    uses 50 MiB.
+  - The simulator shows the same Earthdata-vs-S3 pattern.
+  - Single large downloads go the other way: CloudFront delivers ~24 MB/s per stream, against
+    50–90 MB/s from S3.
+- **Building the references** from DMR++ sidecars takes ~1 s on both endpoints. An HDF5 scan of
+  the ECOSTRESS geolocation file takes 33 s, against 16 s simulated in-region and 41 s
+  cross-region.
+
+These results describe one container on one day. An EC2 instance in `us-east-1` would see the
+in-region profile, and other client locations will differ.
+
 ## Requests and bytes
 
 The proxy counts every request. Requests × latency and bytes ÷ bandwidth explain almost all of
@@ -77,7 +147,7 @@ rbRows = {
               redirects: d3.median(ok, d => d.net_redirects) ?? "",
               error: ok.length < g.length ? String(g.find(d => d.error)?.error ?? "").slice(0, 90) : ""});
   }
-  const order = ["local", "zero_http", "zero_s3", "s3_in_region", "s3_cross_region", "https_earthdata", "nccs_portal"];
+  const order = ["local", "zero_http", "zero_s3", "s3_in_region", "s3_cross_region", "https_earthdata", "nccs_portal", "aws_s3_use1", "aws_cloudfront"];
   return out.sort((a, b) => order.indexOf(a.profile) - order.indexOf(b.profile) || a.reader.localeCompare(b.reader));
 }
 Inputs.table(rbRows, {rows: 25})

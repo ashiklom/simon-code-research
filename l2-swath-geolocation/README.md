@@ -15,7 +15,9 @@ epochs (2013, 2024), this experiment compared:
   model (real LST and a synthetic-truth test).
 * **Part C — read performance** of h5py/fsspec, HDF5 ROS3, xarray, GDAL, download-then-read and
   VirtualiZarr → icechunk virtual references, locally and through a network simulator with S3
-  in-region, S3 cross-region, Earthdata HTTPS (TEA redirects) and NCCS-portal-like profiles.
+  in-region, S3 cross-region, Earthdata HTTPS (TEA redirects) and NCCS-portal-like profiles. These are
+  checked against real measurements of the same granules, read from S3 in us-east-1 and through
+  CloudFront.
 * **Bonus — making MODIS HDF4 work as virtual Zarr**: root-causing and patching VirtualiZarr and
   kerchunk ([`patches/README.md`](patches/README.md)).
 
@@ -42,6 +44,16 @@ epochs (2013, 2024), this experiment compared:
   download-then-read wins. icechunk 2.3 does not retry transient 5xx/SlowDown on virtual chunks, and HDF5
   ROS3 cannot follow Earthdata's 303 redirects. DMR++ sidecars build references in < 2 s vs. 16–120 s
   (264 MB) for scanning the ECOSTRESS file.
+* **Real S3 and CloudFront confirm the simulation.** The benchmark container is outside AWS, about
+  70 ms from S3 in us-east-1.
+  - The measured times rank the readers the way the simulator does: Spearman 0.97–0.98 for S3 and
+    0.93–0.94 for CloudFront.
+  - The times fall between the simulated in-region and cross-region profiles: a median 1.25× the
+    in-region time and 0.6× the cross-region time over S3.
+  - Icechunk virtual references read a VIIRS site window in 1.1 s (S3) or 0.8 s (CloudFront).
+  - With no transient errors on the real links, full-granule icechunk reads also succeeded (ECOSTRESS
+    in 36–47 s, against 22 s to download the file).
+  - ROS3 works through CloudFront, which does not redirect.
 * **MODIS HDF4 as virtual Zarr** failed with stock VirtualiZarr 2.8 / kerchunk 0.2.10 (8 distinct bugs,
   incl. byte-swapped HDF4 floats in kerchunk). Since kerchunk is in maintenance mode, the recommended fix is
   a **native HDF4 reader inside VirtualiZarr** (no kerchunk/fsspec): identical to the HDF4 C library on
@@ -73,6 +85,13 @@ The MODIS virtual-Zarr results need the patched vendored libraries:
 An Earthdata Login account (downloads only); ~15 GB of free disk; local ports 18000–18010 for the
 network simulator. Timings were measured in a 4-vCPU / 16 GB Linux container; the network
 profiles are simulated (see the Part C methods page for sources and assumptions).
+
+The real-endpoint run (`mise run readbench-real`) also needs:
+- the granule copies in `s3://ycgs-use1-public/simon-code-research/l2-swath-geolocation/granules/`
+  (1.18 GB, Intelligent-Tiering; served through CloudFront at `$YCGS_PUBLIC_BUCKET_URL`);
+- AWS credentials for the `ycgs-all-buckets-reader` profile.
+
+Its results describe one container, outside AWS, on 2026-11-19.
 
 ## Layout
 
