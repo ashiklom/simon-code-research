@@ -93,6 +93,41 @@ The real-endpoint run (`mise run readbench-real`) also needs:
 
 Its results describe one container, outside AWS, on 2026-11-19.
 
+## Published granules and virtual stores
+
+The 6 benchmark granules are copied, with their DMR++ sidecars, under
+`s3://ycgs-use1-public/simon-code-research/l2-swath-geolocation/granules/` (1.18 GB). They are
+served through CloudFront at `$YCGS_PUBLIC_BUCKET_URL/simon-code-research/l2-swath-geolocation/granules/`.
+
+The **virtual Icechunk stores** that point at those CloudFront copies are under
+`stores/virtual-cloudfront/<sensor>__<file>/` (434 KB in total). Anyone can open them read-only
+over HTTPS, with no credentials, and read only the chunks they need:
+
+```python
+import icechunk, xarray as xr
+base = "https://d3v5kb9d29awwb.cloudfront.net/simon-code-research/l2-swath-geolocation"
+repo = icechunk.Repository.open(
+    icechunk.http_storage(f"{base}/stores/virtual-cloudfront/viirs__VNP03MOD.A2023154.2012.002.2023155044803.nc"),
+    authorize_virtual_chunk_access=icechunk.containers_credentials({f"{base}/granules/": None}))
+ds = xr.open_zarr(repo.readonly_session("main").store, group="geolocation_data", consolidated=False)
+ds.latitude[1500:1533, 1500:1533].values   # ~3 s from outside AWS
+```
+
+Checked with icechunk 2.3.1, the version pinned in `pixi.lock`. The `main` snapshots:
+
+| Store | Snapshot |
+|---|---|
+| `ecostress__ECOv002_L1B_GEO_27837_005_20230603T202541_0711_02.h5` | `4P7F4W1QGDCRDYYPAEMG` |
+| `ecostress__ECOv002_L2_LSTE_27837_005_20230603T202541_0711_03.h5` | `4B52H50D9TPH410YJFVG` |
+| `modis__MYD03.A2023154.2125.061.2023155150831.hdf` | `CZHW4F8CK17X305SWWQG` |
+| `modis__MYD11_L2.A2023154.2125.061.2023155175206.hdf` | `RZSZZVMP9HK1H1BX3WJ0` |
+| `viirs__VNP03MOD.A2023154.2012.002.2023155044803.nc` | `KXG8YK0HNFCNP0B0HWGG` |
+| `viirs__VNP21.A2023154.2012.002.2023156230312.nc` | `WCA6R1SBTRZ6075154Y0` |
+
+The MODIS HDF4 stores were built with the patched parser (see `patches/`); reading them only
+needs icechunk. The granules are NASA data (LP DAAC, LAADS), redistributed here unchanged for
+the benchmark.
+
 ## Layout
 
 `src/swathgeo/` (library: readers, analytic model, locators, footprints, PSF, network simulator),

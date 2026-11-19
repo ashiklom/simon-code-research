@@ -489,6 +489,9 @@ for 305 sites) are not committed here. They live in the public S3 bucket `ycgs-u
 - **NEON and AmeriFlux** use the networks' own QC flags only. The NEON reader takes the
   lowest single-aspirated temperature level and skips soil sensors. Tower sensors sit above
   or within canopies, so they are not always comparable with a 2 m screen height.
+- **PRISM is the 4 km product only.** Site extracts of PRISM 800 m were planned (storage
+  Tier 2a) but are skipped for now (2026-11). Without a cloud-optimized copy, it would mean
+  streaming the daily 800 m zips: about 450 GB for the common window, roughly 12 h.
 - **USCRN is not an independent reference** for PRISM, Daymet and HRRR, which ingest it.
   gridMET inherits PRISM's temperature and precipitation. Treat their USCRN skill as an
   upper bound.
