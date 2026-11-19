@@ -39,9 +39,16 @@ SRC_VAR = {"tmmx": "air_temperature", "tmmn": "air_temperature", "pr": "precipit
 CACHE = config.DATA / "cache" / "gridmet_annual"
 
 
-def _annual(v: str, year: int) -> xr.DataArray:
+def _annual(v: str, year: int, need_last: pd.Timestamp | None = None) -> xr.DataArray:
+    """Annual source file (cached). The current year's file grows daily: a cached copy that
+    ends before `need_last` is downloaded again."""
     CACHE.mkdir(parents=True, exist_ok=True)
     f = CACHE / f"{v}_{year}.nc"
+    if f.exists() and need_last is not None:
+        with xr.open_dataset(f, cache=False) as ds:
+            stale = pd.Timestamp(ds.day.values[-1]) < need_last
+        if stale:
+            f.unlink()
     if not f.exists():
         tmp = f.with_suffix(".part")
         for k in range(5):
@@ -129,16 +136,22 @@ def build(end: pd.Timestamp | None = None, variables: list[str] | None = None, r
             if key in done:
                 continue
             years = sorted(set(bd.year))
-            parts = []
+            parts, got = [], []
             for y in years:
-                da = _annual(src, y)
+                da = _annual(src, y, need_last=min(bd[-1], pd.Timestamp(f"{y}-12-31")))
                 t = pd.DatetimeIndex(da.day.values)
-                sel = da.isel(day=np.flatnonzero(t.isin(bd)))
-                parts.append(_decode(sel))
+                idx = np.flatnonzero(t.isin(bd))
+                got.extend(t[idx])
+                parts.append(_decode(da.isel(day=idx)))
             x = parts[0] if len(parts) == 1 else np.concatenate(parts, axis=0)
             del parts
             if x.shape[0] != len(bd):
-                raise RuntimeError(f"{key}: {x.shape[0]} days in source, expected {len(bd)}")
+                # the newest days of a variable can lag `end` (variables update separately): pad the
+                # partial last block with NaN; it is rewritten on the next build
+                if full or list(got) != list(bd[:len(got)]):
+                    raise RuntimeError(f"{key}: {x.shape[0]} days in source, expected {len(bd)}")
+                log(f"[{NAME}] {key}: source ends {got[-1]:%Y-%m-%d}; {len(bd) - len(got)} trailing day(s) left NaN")
+                x = np.concatenate([x, np.full((len(bd) - len(got),) + x.shape[1:], np.nan, "f4")], axis=0)
             var = prod.variables[name]
             if var.convert is not None:  # float32 throughout: a block is ~0.3 G values
                 x = np.asarray(var.convert(**{src: x}), dtype="f4")
