@@ -7,13 +7,14 @@ far more CPU (each worker imports numpy/h5py/xarray) than the work itself.
 
 from __future__ import annotations
 
-import atexit
 import multiprocessing as mp
 import os
+import threading
 from collections import deque
 from concurrent.futures import ProcessPoolExecutor
 
 _POOLS: dict[int, ProcessPoolExecutor] = {}
+_ALL: list[ProcessPoolExecutor] = []  # every pool created, including ones replaced after a worker died
 
 
 def _pool(workers: int) -> ProcessPoolExecutor:
@@ -29,13 +30,36 @@ def _pool(workers: int) -> ProcessPoolExecutor:
         # never preload aqc/icechunk here: its runtime threads do not survive fork
         ctx.set_forkserver_preload(["numpy", "h5py", "pandas", "fsspec", "aiohttp"])
         _POOLS[workers] = ProcessPoolExecutor(workers, mp_context=ctx)
+        _ALL.append(_POOLS[workers])
     return _POOLS[workers]
 
 
-@atexit.register
-def _shutdown():
-    for p in _POOLS.values():
-        p.shutdown(cancel_futures=True)
+def shutdown():
+    """Stop every pool without waiting, terminating its (idle) workers.
+
+    concurrent.futures' own exit hook joins each executor's manager thread; a manager whose
+    pool was abandoned after a worker died can wait forever for results that never come, which
+    hung `cpc update` at exit after all its work was committed. Terminated workers make every
+    manager thread exit, so that join returns at once.
+    """
+    for p in _ALL:
+        procs = list((getattr(p, "_processes", None) or {}).values())
+        try:
+            p.shutdown(wait=False, cancel_futures=True)
+        except Exception:
+            pass
+        for proc in procs:
+            try:
+                proc.terminate()
+            except Exception:
+                pass
+    _ALL.clear()
+    _POOLS.clear()
+
+
+# threading's exit hooks run in reverse registration order: this one runs before
+# concurrent.futures.process._python_exit (registered when that module was imported above).
+threading._register_atexit(shutdown)
 
 
 def process_map(fn, items, workers: int, ahead: int | None = None, timeout: float = 900, retries: int = 3):
