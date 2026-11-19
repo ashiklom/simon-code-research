@@ -220,11 +220,128 @@ Not done, and raised in the final message:
 
 ---
 
-# Follow-up plan (2026-11-17): S3 storage, new credentials, volume-limited datasets
+# Follow-up plan (2026-11-17, latest approved version 2026-11-19): S3 storage, new credentials, volume-limited datasets
 
 Approved in plan mode; shared across air-quality-data-comparison, climate-product-compare,
 aws-emulator-tofu and l2-swath-geolocation. The original plan for this experiment is above.
+The restart sections at the top were approved later; earlier versions are in git history.
 
+## Second restart (2026-11-19 01:15 UTC)
+
+The approved plan and the queue below are unchanged. The restart killed every process: `queue.sh` (partway through `cpc_daymet`), `cams_loop.sh`, and the waiter.
+
+**State.** These steps are done: `aq_obs_lowcost`, `cpc_geosfp`, `cpc_prism`, `cpc_gridmet` and `cpc_chelsa`. The repo is clean at `8027128`.
+
+**CAMS EAC4 global store.** It is still at 44 of 271 blocks.
+- The surface files for groups `b176-178` and `b179-181` (2.1 GB) are on local disk, so they don't need downloading again.
+- Their two model-level requests (`00cfc52e…`, `df6df572…`) are still queued at ADS, but nothing is waiting on them.
+- On a restart, `_download` submits fresh requests, which go to the back of a 3–4 hour ADS queue. That wait comes on every restart.
+
+### Steps
+1. **Reattach to ADS jobs** (`air-quality-data-comparison/src/aqc/products/cams.py` `_retrieve`, used by `cams_store._download`):
+   - Before submitting, look for an ADS job created in the last 3 days, with status accepted, running or successful, whose request equals ours. The lookup uses read-only GETs:
+     - list them with `GET {ADS}/retrieve/v1/jobs?limit=50`;
+     - read each job's request with `GET …/jobs/{id}?request=true`.
+   - If one matches, wait on it and download its result with `ecmwf.datastores.Client.get_remote(id)` (already installed as `ecmwf_datastores_client` 0.6.0). Only if none matches, submit a new request.
+   - Delete the 0-byte `*.download` temp files left behind by killed runs.
+   - Add a unit test for the matching logic (no network).
+   - Commit as `air-quality-data-comparison: CAMS reattaches to queued ADS jobs after a restart`.
+2. **Restart the CAMS store.** Run `cams_loop.sh` in the background. It should reattach to `00cfc52e`/`df6df572` and write blocks 176–181.
+3. **Restart the queue.** Run `queue.sh` in the background. It resumes at `cpc_daymet`, and Daymet resumes from its S3 state.
+4. **Re-arm the watcher.** Run `wait_event.sh` in the background with the 2-hour timeout. After this, continue with "Remaining work" below.
+   - If restarts keep happening, also schedule a check-in with `send_later` (~90 min) that restarts any dead job.
+
+Credentials survived the restart: `CDSAPI_KEY` is in the environment, and `~/.aws/config` and mise are present. `~/.cdsapirc` is gone but isn't used.
+
+## Resumption after the container restart (2026-11-18)
+
+The approved plan below still stands. This section covers the progress so far and changes how the remaining long runs are scheduled.
+
+### Status
+
+All of it is committed and pushed to `claude/sharp-cannon-82c4l5`, or written to S3.
+
+**Done**
+- **Step 0: infrastructure.** `_helpers/publish_s3.py`, the CLAUDE.md S3 section, and S3 store backends that take a profile and an Intelligent-Tiering storage class.
+- **Step 1: site data on S3.** Both sites read from CloudFront and were checked in a browser. Parquet files are fetched whole because CloudFront drops the CORS header on 206 responses.
+- **aws-emulator-tofu real-AWS spot checks.** These found one new difference.
+- **l2-swath real profiles.** The code is written and smoke-tested, and 1.18 GB of granules are on S3. The timed run has not been done.
+- **PROMPT.md and PLAN.md** are updated in all four experiments.
+- **Climate observations**, all 8 networks: NEON 28 and AmeriFlux 13 for the first time, plus SCAN, SNOTEL, SURFRAD, ISUSM and USCRN.
+- **Climate products, 12 of 17:**
+  - ERA5, with ERA5T filled to 2026-11-08
+  - ERA5-Land, MERRA-2, HRRR, IMERG Late, CHIRPS
+  - all 4 NLDAS-2 products
+- **Air-quality observations:**
+  - OpenAQ: 400 reference monitors + 110 low-cost sensors
+  - AQS hourly, AirNow, SPEC, Embassy, SPARTAN
+- **Air-quality site selection:** OpenAQ sites added and remote points resampled (results/sites).
+
+**Partial; all of these resume**
+
+| Job | Done so far | Left |
+|---|---|---|
+| Climate GEOS-FP | to 2026-06 | ~5 months |
+| Climate PRISM 4 km | to 2013-01 | ~14 years |
+| gridMET CONUS store | 7 of 9 variables, wind 23/47 blocks | rest of wind, vpd |
+| CAMS EAC4 global store | 41 of 271 blocks, ~0.3 GB each | 230 blocks (~70 GB more) |
+| Air-quality MERRA-2 | 2,178 sites to 2019-03 | rest of record |
+
+**Not started**
+- Climate: gridMET, CHELSA, Daymet, IMERG Final daily and half-hourly site extracts.
+- Air quality:
+  - Sensor.Community observations
+  - the AQS daily FRM group (check whether it exists)
+  - 14 products: MERRA-2 CNN and GMI, GEOS-CF v1/v2, GEOS-FP aerosol, NAQFC raw and bias-corrected, HAQES, HRRR-Smoke, ACAG, GHAP and GHAP monthly, CAMS forecast, CAMS EAC4 (sites, read from the store).
+- Everything after extraction:
+  - metrics, figures, site data and publishing for both experiments
+  - README and root-README updates
+  - the timed l2-swath benchmark and its report
+  - PRISM 800 m (step 6: ask first)
+  - TRANSCRIPT.md, merge to `main`, and the Cost Explorer check
+
+### Lessons, and the scheduling change
+
+- **Running jobs in parallel was the bottleneck.** This container has 4 cores and a ~15 GB memory cgroup.
+  - About 8 concurrent jobs caused about 15 OOM kills.
+  - Throughput dropped 2–10×: PRISM ran at 0.6 instead of 6 files/s, and air-quality MERRA-2 at about 17 minutes per month.
+- **Memory fixes already committed:**
+  - streamed AQS CSV
+  - batched OpenAQ
+  - CAMS and gridMET builders that work per variable or in place
+  - per-site read retries
+- **New rule:** run at most one CPU- or memory-heavy job at a time, plus at most one light network-bound job alongside it (the CAMS store, ~1.7 GB).
+- A container restart kills all processes, but every job resumes from S3 state. So the queue just reruns idempotent commands.
+
+### Remaining work
+
+1. **Queue runner.** Write a resumable queue script in the scratchpad that runs each step through the existing memory-gated `retry.sh`. The order:
+   1. Air-quality `obs --networks lowcost`, then confirm the AQS 1d group exists.
+   2. Finish the climate products, one at a time: `cpc update geosfp prism gridmet chelsa daymet imerg_final_daily imerg_final_hh`.
+   3. The rest of `cpc conus-store`.
+   4. The air-quality products, one `aqc extract <product> --sites all` at a time, ordered MERRA-2 family, GEOS-CF v1/v2, GEOS-FP aerosol, HRRR-Smoke, NAQFC raw/bias-corrected, HAQES, ACAG, GHAP, GHAP monthly, CAMS forecast. CAMS EAC4 sites go last, after the store is done.
+   - **Alongside it:** `aqc cams-store --workers 2`, with its memory fix and its own retry loop.
+   - **Rough estimates with one heavy job at a time:** climate remainder ~1 day; air-quality products ~2–3 days; the CAMS store (ADS-bound) ~1–1.5 days, finishing ahead of the AQ products.
+   - **Tracking:** one Monitor per active step; re-arm on expiry.
+2. **Climate experiment, as soon as its products are done** (no need to wait for air quality):
+   - `cpc lags`, `metrics`, `figures`, `storage` and `sitedata`
+   - `publish-site-data`: Tier 0, already approved, and size-checked before upload
+   - README updates: NEON/AmeriFlux results, ERA5T, data sources, limitations, storage table, S3 store section with snapshot IDs and the gridMET CONUS store
+   - build, browser check, then prune the old site-data version
+3. **l2-swath timed run.** Run `mise run readbench-real` while nothing heavy is running, for example between climate and air-quality phases. Then add measured-vs-simulated results to the report and README, and upload the virtual stores (~MB).
+4. **Air-quality experiment, after its products are done:**
+   - metrics including OpenAQ tiers and CAMS species, figures, key tables
+   - `sitedata` with all hourly years; size-check against the 3–5 GB Tier 0 estimate before upload
+   - publish, then README and site text updates
+5. **Step 6: PRISM 800 m.** Ask the user first whether a cloud-optimized copy is available.
+6. **Wrap-up**, as in step 5 below:
+   - TRANSCRIPT.md per experiment with `--redact` for the CDS key
+   - root README
+   - assets-repo README note: ask before pushing
+   - one Cost Explorer call
+   - rebase, fast-forward `main`, push
+
+**S3 note:** there are ~298k objects so far, mostly small Icechunk snapshot, manifest and transaction files. PUT requests so far cost roughly $1.5, a one-off. Compaction during extraction removes superseded objects, and deletes are free. There is no bulk per-object rewrite planned.
 
 ## Context
 
