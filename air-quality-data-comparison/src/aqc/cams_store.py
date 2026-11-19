@@ -95,34 +95,42 @@ def block_days(b: int) -> tuple[pd.Timestamp, pd.Timestamp]:
     return d0, min(d0 + pd.Timedelta(days=DAYS - 1), T1.normalize())
 
 
+def _fetch(f: Path, req: dict) -> Path:
+    if f.exists():
+        return f
+    paths = None
+    for k in range(4):
+        try:
+            paths = cams._retrieve(DATASET, req)
+            break
+        except Exception:
+            if k == 3:
+                raise
+            _time.sleep(60 * (k + 1))
+    if len(paths) == 1:
+        paths[0].rename(f)
+    else:  # several NetCDFs in the zip: merge
+        with xr.open_mfdataset(paths, combine="by_coords", compat="override") as ds:
+            ds.load().to_netcdf(f)
+        for p in paths:
+            p.unlink(missing_ok=True)
+    return f
+
+
 def _download(bs: list[int]) -> tuple[Path, Path]:
     """One ADS request per file type for a run of consecutive blocks (the ADS queue, hours per
-    request, dominates; larger requests mean fewer waits)."""
+    request, dominates; larger requests mean fewer waits). The surface and model-level requests
+    are submitted together, so a group waits through the queue once, not twice."""
+    from concurrent.futures import ThreadPoolExecutor
+
     CACHE.mkdir(parents=True, exist_ok=True)
     d0, d1 = block_days(bs[0])[0], block_days(bs[-1])[1]
-    date = f"{d0:%Y-%m-%d}/{d1:%Y-%m-%d}"
-    out = []
-    for tag, req in (("sfc", {"variable": list(SFC)}), ("ml", {"variable": list(ML), "model_level": ["60"]})):
-        f = CACHE / f"b{bs[0]:03d}-{bs[-1]:03d}_{tag}.nc"
-        if not f.exists():
-            paths = None
-            for k in range(4):
-                try:
-                    paths = cams._retrieve(DATASET, {**req, "date": date, "time": HOURS, "data_format": "netcdf"})
-                    break
-                except Exception:
-                    if k == 3:
-                        raise
-                    _time.sleep(60 * (k + 1))
-            if len(paths) == 1:
-                paths[0].rename(f)
-            else:  # several NetCDFs in the zip: merge
-                with xr.open_mfdataset(paths, combine="by_coords", compat="override") as ds:
-                    ds.load().to_netcdf(f)
-                for p in paths:
-                    p.unlink(missing_ok=True)
-        out.append(f)
-    return out[0], out[1]
+    common = {"date": f"{d0:%Y-%m-%d}/{d1:%Y-%m-%d}", "time": HOURS, "data_format": "netcdf"}
+    reqs = [(CACHE / f"b{bs[0]:03d}-{bs[-1]:03d}_{tag}.nc", {**req, **common})
+            for tag, req in (("sfc", {"variable": list(SFC)}), ("ml", {"variable": list(ML), "model_level": ["60"]}))]
+    with ThreadPoolExecutor(2) as ex:
+        fs, fm = ex.map(lambda a: _fetch(*a), reqs)
+    return fs, fm
 
 
 PRIORITY = (pd.Timestamp("2018-01-01"), pd.Timestamp("2025-12-31"))  # the site-comparison window first
