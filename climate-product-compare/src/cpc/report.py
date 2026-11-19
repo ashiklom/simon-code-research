@@ -86,17 +86,17 @@ def write_pilot_report():
 
 
 def store_table() -> pd.DataFrame:
-    """Final on-disk size per repo, sites, stored values and bytes per value (results/store_sizes.csv)."""
+    """Final stored size per repo (local or s3:// root), sites, stored values and bytes per value (results/store_sizes.csv)."""
     import zarr
 
     from . import store
     from .products import registry
 
     rows = []
-    for d in sorted((config.DATA / "store").glob("*.icechunk")):
-        name = d.name.removesuffix(".icechunk")
+    for name, size in store.repo_bytes().items():
         kind, _, n = name.partition("-")
-        size = sum(p.stat().st_size for p in d.rglob("*") if p.is_file())
+        if kind not in ("products", "obs"):  # e.g. conus-gridmet: a gridded store, not site series
+            continue
         freq = registry.get(n).freq if kind == "products" else "1h"
         path = store.group_path(kind, n, freq)
         g = zarr.open_group(store.readonly(kind, n).store, mode="r", path=path)

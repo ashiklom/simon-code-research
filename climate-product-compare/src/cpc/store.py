@@ -174,6 +174,8 @@ def list_repos(root: str | None = None) -> list[str]:
 
         p = Path(u.path or root)
         return sorted(d.name.removesuffix(".icechunk") for d in p.glob("*.icechunk")) if p.exists() else []
+    if u.scheme == "s3":
+        return sorted(repo_bytes(root))
     from .products import registry
 
     names = [f"products-{n}" for n in registry.names()] + ["obs-USCRN"]
@@ -184,6 +186,32 @@ def list_repos(root: str | None = None) -> list[str]:
             out.append(n)
         except Exception:
             pass
+    return out
+
+
+def repo_bytes(root: str | None = None) -> dict[str, int]:
+    """Total object bytes per repo under a local or s3:// root (one listing per root)."""
+    root = root or config.store_url()
+    u = urlsplit(root)
+    if u.scheme in ("", "file"):
+        from pathlib import Path
+
+        p = Path(u.path or root)
+        return {d.name.removesuffix(".icechunk"): sum(f.stat().st_size for f in d.rglob("*") if f.is_file())
+                for d in sorted(p.glob("*.icechunk"))}
+    if u.scheme != "s3":
+        raise ValueError(f"repo sizes need a file:// or s3:// root, not {u.scheme}://")
+    import s3fs
+
+    q = {k: v[-1] for k, v in parse_qs(u.query).items()}
+    fs = s3fs.S3FileSystem(profile=q.get("profile") or os.environ.get("CPC_AWS_PROFILE"), anon=q.get("anonymous") == "1")
+    out: dict[str, int] = {}
+    prefix = f"{u.netloc}{u.path}".rstrip("/") + "/"
+    for key, info in fs.find(prefix, detail=True).items():
+        repo = key[len(prefix):].split("/", 1)[0]
+        if repo.endswith(".icechunk"):
+            name = repo.removesuffix(".icechunk")
+            out[name] = out.get(name, 0) + int(info.get("size") or 0)
     return out
 
 
