@@ -18,7 +18,8 @@ and compared with station observations at hourly, daily and monthly scales:
 - **Extraction.** Every product is sampled on the 2×2 pixel stencil around each site, so
   both nearest-pixel and bilinear values are available.
 - **Storage.** The extracted series live in per-product Icechunk repositories, quantized
-  and pcodec-compressed. A static website lets you click any site and compare its series.
+  and pcodec-compressed, in a public S3 bucket (see "Stores on S3"). A static website lets
+  you click any site and compare its series.
 
 Site: https://ashiklom.github.io/simon-code-research/climate-product-compare/
 
@@ -40,7 +41,7 @@ bilinear interpolation. All metrics are in the published site data (`summary.jso
 | ERA5-Land | 1.79 | +1.8 | 0.73 | 0.59 | 0.98 |
 | MERRA-2 | 2.12 | +1.1 | 0.78 | 0.57 | 0.97 |
 | NLDAS-2 forcing | 2.35 | +2.0 | 0.90 | 0.72 | 0.97 |
-| CHELSA-daily | 1.94 | +2.0 | 0.67 | – | – |
+| CHELSA-daily | 1.94 | +2.0 | 0.71 | 0.57 | – |
 | IMERG Final (daily) | – | – | 0.76 | 0.53 | – |
 | IMERG Late | – | – | 0.74 | 0.53 | – |
 | CHIRPS v3 | – | – | 0.74 | 0.51 | – |
@@ -53,6 +54,20 @@ bilinear interpolation. All metrics are in the published site data (`summary.jso
     gauge quality, not only dependence.
   - Station-based products still rank first for daily precipitation everywhere, by a
     smaller margin.
+- **At the 41 NEON and AmeriFlux towers, the most independent stations, the same ranking holds
+  with a smaller lead.** Neither network feeds GHCN-D, MADIS or PRISM. Medians over towers,
+  daily values, common window:
+  - Daily precipitation r: PRISM 0.92, gridMET 0.90, NLDAS-2 0.85, Daymet 0.84, IMERG Final
+    and MERRA-2 0.73, HRRR and CHIRPS 0.70, ERA5 0.63. That is 0.03–0.10 below each product's
+    USCRN score, for station-based products and reanalyses alike. Tower gauges are less
+    carefully sited than USCRN's, so the drop is not all dependence. (39 of the 41 towers
+    report precipitation.)
+  - Daily mean temperature RMSE: HRRR 0.96 °C, PRISM 1.32, ERA5 1.36, CHELSA 1.47, ERA5-Land
+    1.55, MERRA-2 1.72, NLDAS-2 2.03. PRISM's lead over ERA5 disappears at towers it does not
+    ingest (at USCRN: 1.10 vs 1.57). These networks report hourly air temperature, so daily
+    Tmax/Tmin are not scored there.
+  - Shortwave is +4 to +9 W m⁻² for the models (HRRR +3.8, ERA5 +4.7, MERRA-2 +9.4), as at
+    SURFRAD, which supports the reading that USCRN's pyranometers are low (below).
 - **Every reanalysis has warm nights.**
   - Daily-minimum temperature bias is +1.0 to +2.0 °C for HRRR, ERA5, ERA5-Land, MERRA-2,
     NLDAS-2 and CHELSA. Daily maxima are slightly cool (−0.3 to −0.8 °C).
@@ -62,7 +77,7 @@ bilinear interpolation. All metrics are in the published site data (`summary.jso
   temperature r 0.99, daily Tmax RMSE 1.2 °C. Its precipitation (0–1 h forecast) is 20 % low
   overall: total ratio 0.80.
 - **Precipitation from satellites and reanalyses is weak day to day but fine in aggregate.**
-  - Daily r is 0.67–0.78 for ERA5, ERA5-Land, MERRA-2, CHELSA, IMERG and CHIRPS, against
+  - Daily r is 0.71–0.78 for ERA5, ERA5-Land, MERRA-2, CHELSA, IMERG and CHIRPS, against
     0.90–0.98 for gauge-based products.
   - At monthly scale ERA5 reaches 0.84, IMERG Final 0.87, CHIRPS 0.91, NLDAS-2 0.93 and
     PRISM 0.99.
@@ -71,16 +86,19 @@ bilinear interpolation. All metrics are in the published site data (`summary.jso
     ERA5/HRRR/IMERG), thanks to its radar-based disaggregation.
 - **Solar radiation: USCRN reads low.**
   - Products look about +20 W m⁻² too high against USCRN, but only about +8 W m⁻² against
-    SURFRAD's research-grade radiometers (ERA5 +7.7, HRRR +6.7).
+    SURFRAD's research-grade radiometers (ERA5 +7.4, HRRR +7.3) and +4 to +9 W m⁻² at the
+    NEON and AmeriFlux towers.
   - At the four SURFRAD sites that host a USCRN station, USCRN reads 5–11 W m⁻² (3–5 %)
     below SURFRAD on average.
   - The gap grows over time, to −10 to −20 W m⁻² in the latest year
     (`results/uscrn_vs_surfrad_sw.csv`), which looks like sensor drift.
 - **GEOS-FP (12-month recent window, 2025-11..2026-10)** behaves like the other global
-  reanalyses: daily Tmax RMSE 1.96 °C, Tmin bias +1.5 °C, precipitation r 0.72, shortwave
+  reanalyses: daily Tmax RMSE 1.96 °C, Tmin bias +1.5 °C, precipitation r 0.71, shortwave
   +25 W m⁻² vs USCRN.
-  - Over the same window, HRRR (Tmax RMSE 1.15 °C) and PRISM (0.45 °C) remain best.
-  - ERA5 (free copy, ends 2026-06) covers only part of this window.
+  - Over the same window ERA5 is very similar (Tmax RMSE 1.67 °C, Tmin +1.4 °C, precipitation
+    r 0.72, shortwave +24 W m⁻²). ERA5 now covers the whole window: its free copy ends
+    2026-06-30 and the rest comes from ERA5T (see Data sources).
+  - HRRR (Tmax RMSE 1.15 °C) and PRISM (0.46 °C) remain best.
 - **CHELSA-daily** reproduces temperature well (Tmax RMSE 1.9 °C) but carries the reanalysis
   warm-night bias (Tmin +2.0 °C). It is +45 W m⁻² high in shortwave and 10 % dry in RH
   against USCRN, and has the weakest wind (r 0.45).
@@ -103,26 +121,27 @@ bilinear interpolation. All metrics are in the published site data (`summary.jso
   - PRISM's documented 12–12 UTC day, and the UTC day for CHIRPS and IMERG, are confirmed.
   - All hourly products line up at lag 0 once their stamps are converted to end-of-interval.
 - **Nearest-pixel vs bilinear barely matters.** Bilinear interpolation of the 4 surrounding
-  pixels beats the nearest pixel at 51–60 % of sites for temperature and 70 % for
+  pixels beats the nearest pixel at 51–53 % of sites for temperature and 68 % for
   precipitation, by a few hundredths in RMSE.
 - **Soil moisture.**
-  - Daily anomaly correlations are ≈ 0.6–0.7 near the surface (ERA5-Land 0.68, ERA5 0.66,
-    NLDAS-2 Noah 0.63) and ≈ 0.5 at 50–100 cm.
+  - Daily anomaly correlations are ≈ 0.6–0.7 near the surface (NLDAS-2 Mosaic 0.70,
+    ERA5-Land 0.68, ERA5 0.66, NLDAS-2 Noah 0.60; VIC 0.47) and ≈ 0.5 at 50–100 cm.
   - Absolute values are not comparable across models.
   - Soil temperature is well reproduced (r ≈ 0.96–0.98), but NLDAS-2 Noah/Mosaic are
     about 2.4–2.5 °C cold at 5 cm.
 - **Snow (6 SNOTEL sites).**
-  - SWE r: ERA5 0.84, Daymet 0.76, NLDAS-2 Noah 0.66, HRRR 0.50.
-  - Snow depth r: ERA5-Land 0.71, MERRA-2 0.58, HRRR 0.49.
+  - SWE r: ERA5 0.80, Daymet 0.73, NLDAS-2 Noah 0.64, HRRR 0.45 (full record).
+  - Snow depth r: ERA5-Land 0.71, MERRA-2 0.57, HRRR 0.52.
 - **Wind** is the weakest variable everywhere: daily r 0.76–0.86, CHELSA 0.45. Raw 10 m
   products are 1–2 m s⁻¹ faster than the 1.5 m USCRN anemometers. A log-law height
   adjustment is in the metrics (`wind_adj`).
 - **Storage.** Quantizing to fixed absolute steps before pcodec shrinks the store 2.5× vs
   lossless pcodec and 3.6× vs zstd (ERA5 0.81 vs 2.08 vs 2.89 bytes/value). Metrics move by at
-  most 0.0004 in r (`results/pilot/compression_*.csv`). All site extracts take 13 GB (41 GB
+  most 0.0004 in r (`results/pilot/compression_*.csv`). All site extracts take 12.9 GB (40 GB
   if every product's complete record were extracted). Complete optimized copies of the used
-  variables would take ~90–150 TB; the original products with all variables take 1.8–5.9 PB
-  (see [Storage volume per complete product](#storage-volume-per-complete-product)).
+  variables would take ~70–115 TB; the original products with all variables take 1.8–5.9 PB
+  (see [Storage volume per complete product](#storage-volume-per-complete-product)). One
+  such copy was built: gridMET's 9 variables for CONUS, 1979 → 2026-11, take 48.9 GB.
 
 
 
@@ -132,7 +151,7 @@ Full rationale, chunking and conventions are in [PLAN.md](PLAN.md). In short:
 
 | Product | Access path used | Resolution · period |
 |---|---|---|
-| ERA5 | Earthmover free Icechunk copy (`s3://earthmover-icechunk-era5/icechunkV2`, `single/temporal`), anonymous | 0.25° hourly, 1940 → ~3 months ago (quarterly updates) |
+| ERA5 | Earthmover free Icechunk copy (`s3://earthmover-icechunk-era5/icechunkV2`, `single/temporal`), anonymous; the months after it ends are filled with preliminary ERA5T from the CDS point time-series dataset `reanalysis-era5-single-levels-timeseries` (one request per stencil pixel), CDS key | 0.25° hourly, 1940 → 2026-06 (final) + ERA5T to ~10 days ago |
 | ERA5-Land | ECMWF CDS ARCO **geoChunked** Zarr (`arco.datastores.ecmwf.int/cadl-arco-geo-*`), CDS key | 0.1° hourly, 1950 → ~5 days ago |
 | MERRA-2 | NASA POWER MERRA-2 hourly Zarr (native grid) + Giovanni time-series API for SWGDN | 0.5°×0.625° hourly |
 | NLDAS-2 forcing, Noah, VIC, Mosaic | NASA Giovanni time-series API (Hydrology Data Rods is retired) | 0.125° hourly |
@@ -161,7 +180,10 @@ Full rationale, chunking and conventions are in [PLAN.md](PLAN.md). In short:
 - **Tier 2** (`results/sites/tier2.csv`, with a per-site independence note and the
   distance to the nearest GHCN-D and USCRN station):
   - 28 NEON towers and 13 long-record AmeriFlux BASE sites. Neither network feeds GHCN-D,
-    MADIS or PRISM. These need credentials (see below) and are wired but not yet ingested.
+    MADIS or PRISM. These need credentials (see below). NEON gives air temperature (lowest
+    single-aspirated level), RH, precipitation, pressure, wind and shortwave; AmeriFlux BASE
+    gives the same set at 30- or 60-minute steps. Neither is used for
+    soil variables.
   - 7 SURFRAD sites: research-grade radiation, temperature, RH and wind.
   - 8 SCAN and 4 Iowa ISUSM stations: not in GHCN-D, but in MADIS. Chosen to be more than
     1 km from any GHCN-D or USCRN station.
@@ -226,7 +248,7 @@ The plan (PLAN.md) was followed except for these points, all forced by access or
 - **Tier 2.**
   - DEOS, FAWN, Michigan Enviroweather and the Walnut Gulch gauges were dropped. SCAN was
     expanded from 2 to 8 sites instead: open API, soil moisture, and not in GHCN-D.
-  - NEON and AmeriFlux await credentials.
+  - NEON and AmeriFlux were added once credentials were available (2026-11).
 - **Daily day windows.** For Daymet and gridMET precipitation, metrics use the empirically
   aligned window instead of the documented one (see Key results).
 - **Soil-moisture quantum** is 1e-5 m³ m⁻³, not 1e-3. The pilot showed that 1e-4 moved
@@ -234,34 +256,39 @@ The plan (PLAN.md) was followed except for these points, all forced by access or
 
 ## Storage and compression
 
-Measured after extracting every site and compacting history. Each value is stored as
-float32, rounded to a fixed absolute step (0.01 °C, 0.01 mm, 0.1 W m⁻², 1e-5 m³ m⁻³, ...)
-and pcodec-encoded in Icechunk. Full table: `results/store_sizes.csv`.
+Measured on S3 after extracting every site and compacting history (2026-11-19). Each value
+is stored as float32, rounded to a fixed absolute step (0.01 °C, 0.01 mm, 0.1 W m⁻², 1e-5
+m³ m⁻³, ...) and pcodec-encoded in Icechunk. Full table: `results/store_sizes.csv`.
 
 | Product | Sites | Size | MB per site | Bytes per value | Plan estimate (sites only) |
 |---|---|---|---|---|---|
-| ERA5 (16 vars, hourly) | 305 | 2.72 GB | 8.9 | 0.86 | 1.5–4 GB |
-| ERA5-Land (18 vars, hourly) | 305 | 2.66 GB | 8.7 | 0.73 | 1.5–4 GB |
-| MERRA-2 (19 vars, hourly) | 305 | 2.64 GB | 8.6 | 0.69 | 1.5–4.5 GB |
-| NLDAS-2 forcing (9 vars) | 280 | 1.26 GB | 4.5 | 0.76 | 0.5–1.5 GB |
-| NLDAS-2 Noah + VIC + Mosaic | 280 | 1.84 GB | 6.6 | 0.49–0.61 | 2–6 GB |
-| HRRR (10 vars) | 280 | 0.90 GB | 3.2 | 0.76 | 0.5–1.5 GB |
-| GEOS-FP (19 vars, 12.5 months) | 305 | 0.28 GB | 0.93 | 1.36 | 0.1–0.25 GB |
-| IMERG Late (half-hourly) | 305 | 60 MB | 0.20 | 0.15 | 0.1–0.2 GB |
-| PRISM 4 km (8 vars, daily) | 280 | 106 MB | 0.38 | 1.72 | 30–70 MB |
-| gridMET (9 vars, daily) | 280 | 92 MB | 0.33 | 1.33 | 40–90 MB |
-| Daymet (7 vars, daily) | 305 | 78 MB | 0.26 | 1.39 | 30–70 MB |
-| CHELSA (9 vars, daily, common window only) | 305 | 44 MB | 0.14 | 1.56 | 40–100 MB (full period) |
-| IMERG Final daily / half-hourly (JJA 2025) | 305 | 13 / 3 MB | 0.04 / 0.01 | 1.60 / 0.51 | 0.1–0.2 GB |
-| CHIRPS v3 (daily) | 290 | 9 MB | 0.03 | 1.08 | ~3 MB |
-| Station observations (5 networks) | 164 | 263 MB | 0.5–1.7 | 0.30–1.15 | <2 GB |
-| **Total** | | **13.0 GB** | | | **8–25 GB** |
+| ERA5 (16 vars, hourly) | 305 | 2.75 GB | 9.0 | 0.85 | 1.5–4 GB |
+| ERA5-Land (18 vars, hourly) | 305 | 2.69 GB | 8.8 | 0.74 | 1.5–4 GB |
+| MERRA-2 (19 vars, hourly) | 305 | 2.63 GB | 8.6 | 0.69 | 1.5–4.5 GB |
+| NLDAS-2 forcing (9 vars) | 280 | 1.24 GB | 4.4 | 0.74 | 0.5–1.5 GB |
+| NLDAS-2 Noah + VIC + Mosaic | 280 | 1.91 GB | 6.8 | 0.52–0.62 | 2–6 GB |
+| HRRR (10 vars) | 280 | 0.85 GB | 3.0 | 0.72 | 0.5–1.5 GB |
+| GEOS-FP (19 vars, 12.7 months) | 305 | 0.18 GB | 0.60 | 0.86 | 0.1–0.25 GB |
+| IMERG Late (half-hourly) | 305 | 57 MB | 0.19 | 0.14 | 0.1–0.2 GB |
+| PRISM 4 km (8 vars, daily) | 280 | 85 MB | 0.30 | 1.37 | 30–70 MB |
+| gridMET (9 vars, daily) | 280 | 76 MB | 0.27 | 1.10 | 40–90 MB |
+| Daymet (7 vars, daily) | 305 | 66 MB | 0.22 | 1.18 | 30–70 MB |
+| CHELSA (9 vars, daily, common window only) | 305 | 30 MB | 0.10 | 1.08 | 40–100 MB (full period) |
+| IMERG Final daily / half-hourly (JJA 2025) | 305 | 6.4 / 0.8 MB | 0.02 / 0.003 | 0.81 / 0.15 | 0.1–0.2 GB |
+| CHIRPS v3 (daily) | 290 | 7 MB | 0.02 | 0.89 | ~3 MB |
+| Station observations (7 networks) | 205 | 301 MB | 0.45–1.7 | 0.31–1.17 | <2 GB |
+| **Total** | | **12.9 GB** | | | **8–25 GB** |
 
 - **Hourly products** land at 0.5–0.9 bytes per value, as the plan assumed, which puts them
   inside the estimated range.
-- **Daily products** need 1.3–1.7 bytes per value, about twice the assumed 0.7–0.8.
-  Day-to-day series are less smooth than hour-to-hour ones. A full-grid store does better,
-  because pcodec can also use spatial smoothness (see below).
+- **Daily products** need 0.8–1.4 bytes per value, above the assumed 0.7–0.8. Day-to-day
+  series are less smooth than hour-to-hour ones. A full-grid store does better, because
+  pcodec can also use spatial smoothness (see below).
+- **Layout on S3.** Every array is sharded as 64 sites × one time block (92 days half-hourly,
+  1 year hourly, 4 years daily) per object, with one inner chunk per site, so a one-site read
+  is a byte-range read of 10–40 KB. The 24 site repos hold 11,312 objects, including
+  Icechunk manifests and snapshots. The daily stores came out 15–30 % smaller than the
+  earlier local, unsharded ones (e.g. PRISM 106 → 85 MB); the hourly ones are unchanged.
 - **Compression study** on 3 pilot sites (`results/pilot/compression_*.csv`):
   - Quantized pcodec stores 0.40–0.78× the bytes of lossless pcodec. ERA5: 0.81 vs 2.08
     bytes/value; zstd needs 2.89.
@@ -285,23 +312,23 @@ the basis for each number, is the **Storage** tab of the
 
 | Product | Record | 1. Complete, all vars (original) | 2. Complete, used vars (original) | 3. Complete, used vars, optimized Icechunk | 4. As 3, sites only (complete record) | Measured: our site store |
 |---|---|---|---|---|---|---|
-| ERA5 | 1940-01-01 – 2026-06-30 | 1.3–5 PB | 24–31 TB | 5.4–7.4 TB | 13 GB | 2.7 GB |
-| ERA5-Land | 1950-01-01 – 2026-11-04 | 118–187 TB | 40–64 TB | 11–17 TB | 11 GB | 2.7 GB |
+| ERA5 | 1940-01-01 – 2026-11-08 | 1.3–5 PB | 24–31 TB | 5.5–7.4 TB | 13 GB | 2.8 GB |
+| ERA5-Land | 1950-01-01 – 2026-11-08 | 118–187 TB | 40–64 TB | 11–17 TB | 11 GB | 2.7 GB |
 | MERRA-2 | 1980-01-01 – 2026-10-02 | 200–450 TB | 1.8–2.8 TB | 837 GB–1.1 TB | 6.6 GB | 2.6 GB |
-| NLDAS-2 forcing | 1979-01-01 – 2026-11-08 | 1.3–1.4 TB | 427–507 GB | 118–202 GB | 3.2 GB | 1.3 GB |
-| NLDAS-2 Noah | 1979-01-01 – 2026-11-07 | 2.9–3.1 TB | 483–821 GB | 94–161 GB | 2.5 GB | 1 GB |
-| NLDAS-2 VIC | 1979-01-01 – 2026-11-07 | 2.4 TB | 181–283 GB | 42–72 GB | 1.1 GB | 452 MB |
-| NLDAS-2 Mosaic | 1979-01-01 – 2026-11-07 | 2.4 TB | 205–320 GB | 36–61 GB | 973 MB | 383 MB |
-| GEOS-FP (per 12 months) | 12 months | 20–30 TB | 200–400 GB | 107–168 GB | 276 MB | 284 MB |
-| HRRR (analysis) | 2014-10-01 – 2026-11-12 | 85–123 TB | 1.1–1.4 TB | 743 GB–1 TB | 903 MB | 903 MB |
-| PRISM 4 km | 1981-01-01 – 2026-11-11 | 268–348 GB | 268–348 GB | 71–109 GB | 258 MB | 106 MB |
-| gridMET | 1979-01-01 – 2026-11-10 | 46–115 GB | 26–65 GB | 51–75 GB | 234 MB | 92 MB |
-| Daymet V4R1 | 1980-01-01 – 2025-12-31 | 2.9–4.5 TB | 2.9–4.5 TB | 2.7–5.1 TB | 200 MB | 78 MB |
-| CHELSA-daily | 1941-01-01 – 2025-09-18 | 50–67 TB | 48–65 TB | 68–120 TB | 531 MB | 44 MB |
-| CHIRPS v3 | 1981-01-01 – 2026-09-30 | 389–531 GB | 168–186 GB | 41–67 GB | 21 MB | 8.6 MB |
-| IMERG Final V07 (HH + daily) | 1998-06-01 – 2025-09-30 | 3.8–4.7 TB | 424 GB–1.1 TB | 408–564 GB | 316 MB | 15 MB |
-| IMERG Late V07 | 1998-06-01 – 2026-11-12 | 3.9–4.5 TB | 374 GB–1 TB | 356–481 GB | 91 MB | 60 MB |
-| **Total** (excl. GEOS-FP) | | **1.8–5.9 PB** | **120–172 TB** | **90–153 TB** | **41 GB** | **13 GB** (incl. GEOS-FP) |
+| NLDAS-2 forcing | 1979-01-01 – 2026-11-13 | 1.3–1.4 TB | 427–507 GB | 116–199 GB | 3.1 GB | 1.2 GB |
+| NLDAS-2 Noah | 1979-01-01 – 2026-11-12 | 2.9–3.1 TB | 483–821 GB | 98–168 GB | 2.7 GB | 1 GB |
+| NLDAS-2 VIC | 1979-01-01 – 2026-11-12 | 2.4 TB | 181–283 GB | 43–74 GB | 1.2 GB | 459 MB |
+| NLDAS-2 Mosaic | 1979-01-01 – 2026-11-12 | 2.4 TB | 205–320 GB | 37–64 GB | 1 GB | 398 MB |
+| GEOS-FP (per 12 months) | 12 months | 20–30 TB | 200–400 GB | 67–106 GB | 174 MB | 182 MB |
+| HRRR (analysis) | 2014-10-01 – 2026-11-18 | 85–123 TB | 1.1–1.4 TB | 744 GB–1 TB | 852 MB | 852 MB |
+| PRISM 4 km | 1981-01-01 – 2026-11-17 | 268–349 GB | 268–349 GB | 57–87 GB | 206 MB | 85 MB |
+| gridMET | 1979-01-01 – 2026-11-15 | 46–115 GB | 26–65 GB | 42–62 GB | 194 MB | 76 MB |
+| Daymet V4R1 | 1980-01-01 – 2025-12-31 | 2.9–4.5 TB | 2.9–4.5 TB | 2.2–4.3 TB | 169 MB | 66 MB |
+| CHELSA-daily | 1941-01-01 – 2025-09-09 | 50–67 TB | 48–65 TB | 47–83 TB | 366 MB | 30 MB |
+| CHIRPS v3 | 1981-01-01 – 2026-10-31 | 390–532 GB | 168–186 GB | 42–67 GB | 17 MB | 7.1 MB |
+| IMERG Final V07 (HH + daily) | 1998-06-01 – 2025-09-30 | 3.8–4.7 TB | 424 GB–1.1 TB | 375–514 GB | 99 MB | 7.2 MB |
+| IMERG Late V07 | 1998-06-01 – 2026-11-17 | 3.9–4.5 TB | 374 GB–1 TB | 356–482 GB | 86 MB | 57 MB |
+| **Total** (excl. GEOS-FP) | | **1.8–5.9 PB** | **120–172 TB** | **68–116 TB** | **40 GB** | **13 GB** (incl. GEOS-FP) |
 
 How the numbers were made:
 
@@ -338,8 +365,8 @@ What it shows:
     compressed images at 0.1-unit precision. The CHELSA figure is probably high: it borrows
     gridMET's full-grid ratio, and CHELSA is spatially smoother.
   - So for these products a time-series Icechunk copy buys fast point reads, not space.
-- **Sites only.** Each product shrinks by 2.5–5 orders of magnitude: 41 GB for all 17
-  products over their complete records, against ~90–150 TB for complete optimized copies.
+- **Sites only.** Each product shrinks by 2.5–5 orders of magnitude: 40 GB for all 17
+  products over their complete records, against ~70–115 TB for complete optimized copies.
 - **Against the plan.** These replace the rough plan-time estimates in
   [PLAN.md](PLAN.md#storage-volume-estimates-per-product). The biggest revisions are
   ERA5-Land (all variables 0.12–0.19 PB, not 0.3–0.6 PB) and CHELSA (50–67 TB, not 90–100 TB).
@@ -368,17 +395,71 @@ Individual steps:
 |---|---|
 | `CDSAPI_KEY` | ERA5-Land ARCO |
 | `EARTHDATA_LOGIN_USER` / `EARTHDATA_LOGIN_PASSWORD` (or `EARTHDATA_TOKEN`) | Giovanni (MERRA-2 SW, NLDAS-2), Daymet, IMERG Final, MODIS land cover |
-| `NEON_API_TOKEN` | NEON towers |
-| `AMERIFLUX_USER_ID` / `AMERIFLUX_EMAIL` | AmeriFlux BASE |
+| `CDSAPI_KEY` | also ERA5T after the Earthmover copy ends |
+| `NEON_API_TOKEN` or `NEON_API_KEY` | NEON towers |
+| `AMERIFLUX_USER_ID` / `AMERIFLUX_EMAIL` or `AMERIFLUX_USER_EMAIL` | AmeriFlux BASE |
+| AWS profile with write access (here `ycgs-all-buckets-writer`) | writing the stores to S3 (reading is anonymous through CloudFront) |
 
 Without the NEON and AmeriFlux variables those networks are skipped and retried on the next
 run. PRISM's TLS chain needs the emSign Root CA G1, which is added for PRISM requests only
 (`certs/`, SHA-256 `40:F6:AF:…:D0:03:67`, checked against Mozilla's bundle).
 
-**Store location.** The default is local and not persisted: `data/store/<kind>-<name>.icechunk`.
-Point everything at another backend with `--store` or `CPC_STORE`, for example
-`s3://bucket/prefix?region=us-west-2` (read/write) or `https://<cloudfront>/prefix` (read-only),
-and copy with `mise run store-copy -- file://$PWD/data/store s3://bucket/prefix`.
+**Store location.** The default is local: `data/store/<kind>-<name>.icechunk`. Point
+everything at another backend with `--store` or `CPC_STORE`, for example
+`s3://bucket/prefix?region=us-east-1&profile=<aws-profile>&storage_class=INTELLIGENT_TIERING`
+(read/write) or `https://<cloudfront>/prefix` (read-only), and copy with
+`mise run store-copy -- file://$PWD/data/store s3://bucket/prefix`.
+
+## Stores on S3
+
+The stores behind these results are public, in `s3://ycgs-use1-public/simon-code-research/climate-product-compare/stores/`
+(Intelligent-Tiering). Read them anonymously through CloudFront, without AWS credentials:
+
+```bash
+CPC_STORE=https://d3v5kb9d29awwb.cloudfront.net/simon-code-research/climate-product-compare/stores uv run cpc status
+```
+
+Direct S3 access is requester-pays. The results above come from these snapshots (the tip of
+`main` on 2026-11-19; `results/store_snapshots.json`). Open one with
+`repo.readonly_session(snapshot_id=...)` to reproduce them after later updates.
+
+| Repo | Snapshot |
+|---|---|
+| `conus-gridmet` | `AW983WK9QE19WS5SK800` |
+| `obs-AMERIFLUX` | `WJVA563TS2M74ZCMPZBG` |
+| `obs-ISUSM` | `QRQ02341QR6GYM6PKBD0` |
+| `obs-NEON` | `0N0NH9R78AZFNYVHAG7G` |
+| `obs-SCAN` | `8E5KGPJGBRB7WT644630` |
+| `obs-SNOTEL` | `BCDV8FR2J9A2HQKCNZ30` |
+| `obs-SURFRAD` | `X8164269PE5Z9PFCHFE0` |
+| `obs-USCRN` | `8J2JH92TNRYBXK0FSC50` |
+| `products-chelsa` | `29CPY221H6VJ1RTETK90` |
+| `products-chirps3` | `REJ9H39KTEAYEZ54Z8M0` |
+| `products-daymet` | `M39YX17SFXX5ZPJ7R6KG` |
+| `products-era5` | `K5Q5KYAS8SBBZHZ5HP70` |
+| `products-era5land` | `F3SMB8ZEPSJ7J3R5R410` |
+| `products-geosfp` | `WN6C8T2CZDJ3M1PS9HG0` |
+| `products-gridmet` | `JEZ5W1ZM7XNMJK6BX20G` |
+| `products-hrrr` | `4D1TCRBQRNRCVSZJRGZ0` |
+| `products-imerg_final_daily` | `QW6TJR95J8K2PPHAXCS0` |
+| `products-imerg_final_hh` | `X23NGQZRFY82PR5M8W7G` |
+| `products-imerg_late` | `X6658S6SJREYGQXT3XQ0` |
+| `products-merra2` | `M6676X7J5DATRY2WB0KG` |
+| `products-nldas2_forcing` | `6T9BWTSADTJH3BV4W8Y0` |
+| `products-nldas2_mosaic` | `AYN5B47EGES5JXG7HB70` |
+| `products-nldas2_noah` | `84GJ15PYXVWZGF9KSP00` |
+| `products-nldas2_vic` | `J7SCQBXPW7FDF9X7V9VG` |
+| `products-prism` | `9M7D16CVWY8C9D7N70FG` |
+
+- **Site stores** (`products-*`, `obs-*`): 12.9 GB, the series described above.
+- **`conus-gridmet`**: an analysis-ready copy of gridMET for all of CONUS, 9 variables (tmmx,
+  tmmn, pr, rmax, rmin, sph, srad, vs, vpd), 1979-01-01 → 2026-11-17, 48.9 GB in 2,386
+  objects. It uses the same quantization and pcodec as the site stores. Each variable is
+  sharded as one 366-day × full-grid object (30–80 MB) with (366, 32, 32) inner chunks, so a
+  point's complete record is 47 small byte-range reads. Build or extend it with
+  `uv run cpc conus-store`. Layout details are in `src/cpc/conus_store.py`. That is
+  slightly under the plan's 51–75 GB estimate and inside the updated 42–62 GB in the table
+  below.
 
 ## Publishing the site data
 
@@ -404,11 +485,9 @@ The site's per-site Parquet and metrics JSON files (`mise run sitedata` → `sit
 
 ## Limitations
 
-- **NEON and AmeriFlux** (41 of the 66 Tier 2 sites, and the most independent ones) are
-  wired to read credentials from the environment, but no credentials were available in
-  this session, so they are not yet ingested. The readers follow the documented
-  file/API formats but have not been exercised. The NEON reader uses the lowest
-  single-aspirated temperature level and skips soil sensors.
+- **NEON and AmeriFlux** use the networks' own QC flags only. The NEON reader takes the
+  lowest single-aspirated temperature level and skips soil sensors. Tower sensors sit above
+  or within canopies, so they are not always comparable with a 2 m screen height.
 - **USCRN is not an independent reference** for PRISM, Daymet and HRRR, which ingest it.
   gridMET inherits PRISM's temperature and precipitation. Treat their USCRN skill as an
   upper bound.
@@ -428,8 +507,10 @@ The site's per-site Parquet and metrics JSON files (`mise run sitedata` → `sit
 - **NLDAS-3** is not released. Only a 2001–2023 *beta* forcing exists. Its virtual store is
   chunked 1 day × 500 × 900 pixels, so extracting our sites would take about 1 TB of
   reads; it was not extracted.
-- **ERA5 (free Earthmover copy)** lags by a quarter (ends 2026-06-30 here), so it is absent
-  from most of the 12-month GEOS-FP window. The paid daily-updated copy was not used.
+- **ERA5 after 2026-06** is preliminary ERA5T at single grid points from the CDS
+  time-series dataset, and may change slightly when ECMWF publishes final ERA5 for those
+  months. Replacing it is not automated: ERA5 has no revision window in `cpc update`, so that
+  span has to be re-extracted by hand.
 - **Wind heights differ**: USCRN 1.5 m, SCAN ~3 m, SURFRAD 10 m, products mostly 10 m.
   A log-law adjustment with z0 = 0.03 m is reported alongside the raw comparison.
 - **Representativeness.** A 3 km–60 km pixel is not a point; the nearest-vs-bilinear

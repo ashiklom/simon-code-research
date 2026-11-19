@@ -4,8 +4,7 @@ AMERIFLUX_USER_EMAIL; skipped without).
 BASE (not FLUXNET/ONEFlux) because FLUXNET gap-fills meteorology with ERA5. Timestamps are
 local standard time (TIMESTAMP_END) -> UTC via the longitude-based standard offset. Uses the
 first TA/RH/P/SW_IN/WS/PA column (H_V_R qualifiers 1_1_1 preferred).
-NOTE: written against AmeriFlux's documented API and file format; not exercised until
-credentials are set.
+First run 2026-11 (13 sites).
 """
 
 from __future__ import annotations
