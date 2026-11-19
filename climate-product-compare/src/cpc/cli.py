@@ -155,6 +155,9 @@ def cmd_status(a):
 def cmd_merge_metrics(a):
     """Combine partial metric runs (metrics_<sites>[_tag].parquet) into metrics_all.parquet."""
     files = sorted(f for n in ("uscrn", "tier2", "remote") for f in (config.DATA / "results").glob(f"metrics_{n}*.parquet"))
+    if not files:  # `cpc metrics --sites all` writes metrics_all.parquet itself
+        print("no partial metric runs to merge; metrics_all.parquet left as is")
+        return
     df = pd.concat([pd.read_parquet(f) for f in files], ignore_index=True)
     keys = ["site", "product", "var", "obs_var", "scale", "window", "method"]
     df = df.drop_duplicates(keys, keep="last")
