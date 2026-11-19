@@ -20,6 +20,7 @@ stored as a constant series per pixel.
 
 from __future__ import annotations
 
+import os
 import functools
 from concurrent.futures import ThreadPoolExecutor
 
@@ -89,7 +90,7 @@ class _DailyFiles(FieldProduct):
     """Daily global files with 24 hourly fields; one Block per calendar month."""
 
     concept = ""
-    day_workers = 2
+    day_workers = int(os.environ.get("AQC_DAY_WORKERS", 2))  # parallel daily files (network-bound)
     static: tuple[str, ...] = ()  # 2-D (lat, lon) variables repeated over time
 
     def grid(self) -> Grid:

@@ -13,6 +13,7 @@
 
 from __future__ import annotations
 
+import os
 import re
 import time
 import zlib
@@ -47,7 +48,7 @@ def _portal_end(coll: str) -> pd.Timestamp:
 class _GMI(_DailyFiles):
     coll = ""
     level: tuple[int, int] | None = None
-    day_workers = 2
+    day_workers = int(os.environ.get("AQC_DAY_WORKERS", 2))  # parallel daily files (network-bound)
 
     def available_end(self) -> pd.Timestamp:
         return _portal_end(self.coll) + pd.Timedelta(hours=24 if self.freq == "1h" else 0)
