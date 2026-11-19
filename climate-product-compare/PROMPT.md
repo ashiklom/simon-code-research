@@ -222,3 +222,48 @@ Delay downloading this for the site extractions till late in the plan. I may be 
 2. CAMS fcst: Site extracts only (Recommended)
 
 (The revised plan was then approved in plan mode; see PLAN.md.)
+
+## Follow-up: small S3 objects (2026-11-18)
+
+Cost analysis shows that you are currently pushing thousands of small parquet files to S3. That inflates costs (thousands of PUT requests) and prevents many small objects from benefitting from intelligent tiering. Explain why you did that, propose some alternatives (including sending a smaller number of larger-chunked parquet files, or using a different format), and then ask me how to proceed.
+
+## Claude: questions (AskUserQuestion, small S3 objects)
+
+1. **Stores.** The Icechunk site-extract stores cause most of the small objects: about 272k so far. AQ MERRA-2 alone has 117k objects at ~10 % extracted, because chunks are 1 site × 1 year and every write adds new versions. How should I restructure them?
+   - *Sharded + repack (Recommended).* Switch arrays to one shard per variable per ~256 sites per year, with per-site inner chunks. Repack the existing stores into single-snapshot repos and delete the old ones (~280k GETs ≈ $0.11; deletes free), then resume extraction. About 100× fewer objects, mostly IT-eligible.
+   - *Build locally, upload once.* Keep extracting into local repos (~25 GB disk free) and upload a packed copy (sharded, single snapshot) at the end. Fewest PUTs, but a container restart before upload loses the local work.
+   - *Keep layout, compact only.* Garbage-collect superseded versions periodically; per-site small chunks stay. Cheapest code change; object count stays high (~hundreds of thousands).
+2. **Site data.** The website data is ~8k Parquet/JSON files today and would grow to ~26k with AQ hourly for all years. Which layout should it use?
+   - *One file per site (Recommended).* Merge each site's daily, monthly, all-years hourly and metrics into one Parquet file, plus a few shared JSON files: about 2.5k AQ and 0.3k climate objects. No infra change; each click downloads ~1–3 MB.
+   - *Few big files + range reads.* One Parquet per scale with a row group per site and a byte-range index: ~10–20 objects total. Needs you to make CloudFront return CORS on 206 responses (ycgs-aws-infra), since it currently drops it intermittently.
+   - *Keep per-site files.* Leave as is (~$0.13 in PUTs per AQ publish; small objects billed at Standard, ~$0.01–0.03/month).
+3. **Queue.** The work queue is still extracting PRISM into the old layout, adding small chunks while it runs. Should I pause it while I make these changes?
+   - *Pause now (Recommended).* Stop the queue (resumable) and the CAMS loop stays running (its store is already sharded and IT-friendly). Resume after the layout change.
+   - *Keep running.* Let PRISM and the climate products finish in the old layout and repack them afterwards.
+
+## Answer (small S3 objects)
+
+1. Stores: Sharded + repack (Recommended)
+2. Site data: One file per site (Recommended)
+3. Queue: Pause now (Recommended)
+
+## Follow-up: repack reads (2026-11-18)
+
+```
+> reading the old stores out of S3 for the repack is about 12–18 GB of egress,
+```
+
+Can't you do this through the cloudfront URL I provided?
+
+## Claude: question (AskUserQuestion, bulk reads)
+
+CloudFront has a WAF rate limit ("Request blocked" 403) that a burst of small chunk requests from this container trips. The metrics steps read every site-extract store in full (~15 GB per experiment), which through CloudFront would be tens of thousands of requests. How should bulk store reads work?
+- *Throttled CloudFront.* I read whole shards (~1 MB each, one request per shard) at a conservative rate under the WAF limit, caching them locally for the metrics run. Free under the CloudFront free tier; ~1–2 h per experiment and some extra code.
+- *Direct S3 reads.* Simplest and fastest. S3 egress to this container is ~$0.09/GB: roughly $1.5 per experiment per full metrics run (~$3 total now), plus any reruns.
+- *You relax the WAF rule.* You exempt or raise the rate limit for this traffic in ycgs-aws-infra; then I read through CloudFront at full speed. Until then I hold the read-heavy steps.
+
+## Answer (bulk reads)
+
+Direct S3 reads
+
+(Two later plans, for resuming after container restarts on 2026-11-18 and 2026-11-19, were approved in plan mode without further messages; see PLAN.md.)
