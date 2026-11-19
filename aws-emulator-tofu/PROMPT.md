@@ -191,3 +191,22 @@ CloudFront has a WAF rate limit ("Request blocked" 403) that a burst of small ch
 Direct S3 reads
 
 (Two later plans, for resuming after container restarts on 2026-11-18 and 2026-11-19, were approved in plan mode without further messages; see PLAN.md.)
+
+## Claude: questions (2026-11-19, in chat)
+
+1. **Upload the l2-swath virtual stores?** These are the small reference stores that let anyone open the benchmark granules without downloading them. I'd upload only the CloudFront one: 920 KB in 138 objects, which costs effectively nothing (well under $0.01 to upload, about $0.00 a month). The S3 one needs AWS credentials to read, so it's less useful to share. OK to upload the CloudFront one to `s3://ycgs-use1-public/simon-code-research/l2-swath-geolocation/stores/`?
+2. **PRISM 800 m:** is a cloud-optimized copy available now? If not, the fallback streams the daily 800 m files (roughly 450 GB, about 12 h). It would only sample the sites over the common window and store nothing gridded. It would run after the air-quality extractions, so not for a few days. Should I use the fallback, a copy you point me to, or skip it?
+
+## Answer
+
+```
+<!-- reply 2 -->
+> l2-swath virtual store: may I upload the CloudFront one (920 KB, 138 objects) to S3?
+
+Yes.
+
+<!-- reply -->
+> PRISM 800 m: should I use a cloud-optimized copy you point me to, run the roughly 450 GB streaming fallback, or skip it?
+
+Skip for now.
+```
