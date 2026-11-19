@@ -463,15 +463,16 @@ Direct S3 access is requester-pays. The results above come from these snapshots 
 
 ## Publishing the site data
 
-The site's per-site Parquet and metrics JSON files (`mise run sitedata` → `site/public/data`,
-576 MB, 1,224 files) are not committed here. They live in the public S3 bucket `ycgs-use1-public` under
+The site's data (`mise run sitedata` → `site/public/data`: one Parquet file per site with its
+daily series, last two years of hourly data and metrics, plus four JSON indexes; 538 MB, 309 files
+for 305 sites) are not committed here. They live in the public S3 bucket `ycgs-use1-public` under
 `simon-code-research/climate-product-compare/site-data/<version>/` and are served through CloudFront.
 
 - **How the site reads it.** The browser fetches the files from CloudFront at the version pinned
-  in `site/.env.production` (`VITE_DATA_BASE`), currently `v20261118-f09d87a9`. The version is a date plus a
+  in `site/.env.production` (`VITE_DATA_BASE`), currently `v20261119-13e6982f`. The version is a date plus a
   hash of the file contents, and objects under it are immutable (`Cache-Control: immutable`), so
-  the site and its data always match. Each Parquet file is fetched whole (they are all under
-  1.1 MB): CloudFront intermittently omits the CORS header on byte-range (206) responses.
+  the site and its data always match. Each Parquet file is fetched whole (the largest is
+  2.1 MB): CloudFront intermittently omits the CORS header on byte-range (206) responses.
   CI only builds the JavaScript bundle.
 - **Local builds.** Without that variable (`npm run dev`), the site reads the local `./data`.
 - **Updating.** `mise run publish-site-data` runs `_helpers/publish_s3.py site`, which uploads a
