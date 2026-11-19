@@ -10,7 +10,7 @@
    "used_orig": "24–31 TB",
    "used_opt": "5.5–7.4 TB",
    "sites_full": "13 GB",
-   "sites_meas": "2.7 GB",
+   "sites_meas": "2.8 GB",
    "n_src_used": 15,
    "n_stored": 16,
    "data_frac": "1.00",
@@ -23,8 +23,8 @@
     "used_orig_hi_TB": 30.82914971136,
     "used_opt_lo_TB": 5.469944889094964,
     "used_opt_hi_TB": 7.400513673481421,
-    "sites_full_GB": 12.7793766660746,
-    "sites_meas_GB": 2.721519
+    "sites_full_GB": 12.670276320604037,
+    "sites_meas_GB": 2.750605
    }
   },
   {
@@ -49,8 +49,8 @@
     "used_orig_hi_TB": 63.712045532678395,
     "used_opt_lo_TB": 10.563145272172115,
     "used_opt_hi_TB": 17.467161789931666,
-    "sites_full_GB": 10.849888074822026,
-    "sites_meas_GB": 2.6603890000000003
+    "sites_full_GB": 10.960406933352694,
+    "sites_meas_GB": 2.6890500000000004
    }
   },
   {
@@ -75,8 +75,8 @@
     "used_orig_hi_TB": 2.76104282688,
     "used_opt_lo_TB": 0.8371792894505039,
     "used_opt_hi_TB": 1.132654332785976,
-    "sites_full_GB": 6.570648329449984,
-    "sites_meas_GB": 2.635426
+    "sites_full_GB": 6.564362968207231,
+    "sites_meas_GB": 2.632905
    }
   },
   {
@@ -86,23 +86,23 @@
    "record": "1979-01-01 – 2026-11-13",
    "all_orig": "1.3–1.4 TB",
    "used_orig": "427–507 GB",
-   "used_opt": "118–202 GB",
-   "sites_full": "3.2 GB",
-   "sites_meas": "1.3 GB",
+   "used_opt": "116–199 GB",
+   "sites_full": "3.1 GB",
+   "sites_meas": "1.2 GB",
    "n_src_used": 7,
    "n_stored": 9,
    "data_frac": "0.70-0.76",
-   "opt_bpv": "0.43-0.68 = site store 0.76 x 0.57-0.90 (full-grid/site ratio of the measured hourly products)",
+   "opt_bpv": "0.42-0.67 = site store 0.74 x 0.57-0.90 (full-grid/site ratio of the measured hourly products)",
    "basis": "NetCDF4: FORA 1.6-1.9 MB/h (11 vars), FORB 1.5 MB/h. Used: 7 of the 11 FORA vars.",
    "raw": {
     "all_orig_lo_TB": 1.3007755,
     "all_orig_hi_TB": 1.426657,
     "used_orig_lo_TB": 0.42723418181818185,
     "used_orig_hi_TB": 0.5073405909090909,
-    "used_opt_lo_TB": 0.11800821368785933,
-    "used_opt_hi_TB": 0.20187922142177972,
-    "sites_full_GB": 3.1969642419392894,
-    "sites_meas_GB": 1.259243
+    "used_opt_lo_TB": 0.1161413621354284,
+    "used_opt_hi_TB": 0.1986855578102648,
+    "sites_full_GB": 3.1463893076053377,
+    "sites_meas_GB": 1.240222
    }
   },
   {
@@ -112,23 +112,23 @@
    "record": "1979-01-01 – 2026-11-12",
    "all_orig": "2.9–3.1 TB",
    "used_orig": "483–821 GB",
-   "used_opt": "94–161 GB",
-   "sites_full": "2.5 GB",
+   "used_opt": "98–168 GB",
+   "sites_full": "2.7 GB",
    "sites_meas": "1 GB",
    "n_src_used": 11,
    "n_stored": 11,
    "data_frac": "0.70-0.76",
-   "opt_bpv": "0.28-0.44 = site store 0.49 x 0.57-0.90 (full-grid/site ratio of the measured hourly products)",
+   "opt_bpv": "0.29-0.46 = site store 0.52 x 0.57-0.90 (full-grid/site ratio of the measured hourly products)",
    "basis": "NetCDF4 6.8-7.4 MB/h, ~52 vars; used 11 (share of bytes ±25 %).",
    "raw": {
     "all_orig_lo_TB": 2.8532256,
     "all_orig_hi_TB": 3.1049808000000003,
     "used_orig_lo_TB": 0.4828535630769231,
     "used_orig_hi_TB": 0.8210285769230772,
-    "used_opt_lo_TB": 0.0939731837014541,
-    "used_opt_hi_TB": 0.16076197213149743,
-    "sites_full_GB": 2.5458304859134473,
-    "sites_meas_GB": 1.002722
+    "used_opt_lo_TB": 0.09830308708917786,
+    "used_opt_hi_TB": 0.16816923216389912,
+    "sites_full_GB": 2.6631320352633874,
+    "sites_meas_GB": 1.049685
    }
   },
   {
@@ -138,23 +138,23 @@
    "record": "1979-01-01 – 2026-11-12",
    "all_orig": "2.4 TB",
    "used_orig": "181–283 GB",
-   "used_opt": "42–72 GB",
-   "sites_full": "1.1 GB",
-   "sites_meas": "452 MB",
+   "used_opt": "43–74 GB",
+   "sites_full": "1.2 GB",
+   "sites_meas": "459 MB",
    "n_src_used": 4,
    "n_stored": 4,
    "data_frac": "0.70-0.76",
-   "opt_bpv": "0.35-0.55 = site store 0.61 x 0.57-0.90 (full-grid/site ratio of the measured hourly products)",
+   "opt_bpv": "0.35-0.56 = site store 0.62 x 0.57-0.90 (full-grid/site ratio of the measured hourly products)",
    "basis": "NetCDF4 5.8-5.8 MB/h, ~43 vars; used 4 (share of bytes ±25 %).",
    "raw": {
     "all_orig_lo_TB": 2.4336336,
     "all_orig_hi_TB": 2.4336336,
     "used_orig_lo_TB": 0.18110761674418605,
     "used_orig_hi_TB": 0.28298065116279064,
-    "used_opt_lo_TB": 0.04235635623811056,
-    "used_opt_hi_TB": 0.07245994115486737,
-    "sites_full_GB": 1.147477383822248,
-    "sites_meas_GB": 0.451955
+    "used_opt_lo_TB": 0.043016573450066764,
+    "used_opt_hi_TB": 0.07358938911915504,
+    "sites_full_GB": 1.1653633491510667,
+    "sites_meas_GB": 0.45933300000000005
    }
   },
   {
@@ -164,23 +164,23 @@
    "record": "1979-01-01 – 2026-11-12",
    "all_orig": "2.4 TB",
    "used_orig": "205–320 GB",
-   "used_opt": "36–61 GB",
-   "sites_full": "973 MB",
-   "sites_meas": "383 MB",
+   "used_opt": "37–64 GB",
+   "sites_full": "1 GB",
+   "sites_meas": "398 MB",
    "n_src_used": 4,
    "n_stored": 4,
    "data_frac": "0.70-0.76",
-   "opt_bpv": "0.29-0.46 = site store 0.52 x 0.57-0.90 (full-grid/site ratio of the measured hourly products)",
+   "opt_bpv": "0.31-0.48 = site store 0.54 x 0.57-0.90 (full-grid/site ratio of the measured hourly products)",
    "basis": "NetCDF4 5.8-5.8 MB/h, ~38 vars; used 4 (share of bytes ±25 %).",
    "raw": {
     "all_orig_lo_TB": 2.4336336,
     "all_orig_hi_TB": 2.4336336,
     "used_orig_lo_TB": 0.20493756631578947,
     "used_orig_hi_TB": 0.32021494736842104,
-    "used_opt_lo_TB": 0.03593366856851913,
-    "used_opt_hi_TB": 0.06147250946979834,
-    "sites_full_GB": 0.9734801494336335,
-    "sites_meas_GB": 0.383423
+    "used_opt_lo_TB": 0.037246417252814634,
+    "used_opt_hi_TB": 0.06371825723621256,
+    "sites_full_GB": 1.0090438654767089,
+    "sites_meas_GB": 0.397719
    }
   },
   {
@@ -190,23 +190,23 @@
    "record": "12 months",
    "all_orig": "20–30 TB",
    "used_orig": "200–400 GB",
-   "used_opt": "107–168 GB",
-   "sites_full": "276 MB",
-   "sites_meas": "284 MB",
+   "used_opt": "67–106 GB",
+   "sites_full": "174 MB",
+   "sites_meas": "182 MB",
    "n_src_used": 18,
    "n_stored": 19,
    "data_frac": "1.00",
-   "opt_bpv": "0.77-1.21 = site store 1.36 x 0.57-0.90 (full-grid/site ratio of the measured hourly products)",
+   "opt_bpv": "0.49-0.77 = site store 0.86 x 0.57-0.90 (full-grid/site ratio of the measured hourly products)",
    "basis": "NCCS NetCDF4 per hour: slv 48.0, lnd 166.5, rad 22-40, flx 41 MB (2.4-2.6 TB/yr for these four). All assimilation collections incl. 3-D: ~20-30 TB/yr (unmeasured). Used: 18 fields ≈ 32 MB/h.",
    "raw": {
     "all_orig_lo_TB": 20.0,
     "all_orig_hi_TB": 30.0,
     "used_orig_lo_TB": 0.2,
     "used_orig_hi_TB": 0.4,
-    "used_opt_lo_TB": 0.10659723931392125,
-    "used_opt_hi_TB": 0.1679615175227601,
-    "sites_full_GB": 0.27554313972784605,
-    "sites_meas_GB": 0.28431900000000004
+    "used_opt_lo_TB": 0.06737437562429405,
+    "used_opt_hi_TB": 0.1061594319406264,
+    "sites_full_GB": 0.17415598298985935,
+    "sites_meas_GB": 0.182327
    }
   },
   {
@@ -217,8 +217,8 @@
    "all_orig": "85–123 TB",
    "used_orig": "1.1–1.4 TB",
    "used_opt": "744 GB–1 TB",
-   "sites_full": "904 MB",
-   "sites_meas": "903 MB",
+   "sites_full": "852 MB",
+   "sites_meas": "852 MB",
    "n_src_used": 10,
    "n_stored": 10,
    "data_frac": "1.00",
@@ -231,8 +231,8 @@
     "used_orig_hi_TB": 1.382485,
     "used_opt_lo_TB": 0.7442997743098364,
     "used_opt_hi_TB": 1.0069938123015434,
-    "sites_full_GB": 0.904239380913824,
-    "sites_meas_GB": 0.903117
+    "sites_full_GB": 0.852488,
+    "sites_meas_GB": 0.852488
    }
   },
   {
@@ -242,23 +242,23 @@
    "record": "1981-01-01 – 2026-11-17",
    "all_orig": "268–349 GB",
    "used_orig": "268–349 GB",
-   "used_opt": "71–109 GB",
-   "sites_full": "258 MB",
-   "sites_meas": "106 MB",
+   "used_opt": "57–87 GB",
+   "sites_full": "206 MB",
+   "sites_meas": "85 MB",
    "n_src_used": 8,
    "n_stored": 8,
    "data_frac": "0.55",
-   "opt_bpv": "1.11-1.69 = site store 1.72 x 0.64-0.98 (full-grid/site ratio of the measured daily products)",
+   "opt_bpv": "0.88-1.35 = site store 1.37 x 0.64-0.98 (full-grid/site ratio of the measured daily products)",
    "basis": "Zipped COG, 2.0-2.6 MB per variable-day; 8 daily variables (incl. soltotal), all used. The 800 m product is ~16x larger.",
    "raw": {
     "all_orig_lo_TB": 0.268112,
     "all_orig_hi_TB": 0.34854560000000007,
     "used_orig_lo_TB": 0.268112,
     "used_orig_hi_TB": 0.34854560000000007,
-    "used_opt_lo_TB": 0.07115757587145584,
-    "used_opt_hi_TB": 0.10857467084954045,
-    "sites_full_GB": 0.25784620943396225,
-    "sites_meas_GB": 0.106019
+    "used_opt_lo_TB": 0.056767760778615305,
+    "used_opt_hi_TB": 0.0866181972322648,
+    "sites_full_GB": 0.20570335281322505,
+    "sites_meas_GB": 0.084653
    }
   },
   {
@@ -268,23 +268,23 @@
    "record": "1979-01-01 – 2026-11-15",
    "all_orig": "46–115 GB",
    "used_orig": "26–65 GB",
-   "used_opt": "51–75 GB",
-   "sites_full": "234 MB",
-   "sites_meas": "92 MB",
+   "used_opt": "42–62 GB",
+   "sites_full": "194 MB",
+   "sites_meas": "76 MB",
    "n_src_used": 9,
    "n_stored": 9,
    "data_frac": "0.55-0.60",
-   "opt_bpv": "0.85 = site store 1.33 x 0.64 (full-grid tmmx+pr ratio) ±15 %",
+   "opt_bpv": "0.71 = site store 1.10 x 0.64 (full-grid tmmx+pr ratio) ±15 %",
    "basis": "NetCDF4 per variable-year: 59 MB (pr) to 147 MB (tmmx); 16 variables; used 9.",
    "raw": {
     "all_orig_lo_TB": 0.04595909650924025,
     "all_orig_hi_TB": 0.11489774127310062,
     "used_orig_lo_TB": 0.025851991786447634,
     "used_orig_hi_TB": 0.06462997946611909,
-    "used_opt_lo_TB": 0.05095609242644435,
-    "used_opt_hi_TB": 0.0752079225117574,
-    "sites_full_GB": 0.23375753868485993,
-    "sites_meas_GB": 0.092094
+    "used_opt_lo_TB": 0.04220371075606957,
+    "used_opt_hi_TB": 0.06228996881644491,
+    "sites_full_GB": 0.19360659501015376,
+    "sites_meas_GB": 0.07633100000000001
    }
   },
   {
@@ -294,23 +294,23 @@
    "record": "1980-01-01 – 2025-12-31",
    "all_orig": "2.9–4.5 TB",
    "used_orig": "2.9–4.5 TB",
-   "used_opt": "2.7–5.1 TB",
-   "sites_full": "200 MB",
-   "sites_meas": "78 MB",
+   "used_opt": "2.2–4.3 TB",
+   "sites_full": "169 MB",
+   "sites_meas": "66 MB",
    "n_src_used": 7,
    "n_stored": 7,
    "data_frac": "0.40-0.50",
-   "opt_bpv": "0.90-1.37 = site store 1.39 x 0.64-0.98 (full-grid/site ratio of the measured daily products)",
+   "opt_bpv": "0.76-1.16 = site store 1.18 x 0.64-0.98 (full-grid/site ratio of the measured daily products)",
    "basis": "NetCDF4 per variable-year, North America: tmax 13.8 GB (2020); 9-14 GB across the 7 variables; all used (Hawaii/Puerto Rico add <1 %).",
    "raw": {
     "all_orig_lo_TB": 2.898,
     "all_orig_hi_TB": 4.508,
     "used_orig_lo_TB": 2.898,
     "used_orig_hi_TB": 4.508,
-    "used_opt_lo_TB": 2.6659844090126525,
-    "used_opt_hi_TB": 5.084813109384407,
-    "sites_full_GB": 0.20007540501901142,
-    "sites_meas_GB": 0.078294
+    "used_opt_lo_TB": 2.247804797202241,
+    "used_opt_hi_TB": 4.287222108843499,
+    "sites_full_GB": 0.16869208000000002,
+    "sites_meas_GB": 0.066013
    }
   },
   {
@@ -320,23 +320,23 @@
    "record": "1941-01-01 – 2025-09-09",
    "all_orig": "50–67 TB",
    "used_orig": "48–65 TB",
-   "used_opt": "68–120 TB",
-   "sites_full": "531 MB",
-   "sites_meas": "44 MB",
+   "used_opt": "47–83 TB",
+   "sites_full": "366 MB",
+   "sites_meas": "30 MB",
    "n_src_used": 9,
    "n_stored": 9,
    "data_frac": "0.27-0.31",
-   "opt_bpv": "1.01-1.54 = site store 1.56 x 0.64-0.98 (full-grid/site ratio of the measured daily products)",
+   "opt_bpv": "0.69-1.06 = site store 1.08 x 0.64-0.98 (full-grid/site ratio of the measured daily products)",
    "basis": "COG MB/day: rsds 407, sfcWind 361, hurs 233, ps 170, tasmin 159, tasmax 156, tas 151, pr 93, prec 87, we 45, clt 18, tz 4 (1,885 MB/day, ±15 %). Used: 9 (1,817 MB/day).",
    "raw": {
     "all_orig_lo_TB": 49.554511335,
     "all_orig_hi_TB": 67.04433886499999,
     "used_orig_lo_TB": 47.771842545,
     "used_orig_hi_TB": 64.632492855,
-    "used_opt_lo_TB": 68.23960375741592,
-    "used_opt_hi_TB": 119.54785907917174,
-    "sites_full_GB": 0.5307261902912621,
-    "sites_meas_GB": 0.04418
+    "used_opt_lo_TB": 47.112213985655494,
+    "used_opt_hi_TB": 82.53512635399575,
+    "sites_full_GB": 0.3664101851130164,
+    "sites_meas_GB": 0.030395
    }
   },
   {
@@ -347,8 +347,8 @@
    "all_orig": "390–532 GB",
    "used_orig": "168–186 GB",
    "used_opt": "42–67 GB",
-   "sites_full": "21 MB",
-   "sites_meas": "8.6 MB",
+   "sites_full": "17 MB",
+   "sites_meas": "7.1 MB",
    "n_src_used": 1,
    "n_stored": 1,
    "data_frac": "0.25-0.30",
@@ -361,8 +361,8 @@
     "used_orig_hi_TB": 0.18623679671457907,
     "used_opt_lo_TB": 0.04150713132,
     "used_opt_hi_TB": 0.067388048496,
-    "sites_full_GB": 0.020951889602803735,
-    "sites_meas_GB": 0.008571
+    "sites_full_GB": 0.01719506323593546,
+    "sites_meas_GB": 0.007066
    }
   },
   {
@@ -372,23 +372,23 @@
    "record": "1998-06-01 – 2025-09-30",
    "all_orig": "3.8–4.7 TB",
    "used_orig": "424 GB–1.1 TB",
-   "used_opt": "408–564 GB",
-   "sites_full": "316 MB",
-   "sites_meas": "15 MB",
+   "used_opt": "375–514 GB",
+   "sites_full": "99 MB",
+   "sites_meas": "7.2 MB",
    "n_src_used": 1,
    "n_stored": 1,
    "data_frac": "1.00",
-   "opt_bpv": "half-hourly 0.13 (IMERG Late, full grid) ±15 %; daily: site store 1.60 x 0.64-0.98",
+   "opt_bpv": "half-hourly 0.13 (IMERG Late, full grid) ±15 %; daily: site store 0.81 x 0.64-0.98",
    "basis": "HDF5: HH 8.15 MB, daily 33.7 MB; 10 grids per file (precipitation, randomError, IR/MW precip, quality, ...). Used: precipitation only, 10-25 % of the bytes.",
    "raw": {
     "all_orig_lo_TB": 3.8179814400000005,
     "all_orig_hi_TB": 4.666421760000001,
     "used_orig_lo_TB": 0.42422016000000007,
     "used_orig_hi_TB": 1.0605504000000001,
-    "used_opt_lo_TB": 0.4083770608513189,
-    "used_opt_hi_TB": 0.5640157617222171,
-    "sites_full_GB": 0.31621464778931363,
-    "sites_meas_GB": 0.015363
+    "used_opt_lo_TB": 0.37541579639360995,
+    "used_opt_hi_TB": 0.5137223334336349,
+    "sites_full_GB": 0.0991482177839105,
+    "sites_meas_GB": 0.007196
    }
   },
   {
@@ -399,8 +399,8 @@
    "all_orig": "3.9–4.5 TB",
    "used_orig": "374 GB–1 TB",
    "used_opt": "356–482 GB",
-   "sites_full": "91 MB",
-   "sites_meas": "60 MB",
+   "sites_full": "86 MB",
+   "sites_meas": "57 MB",
    "n_src_used": 1,
    "n_stored": 1,
    "data_frac": "1.00",
@@ -413,16 +413,16 @@
     "used_orig_hi_TB": 1.02301355,
     "used_opt_lo_TB": 0.355951825866,
     "used_opt_hi_TB": 0.481581882054,
-    "sites_full_GB": 0.09097460745936957,
-    "sites_meas_GB": 0.060292
+    "sites_full_GB": 0.08567189094908197,
+    "sites_meas_GB": 0.056822000000000004
    }
   }
  ],
  "totals": {
   "all_orig": "1.8–5.9 PB",
   "used_orig": "120–172 TB",
-  "used_opt": "90–153 TB",
-  "sites_full": "41 GB",
+  "used_opt": "68–116 TB",
+  "sites_full": "40 GB",
   "sites_meas": "13 GB"
  },
  "fullgrid": [
