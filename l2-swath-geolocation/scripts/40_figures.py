@@ -275,14 +275,16 @@ def synthetic_figs():
 # ---------------------------------------------------------------------------------- Part C
 PROFILE_LABEL = {"local": "Local disk", "zero_s3": "Proxy only (S3 API)", "zero_http": "Proxy only (HTTP)",
                  "s3_in_region": "S3 in-region", "s3_cross_region": "S3 cross-region",
-                 "https_earthdata": "Earthdata HTTPS", "nccs_portal": "NCCS portal"}
+                 "https_earthdata": "Earthdata HTTPS", "nccs_portal": "NCCS portal",
+                 "aws_s3_use1": "Real S3 us-east-1 (measured)", "aws_cloudfront": "Real CloudFront (measured)"}
 READER_COLOR = {"h5py": ps.CAT[0], "h5py_blockcache": ps.CAT[6], "h5py_ros3": "#52514e", "xarray_h5netcdf": ps.CAT[2],
                 "gdal": ps.CAT[3], "gdal_tuned": ps.CAT[1], "pyhdf": ps.CAT[4], "download_then_read": ps.CAT[7],
                 "icechunk_virtual": ps.CAT[5], "icechunk_virtual_retry": "#0d366b"}
 
 
 PROFILE_COLOR = {"local": ps.INK2, "s3_in_region": ps.CAT[0], "s3_cross_region": ps.CAT[1],
-                 "https_earthdata": ps.CAT[2], "nccs_portal": ps.CAT[7]}
+                 "https_earthdata": ps.CAT[2], "nccs_portal": ps.CAT[7],
+                 "aws_s3_use1": ps.CAT[6], "aws_cloudfront": ps.CAT[4]}
 READER_LABEL = {"h5py": "h5py + fsspec (defaults)", "h5py_blockcache": "h5py + fsspec blockcache 8 MiB",
                 "h5py_ros3": "h5py ROS3 driver", "xarray_h5netcdf": "xarray + h5netcdf (fsspec)",
                 "gdal": "GDAL (defaults)", "gdal_tuned": "GDAL (tuned)", "pyhdf": "pyhdf (local only)",
@@ -297,7 +299,7 @@ def read_figs():
     profs = [p for p in PROFILE_COLOR if p in set(r.profile)]
     for task, title in [("window_site", "33 × 33 pixel window (one site)"),
                         ("window_poly", "County-sized window"), ("full", "Full granule (lat, lon, LST)")]:
-        fig, axes = plt.subplots(1, 3, figsize=(14, 5.2), sharex=True)
+        fig, axes = plt.subplots(1, 3, figsize=(14, 6.2), sharex=True)
         for ax, s in zip(axes, SENSORS):
             sub = r[(r.task == task) & (r.sensor == s)]
             readers = [x for x in READER_LABEL if x in set(sub.reader)]
@@ -306,7 +308,7 @@ def read_figs():
                     g = sub[(sub.reader == rd) & (sub.profile == p)]
                     if len(g) == 0:
                         continue
-                    y = i + (k - (len(profs) - 1) / 2) * 0.14
+                    y = i + (k - (len(profs) - 1) / 2) * (0.84 / len(profs))
                     v = g.seconds.dropna().values
                     if len(v):
                         ax.scatter(v, np.full(len(v), y), s=8, color=PROFILE_COLOR[p], alpha=0.35, linewidth=0)
@@ -323,10 +325,10 @@ def read_figs():
             ax.set_xlabel("seconds (log); × = failed or timed out")
             ax.grid(axis="y", visible=False)
         handles = [plt.Line2D([], [], marker="o", linestyle="", color=PROFILE_COLOR[p], label=PROFILE_LABEL[p]) for p in profs]
-        fig.legend(handles=handles, loc="lower center", ncol=len(profs), bbox_to_anchor=(0.5, -0.02))
+        fig.legend(handles=handles, loc="lower center", ncol=min(len(profs), 4), bbox_to_anchor=(0.5, -0.02))
         fig.suptitle(f"Read time: {title}. Big dots = median, small = repetitions", x=0.01, ha="left",
                      fontweight="bold", color=ps.INK)
-        fig.tight_layout(rect=(0, 0.05, 1, 1))
+        fig.tight_layout(rect=(0, 0.09, 1, 1))
         ps.save(fig, f"read_{task}")
     r.to_csv(SITE / "read_bench.csv", index=False)
     if (RES / "virtual_build.csv").exists():
