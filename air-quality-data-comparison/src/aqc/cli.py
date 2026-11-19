@@ -82,6 +82,7 @@ def cmd_extract(a):
     from .products import registry
     names = registry.names() if a.products == ["all"] else a.products
     st = sites.load(a.sites)
+    failed = []
     for n in names:
         try:
             s = extract.run(n, st, store_url=a.store, dry_run=a.dry_run, log=_log,
@@ -91,6 +92,9 @@ def cmd_extract(a):
             import traceback
             traceback.print_exc()
             _log(f"[{n}] FAILED: {e!r}")
+            failed.append(n)
+    if failed:  # non-zero exit so wrappers (retry loops, queues) do not treat it as done
+        sys.exit(f"extract failed: {', '.join(failed)}")
 
 
 def _metrics_one(args):

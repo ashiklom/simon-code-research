@@ -81,9 +81,8 @@ def _batched(blocks, freq: str, origin: pd.Timestamp, axis0: pd.Timestamp | None
                 mode = "site"
             else:
                 yield merge()
-            pending, n = [], 0
+                pending, mode = [], None
         pending.append(blk)
-        n += len(blk.times)
     if pending:
         yield merge()
 
