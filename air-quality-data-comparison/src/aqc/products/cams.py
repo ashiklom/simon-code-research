@@ -51,6 +51,55 @@ def _client():
     return cdsapi.Client(url=ADS, key=key, quiet=True, progress=False)
 
 
+def _key() -> str:
+    key = os.environ.get("ADSAPI_KEY") or os.environ.get("CDSAPI_KEY")
+    if not key:
+        raise RuntimeError("set CDSAPI_KEY (ECMWF personal access token) for the ADS")
+    return key
+
+
+JOB_STATES = ("accepted", "running", "successful")  # jobs we can still wait on / download
+
+
+def _norm(x):
+    """Request in a canonical form: dict keys kept, lists compared as sorted strings."""
+    if isinstance(x, dict):
+        return {k: _norm(v) for k, v in x.items()}
+    if isinstance(x, (list, tuple)):
+        return sorted(str(v) for v in x)
+    return str(x)
+
+
+def same_request(a: dict, b: dict) -> bool:
+    return _norm(a) == _norm(b)
+
+
+def pick_job(jobs: list[dict], dataset: str, since: pd.Timestamp, request_of) -> str | None:
+    """jobID of the newest job for `dataset` created after `since`, still usable, whose request
+    (``request_of(jobID)``) equals ours; ``request_of`` returns None for no match."""
+    for j in sorted(jobs, key=lambda j: j.get("created", ""), reverse=True):
+        if j.get("processID") != dataset or j.get("status") not in JOB_STATES:
+            continue
+        if pd.Timestamp(j["created"]) < since:
+            continue
+        if request_of(j["jobID"]):
+            return j["jobID"]
+    return None
+
+
+def _find_job(dataset: str, request: dict, days: int = 3) -> str | None:
+    """An earlier ADS job with this exact request (e.g. submitted by a run killed by a container
+    restart): reattaching keeps its place in the ADS queue (hours) instead of resubmitting."""
+    h = {"PRIVATE-TOKEN": _key()}
+    jobs = get(f"{ADS}/retrieve/v1/jobs", params={"limit": 100}, headers=h).json().get("jobs", [])
+
+    def matches(jid):
+        r = get(f"{ADS}/retrieve/v1/jobs/{jid}", params={"request": "true"}, headers=h).json()
+        return same_request(r.get("metadata", {}).get("request", {}).get("ids", {}), request)
+
+    return pick_job(jobs, dataset, pd.Timestamp.utcnow().tz_localize(None) - pd.Timedelta(days=days), matches)
+
+
 def catalogue_end(dataset: str) -> pd.Timestamp:
     j = get(f"{ADS}/catalogue/v1/collections/{dataset}").json()
     return pd.Timestamp(j["extent"]["temporal"]["interval"][0][1]).tz_localize(None)
@@ -60,7 +109,18 @@ def _retrieve(dataset: str, request: dict) -> list[Path]:
     CACHE.mkdir(parents=True, exist_ok=True)
     fd, tmp = tempfile.mkstemp(dir=CACHE, suffix=".download")
     os.close(fd)
-    _client().retrieve(dataset, request, tmp)
+    try:
+        job = _find_job(dataset, request)
+    except Exception as e:  # the lookup is an optimisation only
+        print(f"[cams] ADS job lookup failed ({e!r}); submitting")
+        job = None
+    if job:
+        from ecmwf.datastores import Client
+
+        print(f"[cams] reattaching to ADS job {job}")
+        Client(url=ADS, key=_key(), progress=False).download_results(job, tmp)
+    else:
+        _client().retrieve(dataset, request, tmp)
     p = Path(tmp)
     if zipfile.is_zipfile(p):
         out = []
