@@ -129,7 +129,7 @@ def cmd_sitedata(a):
     sites = sitesmod.load(a.sites)
     mfile = config.DATA / "results" / f"metrics_{a.metrics}.parquet"
     metrics = pd.read_parquet(mfile) if mfile.exists() else pd.DataFrame()
-    export_site.export(sites, metrics, hourly_years=a.hourly_years)
+    export_site.export(sites, metrics, hourly_years=a.hourly_years, workers=a.workers)
 
 
 def cmd_status(a):
@@ -245,6 +245,7 @@ def main(argv=None):
     s.add_argument("--sites", default="all")
     s.add_argument("--metrics", default="all")
     s.add_argument("--hourly-years", type=int, default=2)
+    s.add_argument("--workers", type=int, default=4)
     s.set_defaults(fn=cmd_sitedata)
 
     s = sub.add_parser("status", help="extraction progress per repo")

@@ -123,7 +123,37 @@ def site_frames(site: pd.Series, products: list[str], root=None):
     return daily, hourly
 
 
-def export(sites: pd.DataFrame, metrics: pd.DataFrame, hourly_years: int = 2, root=None, log=print):
+def _export_site(args):
+    """Write site/<id>.parquet for one site; returns (site, sites.json row or None, log message)."""
+    s, products, root, hourly_years, m, out = args
+    sid = safe_id(s.site_id)
+    d, h = site_frames(s, products, root)
+    if d.empty:
+        return s, None, "no data"
+    d.index = (d.index - pd.Timestamp("1970-01-01")).days
+    tables = [_table(d, SCALE_CODE["daily"])]
+    years = []
+    if not h.empty:
+        last = h.index.max().year
+        for y in range(last - hourly_years + 1, last + 1):
+            hy = h[h.index.year == y]
+            if hy.dropna(how="all").empty:
+                continue
+            hy.index = ((hy.index - pd.Timestamp("1970-01-01")) // pd.Timedelta(hours=1)).astype("int64")
+            tables.append(_table(hy, SCALE_CODE["hourly"]))
+            years.append(y)
+    mrec = json.loads(m.drop(columns="site").round(4).to_json(orient="records")) if m is not None and len(m) else []
+    _write_site(out / "site" / f"{sid}.parquet", tables, {"metrics_gz": mrec, "site_id": s.site_id})
+    srcs = sorted({c.split("|")[0] for c in d.columns})
+    row = {**{c: (None if pd.isna(s.get(c)) else s.get(c)) for c in ("site_id", "network", "tier", "name", "state", "lat", "lon", "elev_m")},
+           "id": sid, "sources": srcs, "hourly_years": years,
+           "d_station_km": None if pd.isna(s.get("d_station_km")) else s.get("d_station_km"),
+           "stratum": s.get("stratum") if isinstance(s.get("stratum"), str) else None,
+           "independence": s.get("independence") if isinstance(s.get("independence"), str) else None}
+    return s, row, f"daily {d.shape}, hourly years {years}"
+
+
+def export(sites: pd.DataFrame, metrics: pd.DataFrame, hourly_years: int = 2, root=None, log=print, workers: int = 4):
     if OUT.exists():
         shutil.rmtree(OUT)
     OUT.mkdir(parents=True)
@@ -140,38 +170,19 @@ def export(sites: pd.DataFrame, metrics: pd.DataFrame, hourly_years: int = 2, ro
         pmeta[name] = {"title": p.title, "freq": p.freq, "source": p.source, "notes": p.notes, "variables": vmeta}
     (OUT / "products.json").write_text(json.dumps(pmeta, indent=1, default=str))
     (OUT / "scales.json").write_text(json.dumps(SCALE))
-    # per site
+    # per site (network-bound reads, so several processes)
+    from .parallel import process_map
+
+    mcols = [c for c in ("site", "product", "var", "obs_var", "kind", "scale", "window", "method", "n", "bias", "mae", "rmse",
+                         "ubrmse", "r", "kge", "anom_r", "ratio", "csi_1.0", "pod_1.0", "far_1.0", "mean_obs", "mean_prod")
+             if c in metrics]
+    by_site = dict(tuple(metrics[mcols].groupby("site"))) if len(metrics) else {}
+    items = [(s, list(pmeta), root, hourly_years, by_site.get(s.site_id), OUT) for _, s in sites.iterrows()]
     site_rows = []
-    for k, (_, s) in enumerate(sites.iterrows()):
-        sid = safe_id(s.site_id)
-        d, h = site_frames(s, list(pmeta), root)
-        if d.empty:
-            continue
-        d.index = (d.index - pd.Timestamp("1970-01-01")).days
-        tables = [_table(d, SCALE_CODE["daily"])]
-        years = []
-        if not h.empty:
-            last = h.index.max().year
-            for y in range(last - hourly_years + 1, last + 1):
-                hy = h[h.index.year == y]
-                if hy.dropna(how="all").empty:
-                    continue
-                hy.index = ((hy.index - pd.Timestamp("1970-01-01")) // pd.Timedelta(hours=1)).astype("int64")
-                tables.append(_table(hy, SCALE_CODE["hourly"]))
-                years.append(y)
-        m = metrics[metrics.site == s.site_id] if len(metrics) else metrics
-        cols = [c for c in ("product", "var", "obs_var", "kind", "scale", "window", "method", "n", "bias", "mae", "rmse",
-                            "ubrmse", "r", "kge", "anom_r", "ratio", "csi_1.0", "pod_1.0", "far_1.0", "mean_obs", "mean_prod")
-                if c in m]
-        mrec = json.loads(m[cols].round(4).to_json(orient="records")) if len(m) else []
-        _write_site(OUT / "site" / f"{sid}.parquet", tables, {"metrics_gz": mrec, "site_id": s.site_id})
-        srcs = sorted({c.split("|")[0] for c in d.columns})
-        site_rows.append({**{c: (None if pd.isna(s.get(c)) else s.get(c)) for c in ("site_id", "network", "tier", "name", "state", "lat", "lon", "elev_m")},
-                          "id": sid, "sources": srcs, "hourly_years": years,
-                          "d_station_km": None if pd.isna(s.get("d_station_km")) else s.get("d_station_km"),
-                          "stratum": s.get("stratum") if isinstance(s.get("stratum"), str) else None,
-                          "independence": s.get("independence") if isinstance(s.get("independence"), str) else None})
-        log(f"  [{k + 1}/{len(sites)}] {s.site_id}: daily {d.shape}, hourly years {years}")
+    for k, (s, row, msg) in enumerate(process_map(_export_site, items, workers)):
+        if row is not None:
+            site_rows.append(row)
+        log(f"  [{k + 1}/{len(sites)}] {s.site_id}: {msg}")
     (OUT / "sites.json").write_text(json.dumps(site_rows, default=lambda o: o.item() if hasattr(o, "item") else str(o)))
     # summary.json: medians across sites
     if len(metrics):
