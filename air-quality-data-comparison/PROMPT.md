@@ -242,3 +242,26 @@ Yes.
 
 Skip for now.
 ```
+
+## Follow-up (2026-11-19)
+
+status?
+
+## Follow-up (2026-11-20)
+
+status?
+
+## Follow-up (2026-11-24)
+
+Status?
+
+## Claude: question (AskUserQuestion, keep alive)
+
+The long jobs (air-quality extractions, CAMS global store) seem to run only while this session has a background task: both outages began within a minute of my 2-hour watcher expiring (Nov 19 23:05, Nov 20 15:41), and the container was then reclaimed until your next message. About 4 days were lost this time. What remains is ~2–3 days of AQ extraction and ~179 CAMS blocks (several days, ADS-bound). How should I keep them going?
+- *Re-arm watcher (Recommended).* Each time the 2-hour watcher ends I check the logs, restart anything dead, and arm a new one, until the queue and CAMS store finish. Costs one short turn every 2 h (~12 a day) but keeps the container alive.
+- *Only when I check in.* I stop re-arming. Jobs make progress only while you are interacting; I restart them whenever you ask for a status.
+- *Trim the remaining work.* Re-arm the watcher, but first cut scope to finish sooner (e.g. stop the CAMS global store at the current record and drop some AQ products). I'd propose specifics.
+
+## Answer (keep alive)
+
+Re-arm watcher (Recommended)
