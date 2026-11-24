@@ -265,15 +265,3 @@ The long jobs (air-quality extractions, CAMS global store) seem to run only whil
 ## Answer (keep alive)
 
 Re-arm watcher (Recommended)
-
-## Follow-up (2026-11-24, later; meant for another session)
-
-aws-sso has been refreshed. tell me what benchmarks (if any) you still might want to run with aws-sso access and ask me whether to proceed. if you are done with all benchmarks, destroy the new stacks but keep the code.
-
-## Claude: question
-
-There's no AWS SSO access in this container (only the three Cognito profiles) and this session never deployed any stacks, so there's nothing to tear down. If you did give this session broader access, these aws-emulator-tofu findings are still unchecked on real AWS: the identity-pool fallback role, an Aurora master username with an underscore, and API Gateway/Lambda/CloudFront behaviour. Did you mean to send this to another session?
-
-## Answer
-
-ignore the aws-sso message. that was another session.
