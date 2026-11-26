@@ -267,18 +267,27 @@ class CAMSForecast(_CAMS):
         return catalogue_end(self.dataset).normalize() + pd.Timedelta(hours=24)
 
     def blocks(self, t0, t1):
-        # run date d covers valid times d 01:00 .. d+1 00:00
-        return list(pd.date_range((pd.Timestamp(t0) - pd.Timedelta(hours=1)).normalize(),
-                                  (pd.Timestamp(t1) - pd.Timedelta(hours=1)).normalize(), freq="D"))
+        # run date d covers valid times d 01:00 .. d+1 00:00. One key per calendar month of run dates
+        # (first and last clipped): ADS serves a month of 00 UTC runs in one request (cost 1488 of a
+        # 10000 limit), so ~30x fewer queued requests than one per day.
+        d0 = (pd.Timestamp(t0) - pd.Timedelta(hours=1)).normalize()
+        d1 = (pd.Timestamp(t1) - pd.Timedelta(hours=1)).normalize()
+        return [(max(m, d0), min(m + pd.offsets.MonthEnd(0), d1))
+                for m in pd.date_range(d0.replace(day=1), d1, freq="MS")]
 
-    def read_block(self, d, st):
+    def read_block(self, key, st):
+        from concurrent.futures import ThreadPoolExecutor
+
+        a, b = key
         lat = self.grid().y
-        req = {"date": f"{d:%Y-%m-%d}/{d:%Y-%m-%d}", "time": ["00:00"], "type": ["forecast"],
+        req = {"date": f"{a:%Y-%m-%d}/{b:%Y-%m-%d}", "time": ["00:00"], "type": ["forecast"],
                "leadtime_hour": [str(h) for h in range(1, 25)], "data_format": "netcdf"}
-        t1, raw = _fields(_retrieve(self.dataset, {**req, "variable": ["particulate_matter_2.5um",
-                                                                       "particulate_matter_10um"]}), st, lat)
-        t2, raw2 = _fields(_retrieve(self.dataset, {**req, "variable": ["ozone", "nitrogen_dioxide"],
-                                                    "model_level": ["137"]}), st, lat)
+        reqs = [{**req, "variable": ["particulate_matter_2.5um", "particulate_matter_10um"]},
+                {**req, "variable": ["ozone", "nitrogen_dioxide"], "model_level": ["137"]}]
+        with ThreadPoolExecutor(2) as ex:  # both requests queue at ADS at the same time
+            paths = list(ex.map(lambda r: _retrieve(self.dataset, r), reqs))
+        t1, raw = _fields(paths[0], st, lat)
+        t2, raw2 = _fields(paths[1], st, lat)
         if not t1.equals(t2):
             raw2 = {k: _align(t2, v, t1) for k, v in raw2.items()}
         return t1, {**raw, **raw2}

@@ -31,3 +31,17 @@ def test_pick_job_newest_usable_match():
     assert pick_job(jobs, "ds", since, req) == "a"
     assert seen == ["b", "a"]  # newest first; wrong dataset/state/too old never fetched
     assert pick_job(jobs, "ds", since, lambda j: False) is None
+
+
+def test_forecast_blocks_are_clipped_calendar_months():
+    import pandas as pd
+
+    from aqc.products.cams import CAMSForecast
+
+    keys = CAMSForecast().blocks(pd.Timestamp("2025-08-01 01:00"), pd.Timestamp("2025-10-15 00:00"))
+    assert keys == [(pd.Timestamp("2025-08-01"), pd.Timestamp("2025-08-31")),
+                    (pd.Timestamp("2025-09-01"), pd.Timestamp("2025-09-30")),
+                    (pd.Timestamp("2025-10-01"), pd.Timestamp("2025-10-14"))]
+    # resuming mid-month starts at the run date holding t0
+    k = CAMSForecast().blocks(pd.Timestamp("2025-09-10 05:00"), pd.Timestamp("2025-09-20 00:00"))
+    assert k == [(pd.Timestamp("2025-09-10"), pd.Timestamp("2025-09-19"))]
