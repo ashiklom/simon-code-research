@@ -15,6 +15,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+import requests
 
 from .. import config
 from ..http import get
@@ -126,16 +127,18 @@ def _hourly_year(param: int, year: int, site_ids: set[str]) -> pd.DataFrame:
                 "time": pd.to_datetime(b["Date GMT"] + " " + b["Time GMT"]) + pd.Timedelta(hours=1),
                 "value": (b["Sample Measurement"] * b["Units of Measure"].map(UNIT_SCALE).fillna(1.0)).astype("f4"),
                 "t640": b["Method Name"].str.contains("T640", na=False).values,
-                "corr": b["Method Name"].str.contains("Corrected", na=False).values}))
+                "corrected": b["Method Name"].str.contains("Corrected", na=False).values}))
     if not parts:
         return pd.DataFrame(columns=["site_id", "time", "value"])
     d = pd.concat(parts, ignore_index=True)
     del parts
     d["site_id"] = d["site_id"].astype(str).astype("category")
     if param in (88101, 88502):  # prefer the corrected T640 series where both are reported
-        has_corr = d[d.t640 & d.corr].groupby(["site_id", "time"], observed=True).size()
+        # (bracket access: ``d.corr`` would be DataFrame.corr, not the column)
+        t640, corr = d["t640"], d["corrected"]
+        has_corr = d[t640 & corr].groupby(["site_id", "time"], observed=True).size()
         key = pd.MultiIndex.from_frame(d[["site_id", "time"]])
-        d = d[~(d.t640 & ~d.corr & key.isin(has_corr.index))]
+        d = d[~(t640 & ~corr & key.isin(has_corr.index))]
     out = d.groupby(["site_id", "time"], observed=True)["value"].mean().reset_index()
     out["value"] = out["value"].astype("f4")
     return out
@@ -150,7 +153,9 @@ def hourly(sites: pd.DataFrame, var: str, years=YEARS, log=print) -> pd.DataFram
         for k, param in enumerate(HOURLY[var]):
             try:
                 d = _hourly_year(param, y, ids)
-            except Exception as e:  # missing file
+            except requests.HTTPError as e:  # file not (yet) published; anything else is a bug: raise
+                if e.response is None or e.response.status_code != 404:
+                    raise
                 log(f"[AQS] hourly_{param}_{y}: {e!r}")
                 continue
             d["prio"] = k

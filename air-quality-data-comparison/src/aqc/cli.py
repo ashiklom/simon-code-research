@@ -25,7 +25,7 @@ def cmd_obs(a):
         if net == "aqs":
             from .obs import aqs
             st = sites.load("aqs")
-            for v in ("pm25", "pm10", "o3", "no2"):  # one variable and 3 years at a time keeps memory bounded
+            for v in (a.vars.split(",") if a.vars else ("pm25", "pm10", "o3", "no2")):  # one variable and 3 years at a time keeps memory bounded
                 for y0 in range(aqs.YEARS[0], aqs.YEARS[-1] + 1, 3):
                     ys = [y for y in aqs.YEARS if y0 <= y < y0 + 3]
                     ingest.write("AQS", "1h", {v: aqs.hourly(st, v, years=ys, log=_log)}, store_url=a.store, log=_log)
@@ -169,7 +169,9 @@ def main(argv=None):
     p.add_argument("--store", default=None, help="store root URL (default AQC_STORE or data/store)")
     sub = p.add_subparsers(dest="cmd", required=True)
     s = sub.add_parser("sites"); s.add_argument("--networks", default="aqs,embassy,spartan"); s.set_defaults(fn=cmd_sites)
-    s = sub.add_parser("obs"); s.add_argument("--networks", default="aqs,embassy,spartan"); s.set_defaults(fn=cmd_obs)
+    s = sub.add_parser("obs"); s.add_argument("--networks", default="aqs,embassy,spartan")
+    s.add_argument("--vars", default="", help="AQS hourly variables to (re)ingest, e.g. pm25 (default: all)")
+    s.set_defaults(fn=cmd_obs)
     for name in ("extract", "update"):
         s = sub.add_parser(name)
         s.add_argument("products", nargs="*", default=["all"])
