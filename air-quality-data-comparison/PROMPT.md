@@ -265,3 +265,21 @@ The long jobs (air-quality extractions, CAMS global store) seem to run only whil
 ## Answer (keep alive)
 
 Re-arm watcher (Recommended)
+
+## Claude: questions (AskUserQuestion, ADS queue and publishing, 2026-11-26)
+
+**ADS queue.** Copernicus ADS hasn't started any of our requests in about 25 hours. ECMWF's Oct-2026 'protection measures' ask users to submit requests one at a time, and the ECMWF forum has reports of accounts disabled for parallel requests. Our code now sends only one request at a time, but 10 older requests are still queued at ADS: 4 CAMS EAC4 global-store requests (queued since Nov 25), 4 monthly CAMS forecast requests, and 2 one-day forecast requests that nothing will use. What should I do with them?
+- *Cancel extras (Recommended).* Keep only the oldest EAC4 request (ab7f2440, the one we're now waiting on) and cancel the other 9. That gets us down to one request at ADS. The cancelled EAC4 and forecast requests get resubmitted one at a time later, so they lose their place in the queue.
+- *Cancel only the 2 unused.* Cancel the two one-day forecast requests (ae0034f9, 4226e033), which nothing will use. Keep the other 8, which will be picked up one at a time. That leaves 8 requests queued at once.
+- *Cancel nothing.* Leave all 10 queued. The code picks up the 8 useful ones one at a time; the 2 one-day requests run for nothing.
+
+**AQ publish.** Everything in the air-quality comparison except CAMS is now extracted (12 of 14 products). CAMS EAC4 still needs 30 blocks of the global store (2023-07 to 2025-12), and the CAMS forecast still needs 16 months, all from ADS. ADS is stalled, so at one request at a time that could take days to weeks. How should I proceed?
+- *Publish now, add CAMS later (Recommended).* Now: compute metrics, figures and site data for the 12 finished products and publish them (the site-data upload is about 3–5 GB, size-checked against the approved Tier 0 budget). CAMS downloads keep running in the background; when they finish I re-run the steps that include CAMS and republish.
+- *Wait for CAMS.* Publish nothing until both CAMS products are done. This could take days to weeks depending on ADS.
+- *Drop CAMS forecast.* Publish now. Keep only CAMS EAC4 (the store is already 2018–2023-06 complete) and drop the CAMS forecast to halve the remaining ADS requests.
+
+## Answers
+
+ADS queue: Cancel extras (Recommended)
+
+AQ publish: Publish now, add CAMS later (Recommended)
