@@ -21,8 +21,8 @@ BLUE, MID, RED = "#2a78d6", "#f0efec", "#e34948"
 SEQ = LinearSegmentedColormap.from_list("seq", [MID, BLUE])
 DIV = LinearSegmentedColormap.from_list("div", [BLUE, MID, RED])
 TIER_COL = {1: "#2a78d6", 2: "#eb6834", 3: "#1baf7a", 4: "#6250d6"}
-TIER_LAB = {1: "Tier 1: US reference (AQS, IMPROVE, CSN)", 2: "Tier 2: embassies, SPARTAN",
-            3: "Tier 3: low-cost sensors", 4: "Tier 4: station-remote points"}
+TIER_LAB = {1: "Tier 1: US reference (AQS, IMPROVE, CSN)", 2: "Tier 2: embassies, SPARTAN, OpenAQ reference",
+            3: "Tier 3: low-cost sensors (Sensor.Community, AirGradient, AirQo)", 4: "Tier 4: station-remote points"}
 ORDER = ["geoscf_v1", "geoscf_v2", "merra2", "merra2_cnn", "cams_eac4", "cams_fcst", "geosfp_aer", "merra2_gmi",
          "acag", "ghap", "ghap_m", "hrrr_smoke", "naqfc", "naqfc_bc", "haqes"]
 VARS = ["pm25", "pm25_frm", "pm10", "o3", "o3_mda8", "no2"]
