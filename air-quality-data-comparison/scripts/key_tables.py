@@ -28,15 +28,18 @@ def cell(df, prod, var, stat, fmt="{:.2f}", scale="daily"):
 
 
 def table(df, cols, title):
-    lines = [f"**{title}**", "", "| Product | " + " | ".join(c[0] for c in cols) + " |",
-             "|---|" + "---|" * len(cols)]
+    lines = [f"**{title}**", "", "| Product | n | " + " | ".join(c[0] for c in cols) + " |",
+             "|---|---|" + "---|" * len(cols)]
     for p in ORDER:
         row = [cell(df, p, var, stat, fmt, scale) for _, var, stat, fmt, scale in cols]
         if all(r == "–" for r in row):
             continue
-        lines.append(f"| {LABEL[p]} | " + " | ".join(row) + " |")
+        k = max(df[(df["product"] == p) & (df["var"] == var) & (df.scale == scale)][stat].notna().sum()
+                for _, var, stat, _, scale in cols)
+        lines.append(f"| {LABEL[p]} | {k} | " + " | ".join(row) + " |")
     n = df[df["var"] == cols[0][1]].site.nunique()
-    return "\n".join(lines) + f"\n\n_{n} sites with {cols[0][1]}; ¹ uses surface monitors (see Dependence)._\n"
+    return "\n".join(lines) + (f"\n\n_n: sites scored (largest over the columns; {n} sites with {cols[0][1]} in total); "
+                                f"¹ uses surface monitors (see Dependence)._\n")
 
 
 pct = "{:+.0%}"
@@ -63,14 +66,21 @@ out.append(table(sm, [
     ("CSI >35", "pm25", "csi_35", "{:.2f}", "daily")],
     "Tier 1, smoke days (HRRR-Smoke daily ≥ 20 µg m⁻³), daily PM2.5, full window"))
 t2 = b[(b.tier == 2) & (b.window == "full")]
-out.append(table(t2, [
-    ("PM2.5 r", "pm25", "r", "{:.2f}", "daily"), ("PM2.5 NMB", "pm25", "nmb", pct, "daily"),
-    ("PM2.5 RMSE", "pm25", "rmse", "{:.1f}", "daily"), ("Monthly r", "pm25", "r", "{:.2f}", "monthly")],
-    "Tier 2 (embassies, SPARTAN), daily, full window"))
+T2COLS = [("PM2.5 r", "pm25", "r", "{:.2f}", "daily"), ("PM2.5 NMB", "pm25", "nmb", pct, "daily"),
+          ("PM2.5 RMSE", "pm25", "rmse", "{:.1f}", "daily"), ("Monthly r", "pm25", "r", "{:.2f}", "monthly")]
+out.append(table(t2[t2.network.isin(["Embassy", "SPARTAN"])], T2COLS,
+                 "Tier 2a (US embassies, SPARTAN), daily, full window"))
+oaq = t2[t2.network == "OpenAQ"]
+out.append(table(oaq, T2COLS + [
+    ("O3 MDA8 r", "o3_mda8", "r", "{:.2f}", "daily"), ("O3 MDA8 NMB", "o3_mda8", "nmb", pct, "daily"),
+    ("NO2 r", "no2", "r", "{:.2f}", "daily"), ("NO2 NMB", "no2", "nmb", pct, "daily")],
+    "Tier 2b (OpenAQ reference monitors outside the US), daily, full window"))
 t3 = b[(b.tier == 3) & (b.window == "full")]
-out.append(table(t3, [
-    ("PM2.5 r", "pm25", "r", "{:.2f}", "daily"), ("PM2.5 NMB", "pm25", "nmb", pct, "daily")],
-    "Tier 3 (Sensor.Community low-cost sensors), daily, 2023–2024"))
+T3COLS = [("PM2.5 r", "pm25", "r", "{:.2f}", "daily"), ("PM2.5 NMB", "pm25", "nmb", pct, "daily")]
+out.append(table(t3[t3.network == "SensorCommunity"], T3COLS,
+                 "Tier 3a (Sensor.Community SDS011 low-cost sensors), daily, 2023–2024"))
+out.append(table(t3[t3.network == "OpenAQ-LC"], T3COLS,
+                 "Tier 3b (OpenAQ low-cost sensors: AirGradient, AirQo), daily, 2023-11 → 2026-11"))
 t4 = b[(b.tier == 4) & (b.window == "common")]
 out.append(table(t4, [
     ("r vs others", "pm25", "r", "{:.2f}", "monthly"), ("NMB vs others", "pm25", "nmb", pct, "monthly")],
