@@ -119,8 +119,8 @@ def _fetch(f: Path, req: dict) -> Path:
 
 def _download(bs: list[int]) -> tuple[Path, Path]:
     """One ADS request per file type for a run of consecutive blocks (the ADS queue, hours per
-    request, dominates; larger requests mean fewer waits). The surface and model-level requests
-    are submitted together, so a group waits through the queue once, not twice."""
+    request, dominates; larger requests mean fewer waits). cams._retrieve lets one request into
+    ADS at a time, so the two files of a group are fetched in turn."""
     from concurrent.futures import ThreadPoolExecutor
 
     CACHE.mkdir(parents=True, exist_ok=True)

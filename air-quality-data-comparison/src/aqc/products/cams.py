@@ -18,6 +18,8 @@ requests) or per day (forecasts); each global NetCDF is sampled at all sites and
 
 from __future__ import annotations
 
+import contextlib
+import fcntl
 import functools
 import os
 import tempfile
@@ -105,7 +107,27 @@ def catalogue_end(dataset: str) -> pd.Timestamp:
     return pd.Timestamp(j["extent"]["temporal"]["interval"][0][1]).tz_localize(None)
 
 
+@contextlib.contextmanager
+def _ads_slot():
+    """One ADS request in flight per machine. ECMWF's Data Stores protection measures (Oct 2026) ask
+    for requests to be submitted sequentially, not in parallel, and have disabled accounts that did
+    otherwise. An flock is shared by every thread and process here (the global-store build, the
+    forecast extraction), so all ADS traffic queues behind it."""
+    CACHE.mkdir(parents=True, exist_ok=True)
+    with open(CACHE / ".ads.lock", "w") as fh:
+        fcntl.flock(fh, fcntl.LOCK_EX)
+        try:
+            yield
+        finally:
+            fcntl.flock(fh, fcntl.LOCK_UN)
+
+
 def _retrieve(dataset: str, request: dict) -> list[Path]:
+    with _ads_slot():
+        return _retrieve_one(dataset, request)
+
+
+def _retrieve_one(dataset: str, request: dict) -> list[Path]:
     CACHE.mkdir(parents=True, exist_ok=True)
     fd, tmp = tempfile.mkstemp(dir=CACHE, suffix=".download")
     os.close(fd)
@@ -276,16 +298,13 @@ class CAMSForecast(_CAMS):
                 for m in pd.date_range(d0.replace(day=1), d1, freq="MS")]
 
     def read_block(self, key, st):
-        from concurrent.futures import ThreadPoolExecutor
-
         a, b = key
         lat = self.grid().y
         req = {"date": f"{a:%Y-%m-%d}/{b:%Y-%m-%d}", "time": ["00:00"], "type": ["forecast"],
                "leadtime_hour": [str(h) for h in range(1, 25)], "data_format": "netcdf"}
         reqs = [{**req, "variable": ["particulate_matter_2.5um", "particulate_matter_10um"]},
                 {**req, "variable": ["ozone", "nitrogen_dioxide"], "model_level": ["137"]}]
-        with ThreadPoolExecutor(2) as ex:  # both requests queue at ADS at the same time
-            paths = list(ex.map(lambda r: _retrieve(self.dataset, r), reqs))
+        paths = [_retrieve(self.dataset, r) for r in reqs]  # one at a time (see _ads_slot)
         t1, raw = _fields(paths[0], st, lat)
         t2, raw2 = _fields(paths[1], st, lat)
         if not t1.equals(t2):

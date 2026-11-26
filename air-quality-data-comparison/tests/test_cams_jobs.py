@@ -45,3 +45,27 @@ def test_forecast_blocks_are_clipped_calendar_months():
     # resuming mid-month starts at the run date holding t0
     k = CAMSForecast().blocks(pd.Timestamp("2025-09-10 05:00"), pd.Timestamp("2025-09-20 00:00"))
     assert k == [(pd.Timestamp("2025-09-10"), pd.Timestamp("2025-09-19"))]
+
+
+def test_ads_slot_serialises_threads(tmp_path, monkeypatch):
+    import threading
+    import time
+
+    from aqc.products import cams
+
+    monkeypatch.setattr(cams, "CACHE", tmp_path)
+    inside, peak, lock = [0], [0], threading.Lock()
+
+    def work():
+        with cams._ads_slot():
+            with lock:
+                inside[0] += 1
+                peak[0] = max(peak[0], inside[0])
+            time.sleep(0.05)
+            with lock:
+                inside[0] -= 1
+
+    ts = [threading.Thread(target=work) for _ in range(4)]
+    [t.start() for t in ts]
+    [t.join() for t in ts]
+    assert peak[0] == 1
