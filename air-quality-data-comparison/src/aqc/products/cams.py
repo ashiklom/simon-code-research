@@ -118,7 +118,9 @@ def _retrieve(dataset: str, request: dict) -> list[Path]:
         return _retrieve_one(dataset, request)
 
 
-PART = 64 << 20  # bytes per ranged GET of an ADS result
+PART = 8 << 20  # bytes per ranged GET of an ADS result: each on a fresh connection, because a
+# connection to the ECMWF object store slows down the longer it streams (~9 MB/s for the first
+# 40 MB, ~0.3 MB/s after a few minutes)
 
 
 def _range_get(url: str, headers: dict):
