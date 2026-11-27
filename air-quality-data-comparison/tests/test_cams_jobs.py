@@ -1,5 +1,6 @@
 import pandas as pd
 
+from aqc.products import cams
 from aqc.products.cams import pick_job, same_request
 
 REQ = {"variable": ["ozone", "temperature"], "model_level": ["60"], "date": "2018-03-12/2018-06-12",
@@ -69,3 +70,34 @@ def test_ads_slot_serialises_threads(tmp_path, monkeypatch):
     [t.start() for t in ts]
     [t.join() for t in ts]
     assert peak[0] == 1
+
+
+class _Resp:
+    def __init__(self, status, cr, body):
+        self.status_code, self.headers, self.body = status, {"content-range": cr}, body
+
+    def raise_for_status(self):
+        pass
+
+    def iter_content(self, n):
+        yield from (self.body[i : i + n] for i in range(0, len(self.body), n))
+
+
+def test_fetch_ranges_rejects_ignored_range_and_short_reads(tmp_path, monkeypatch):
+    data = bytes(range(256)) * 40  # 10,240 bytes
+    calls = []
+
+    def get(url, headers):
+        a, b = map(int, headers["Range"][6:].split("-"))
+        calls.append((a, b))
+        if len(calls) == 2:  # server ignores Range: whole file, 200
+            return _Resp(200, "", data)
+        if len(calls) == 4:  # connection cut mid-part
+            return _Resp(206, f"bytes {a}-{b}/{len(data)}", data[a : a + 100])
+        return _Resp(206, f"bytes {a}-{b}/{len(data)}", data[a : b + 1])
+
+    monkeypatch.setattr(cams.time, "sleep", lambda s: None)
+    out = tmp_path / "x.download"
+    cams.fetch_ranges("u", len(data), out, get=get, part=4096)
+    assert out.read_bytes() == data
+    assert calls == [(0, 4095), (4096, 8191), (4096, 8191), (8192, 10239), (8192, 10239)]

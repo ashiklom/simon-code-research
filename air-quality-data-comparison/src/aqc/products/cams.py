@@ -23,6 +23,7 @@ import fcntl
 import functools
 import os
 import tempfile
+import time
 import zipfile
 from pathlib import Path
 
@@ -41,16 +42,6 @@ CACHE = config.CACHE / "cams"
 _pm = scale(1e9)  # kg m-3 -> ug m-3
 _o3 = scale(M_AIR / 48.00 * 1e9)  # kg kg-1 -> ppb
 _no2 = scale(M_AIR / 46.0055 * 1e9)
-
-
-@functools.cache
-def _client():
-    import cdsapi
-
-    key = os.environ.get("ADSAPI_KEY") or os.environ.get("CDSAPI_KEY")
-    if not key:
-        raise RuntimeError("set CDSAPI_KEY (ECMWF personal access token) for the ADS")
-    return cdsapi.Client(url=ADS, key=key, quiet=True, progress=False)
 
 
 def _key() -> str:
@@ -127,7 +118,54 @@ def _retrieve(dataset: str, request: dict) -> list[Path]:
         return _retrieve_one(dataset, request)
 
 
+PART = 64 << 20  # bytes per ranged GET of an ADS result
+
+
+def _range_get(url: str, headers: dict):
+    import requests
+
+    return requests.get(url, headers=headers, stream=True, timeout=(30, 300))
+
+
+def fetch_ranges(url: str, size: int, target: Path, get=_range_get, part: int = PART, tries: int = 10) -> None:
+    """Download `size` bytes of `url` into `target` as consecutive ranged GETs, each checked for a
+    206 with the requested Content-Range and the full length; a failed part is fetched again and
+    written at its own offset. (The datastores client resumes by appending after an interruption,
+    which here grew a 526 MB result past 1.2 GB without ever finishing.)"""
+    import requests
+
+    pos, fails = 0, 0
+    with open(target, "wb") as f:
+        while pos < size:
+            end = min(pos + part, size) - 1
+            try:
+                r = get(url, {"Range": f"bytes={pos}-{end}"})
+                r.raise_for_status()
+                cr = r.headers.get("content-range", "")
+                if r.status_code != 206 or not cr.startswith(f"bytes {pos}-{end}/"):
+                    raise OSError(f"range {pos}-{end}: HTTP {r.status_code}, content-range {cr!r}")
+                f.seek(pos)
+                n = 0
+                for chunk in r.iter_content(1 << 20):
+                    f.write(chunk)
+                    n += len(chunk)
+                if n != end - pos + 1:
+                    raise OSError(f"range {pos}-{end}: got {n} bytes")
+                pos, fails = end + 1, 0
+            except (requests.RequestException, OSError) as e:
+                fails += 1
+                if fails > tries:
+                    raise
+                print(f"[cams] download {pos}/{size}: {e!r}; retry {fails}/{tries}")
+                time.sleep(min(15 * 2**fails, 600))
+        f.truncate(size)
+    if (got := target.stat().st_size) != size:
+        raise OSError(f"downloaded {got} of {size} bytes")
+
+
 def _retrieve_one(dataset: str, request: dict) -> list[Path]:
+    from ecmwf.datastores import Client
+
     CACHE.mkdir(parents=True, exist_ok=True)
     fd, tmp = tempfile.mkstemp(dir=CACHE, suffix=".download")
     os.close(fd)
@@ -136,13 +174,14 @@ def _retrieve_one(dataset: str, request: dict) -> list[Path]:
     except Exception as e:  # the lookup is an optimisation only
         print(f"[cams] ADS job lookup failed ({e!r}); submitting")
         job = None
+    client = Client(url=ADS, key=_key(), progress=False)
     if job:
-        from ecmwf.datastores import Client
-
         print(f"[cams] reattaching to ADS job {job}")
-        Client(url=ADS, key=_key(), progress=False).download_results(job, tmp)
     else:
-        _client().retrieve(dataset, request, tmp)
+        job = client.submit(dataset, request).request_id
+        print(f"[cams] submitted ADS job {job}")
+    res = client.get_results(job)  # waits in the ADS queue
+    fetch_ranges(res.location, res.content_length, Path(tmp))
     p = Path(tmp)
     if zipfile.is_zipfile(p):
         out = []
