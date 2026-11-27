@@ -8,16 +8,20 @@ ICECHUNK_LOG = "error"
 UV_PYTHON_DOWNLOADS = "automatic"
 
 [tasks.sites]
-description = "Build site tables (results/sites/*.csv): AQS, IMPROVE/CSN, embassies, SPARTAN, Sensor.Community, remote points"
-run = "uv run aqc sites --networks aqs,speciation,embassy,spartan,lowcost,remote"
+description = "Build site tables (results/sites/*.csv): AQS, IMPROVE/CSN, embassies, SPARTAN, OpenAQ, Sensor.Community, remote points"
+run = "uv run aqc sites --networks aqs,speciation,embassy,spartan,openaq,lowcost,remote"
 
 [tasks.obs]
-description = "Ingest observations into the store (AQS, AirNow, IMPROVE/CSN, embassies, SPARTAN, Sensor.Community)"
-run = "uv run aqc obs --networks aqs,airnow,speciation,embassy,spartan,lowcost"
+description = "Ingest observations into the store (AQS, AirNow, IMPROVE/CSN, embassies, SPARTAN, OpenAQ, Sensor.Community)"
+run = "uv run aqc obs --networks aqs,airnow,speciation,embassy,spartan,openaq,lowcost"
 
 [tasks.extract]
 description = "Extract products at sites: mise run extract -- <product...> --sites pilot|tier1|...|all"
 run = "uv run aqc extract"
+
+[tasks.cams-store]
+description = "Build/resume the global CAMS EAC4 store (2003-2025, 12 variables) that the cams_eac4 site product reads; ADS-bound, days"
+run = "uv run aqc cams-store --workers 1"
 
 [tasks.update]
 description = "Bring every product up to its latest available time (re-reads only the missing span)"
@@ -29,7 +33,7 @@ run = "uv run pytest -q"
 [tasks.metrics]
 description = "Skill metrics for all sites (data/results/metrics_all.parquet) and the committed summary"
 run = [
-  "uv run aqc metrics --sites all --workers 2",
+  "uv run aqc metrics --sites all --workers 6",
   "uv run python scripts/summarize.py",
   "uv run python scripts/key_tables.py",
   "uv run python scripts/lagcheck.py 40",
@@ -51,7 +55,7 @@ description = "Upload site/public/data to S3 as a new immutable version and re-p
 run = "uv run ../_helpers/publish_s3.py site air-quality-data-comparison site/public/data"
 
 [tasks.site]
-description = "Build the static site into _site (data is read from the assets repo pinned in site/.env.production)"
+description = "Build the static site into _site (data is read from S3/CloudFront at the version pinned in site/.env.production)"
 dir = "site"
 run = [
   "npm ci --no-audit --no-fund",
@@ -62,6 +66,7 @@ run = [
 description = "Everything after the one-off site tables: obs, extraction/update, metrics, figures, site data, site"
 run = [
   "mise run obs",
+  "mise run cams-store",
   "mise run update",
   "mise run metrics",
   "mise run figures",
