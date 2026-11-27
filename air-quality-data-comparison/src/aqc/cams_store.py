@@ -21,8 +21,10 @@ EAC4 has no nitrate or ammonium aerosol.
 
 Layout: one shard per variable and 31-day block (248 3-hourly steps x the full grid, one S3
 object of ~5-30 MB), (248, 32, 32) inner chunks, so a point's complete record is 271 small byte-
-range reads. Downloads are two ADS requests (surface; model level 60) per group of up to 3 consecutive blocks
-(the ADS queue, hours per request, dominates), 2018-2025 first; a few threads download ahead of a
+range reads. Downloads are two ADS requests (surface; model level 60) per group of up to 6 consecutive blocks
+(the ADS queue, 2-4 h per request, dominates; ADS processing is ~20 min. A 6-block model-level
+request costs 22,320 of the 100,000 ADS limit and is ~5 GB, the most this container's disk takes
+alongside the forecast extraction), 2018-2025 first; a few threads download ahead of a
 single writer. Resumable: ``blocks_done`` lists finished blocks.
 """
 
@@ -230,7 +232,7 @@ def _layout(g: zarr.Group):
             a.attrs.update({"units": units, "kind": kind, "desc": desc, "quantum": store.QUANTA.get(kind)})
 
 
-def build(blocks: list[int] | None = None, root: str | None = None, workers: int = 2, group: int = 3,
+def build(blocks: list[int] | None = None, root: str | None = None, workers: int = 2, group: int = 6,
           keep_raw: bool = False, log=print):
     repo = store.open_repo(NAME, root)
     s = repo.writable_session("main")

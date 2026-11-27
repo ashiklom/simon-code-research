@@ -184,7 +184,7 @@ def main(argv=None):
     s = sub.add_parser("cams-store", help="build the global CAMS EAC4 store (global-cams_eac4) from the ADS")
     s.add_argument("--blocks", default=None, help="31-day block range, e.g. 0-11 (default: all 271)")
     s.add_argument("--workers", type=int, default=2, help="parallel ADS downloads")
-    s.add_argument("--group", type=int, default=3, help="consecutive 31-day blocks per ADS request")
+    s.add_argument("--group", type=int, default=6, help="consecutive 31-day blocks per ADS request")
     s.set_defaults(fn=cmd_cams_store)
     s = sub.add_parser("figures"); s.set_defaults(fn=cmd_figures)
     s = sub.add_parser("sitedata"); s.add_argument("--sites", default="all")
