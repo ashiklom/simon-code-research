@@ -416,15 +416,14 @@ To read the stores without credentials, use the CloudFront URL instead:
 
 ## Publishing the site data
 
-The site's data (`mise run sitedata` → `site/public/data`, about 2.5 GB in about 2,180 files) is
+The site's data (`mise run sitedata` → `site/public/data`, 1.93 GB in 2,182 files) is
 not committed here. It lives in the public S3 bucket `ycgs-use1-public` under
 `simon-code-research/air-quality-data-comparison/site-data/<version>/` and is served through CloudFront.
 
 - **How the site reads it.** The browser fetches the files from CloudFront at the version pinned
-  in `site/.env.production` (`VITE_DATA_BASE`), currently `v20261118-dd7c8af7` (the new export is being uploaded). The version is a date plus a
+  in `site/.env.production` (`VITE_DATA_BASE`), currently `v20261127-ae8cdbad`. The version is a date plus a
   hash of the file contents, and objects under it are immutable (`Cache-Control: immutable`), so
-  the site and its data always match. Each site's Parquet file is fetched whole (about 1 MB
-  each): CloudFront intermittently omits the CORS header on byte-range (206) responses.
+  the site and its data always match. Each site's Parquet file is fetched whole (median about 0.9 MB): CloudFront intermittently omits the CORS header on byte-range (206) responses.
   CI only builds the JavaScript bundle.
 - **Local builds.** Without that variable (`npm run dev`), the site reads the local `./data`.
 - **Updating.** `mise run publish-site-data` runs `_helpers/publish_s3.py site`, which uploads a
