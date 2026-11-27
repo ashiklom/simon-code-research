@@ -317,6 +317,9 @@ class CAMSForecast(_CAMS):
     freq = "1h"
     dlat = 0.4
     start = pd.Timestamp("2025-08-01 01:00")
+    # ADS takes one request at a time (_ads_slot), so a second month in flight only waits there
+    # while holding ~1.4 GB of downloaded fields on disk.
+    block_workers = 1
     source = "ADS API cams-global-atmospheric-composition-forecasts, 00 UTC run, leads 1-24 h (CDSAPI_KEY)"
     notes = "0.4 deg hourly instantaneous; PM at surface, O3/NO2 at the lowest model level (137)"
     variables = {
