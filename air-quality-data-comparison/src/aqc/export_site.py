@@ -144,7 +144,39 @@ DEPENDENCE = {
 }
 
 
-def export(sites: pd.DataFrame, metrics: pd.DataFrame, root=None, log=print):
+def _export_one(args) -> dict | None:
+    """Write one site's parquet; return its sites.json row (None when it has no data)."""
+    site, products, root, mrec = args
+    s = pd.Series(site)
+    epoch = pd.Timestamp("1970-01-01")
+    sid = safe_id(s.site_id)
+    d, m, h = site_frames(s, products, root)
+    if d.empty and m.empty:
+        return None
+    d.index = (pd.DatetimeIndex(d.index) - epoch).days
+    m.index = (pd.DatetimeIndex(m.index) - epoch).days
+    td, tm = _table(d, SCALE_CODE["daily"]), _table(m, SCALE_CODE["monthly"])
+    tables, years = [td, tm], []
+    if not h.empty:
+        for y in HOURLY_YEARS:
+            hy = h[h.index.year == y]
+            if hy.dropna(how="all").empty:
+                continue
+            hy.index = ((hy.index - epoch) // pd.Timedelta(hours=1)).astype("int64")
+            th = _table(hy, SCALE_CODE["hourly"])
+            if th is not None:
+                tables.append(th)
+                years.append(y)
+    _write_site(OUT / "site" / f"{sid}.parquet", tables, {"metrics_gz": mrec, "site_id": s.site_id})
+    return {"site_id": s.site_id, "id": sid, "network": s.network, "tier": int(s.tier), "name": s["name"],
+            "lat": round(float(s.lat), 4), "lon": round(float(s.lon), 4), "region": s.region,
+            "setting": s.setting if isinstance(s.setting, str) else "",
+            "params": s.params if isinstance(s.params, str) else "",
+            "note": s.note if isinstance(s.note, str) else "",
+            "daily": td is not None, "monthly": tm is not None, "hourly_years": years}
+
+
+def export(sites: pd.DataFrame, metrics: pd.DataFrame, root=None, log=print, workers: int = 1):
     if OUT.exists():
         shutil.rmtree(OUT)
     OUT.mkdir(parents=True)
@@ -160,42 +192,25 @@ def export(sites: pd.DataFrame, metrics: pd.DataFrame, root=None, log=print):
                        "dependence": DEPENDENCE.get(name, "no surface PM/O3/NO2 observations used")}
     (OUT / "products.json").write_text(json.dumps(pmeta, indent=1, default=str))
     (OUT / "scales.json").write_text(json.dumps(SCALE))
-    epoch = pd.Timestamp("1970-01-01")
-    site_rows = []
     keep = ["product", "var", "scale", "window", "method", "n", "mean_obs", "mean_prod", "bias", "nmb", "rmse", "r",
             "kge", "csi_35", "csi_15", "csi_70", "aqi_agree", "reference_site"]
-    for k, (_, s) in enumerate(sites.iterrows()):
-        sid = safe_id(s.site_id)
-        d, m, h = site_frames(s, list(pmeta), root)
-        if d.empty and m.empty:
-            continue
-        d.index = (pd.DatetimeIndex(d.index) - epoch).days
-        m.index = (pd.DatetimeIndex(m.index) - epoch).days
-        td, tm = _table(d, SCALE_CODE["daily"]), _table(m, SCALE_CODE["monthly"])
-        has_d, has_m = td is not None, tm is not None
-        tables, years = [td, tm], []
-        if not h.empty:
-            for y in HOURLY_YEARS:
-                hy = h[h.index.year == y]
-                if hy.dropna(how="all").empty:
-                    continue
-                hy.index = ((hy.index - epoch) // pd.Timedelta(hours=1)).astype("int64")
-                th = _table(hy, SCALE_CODE["hourly"])
-                if th is not None:
-                    tables.append(th)
-                    years.append(y)
-        mm = metrics[metrics.site == s.site_id] if len(metrics) else metrics
-        cols = [c for c in keep if c in mm]
-        mrec = json.loads(mm[cols].round(3).to_json(orient="records")) if len(mm) else []
-        _write_site(OUT / "site" / f"{sid}.parquet", tables, {"metrics_gz": mrec, "site_id": s.site_id})
-        site_rows.append({"site_id": s.site_id, "id": sid, "network": s.network, "tier": int(s.tier), "name": s["name"],
-                          "lat": round(float(s.lat), 4), "lon": round(float(s.lon), 4), "region": s.region,
-                          "setting": s.setting if isinstance(s.setting, str) else "",
-                          "params": s.params if isinstance(s.params, str) else "",
-                          "note": s.note if isinstance(s.note, str) else "",
-                          "daily": has_d, "monthly": has_m, "hourly_years": years})
-        if k % 100 == 0:
-            log(f"  [{k + 1}/{len(sites)}] {s.site_id}: daily {d.shape}, monthly {m.shape}, hourly {years}")
+    cols = [c for c in keep if c in metrics]
+    by_site = {k: json.loads(g[cols].round(3).to_json(orient="records"))
+               for k, g in metrics.groupby("site")} if len(metrics) else {}
+    jobs = [(dict(s), list(pmeta), root, by_site.get(s.site_id, [])) for _, s in sites.iterrows()]
+    site_rows = []
+    import multiprocessing as mp
+    from concurrent.futures import ProcessPoolExecutor
+
+    # sites are independent and each one is latency-bound S3 reads: a process pool (spawn: icechunk's
+    # runtime threads do not survive fork) keeps several in flight
+    with ProcessPoolExecutor(workers, mp_context=mp.get_context("spawn")) as ex:
+        for k, row in enumerate(ex.map(_export_one, jobs, chunksize=2)):
+            if row is not None:
+                site_rows.append(row)
+            if k % 100 == 0:
+                log(f"  [{k + 1}/{len(sites)}] {jobs[k][0]['site_id']}: "
+                    f"{'hourly ' + str(row['hourly_years']) if row else 'no data'}")
     (OUT / "sites.json").write_text(json.dumps(site_rows, default=lambda o: o.item() if hasattr(o, "item") else str(o)))
     if len(metrics):
         summ = summary(metrics)

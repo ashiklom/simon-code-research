@@ -147,7 +147,7 @@ def cmd_sitedata(a):
 
     from . import config, export_site, sites
     m = pd.read_parquet(config.DATA / "results" / "metrics_all.parquet")
-    export_site.export(sites.load(a.sites), m, root=a.store, log=_log)
+    export_site.export(sites.load(a.sites), m, root=a.store, log=_log, workers=a.workers)
 
 
 def cmd_status(a):
@@ -187,7 +187,8 @@ def main(argv=None):
     s.add_argument("--group", type=int, default=3, help="consecutive 31-day blocks per ADS request")
     s.set_defaults(fn=cmd_cams_store)
     s = sub.add_parser("figures"); s.set_defaults(fn=cmd_figures)
-    s = sub.add_parser("sitedata"); s.add_argument("--sites", default="all"); s.set_defaults(fn=cmd_sitedata)
+    s = sub.add_parser("sitedata"); s.add_argument("--sites", default="all")
+    s.add_argument("--workers", type=int, default=6); s.set_defaults(fn=cmd_sitedata)
     s = sub.add_parser("metrics")
     s.add_argument("products", nargs="*", default=[])
     s.add_argument("--sites", default="all")
