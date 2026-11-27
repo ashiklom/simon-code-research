@@ -67,11 +67,12 @@ def same_request(a: dict, b: dict) -> bool:
     return _norm(a) == _norm(b)
 
 
-def pick_job(jobs: list[dict], dataset: str, since: pd.Timestamp, request_of) -> str | None:
-    """jobID of the newest job for `dataset` created after `since`, still usable, whose request
-    (``request_of(jobID)``) equals ours; ``request_of`` returns None for no match."""
+def pick_job(jobs: list[dict], dataset: str, since: pd.Timestamp, request_of,
+             states: tuple[str, ...] = JOB_STATES) -> str | None:
+    """jobID of the newest job for `dataset` created after `since`, in one of `states`, whose
+    request (``request_of(jobID)``) equals ours; ``request_of`` returns None for no match."""
     for j in sorted(jobs, key=lambda j: j.get("created", ""), reverse=True):
-        if j.get("processID") != dataset or j.get("status") not in JOB_STATES:
+        if j.get("processID") != dataset or j.get("status") not in states:
             continue
         if pd.Timestamp(j["created"]) < since:
             continue
@@ -80,7 +81,7 @@ def pick_job(jobs: list[dict], dataset: str, since: pd.Timestamp, request_of) ->
     return None
 
 
-def _find_job(dataset: str, request: dict, days: int = 3) -> str | None:
+def _find_job(dataset: str, request: dict, days: int = 3, states: tuple[str, ...] = JOB_STATES) -> str | None:
     """An earlier ADS job with this exact request (e.g. submitted by a run killed by a container
     restart): reattaching keeps its place in the ADS queue (hours) instead of resubmitting."""
     h = {"PRIVATE-TOKEN": _key()}
@@ -90,7 +91,16 @@ def _find_job(dataset: str, request: dict, days: int = 3) -> str | None:
         r = get(f"{ADS}/retrieve/v1/jobs/{jid}", params={"request": "true"}, headers=h).json()
         return same_request(r.get("metadata", {}).get("request", {}).get("ids", {}), request)
 
-    return pick_job(jobs, dataset, pd.Timestamp.utcnow().tz_localize(None) - pd.Timedelta(days=days), matches)
+    since = pd.Timestamp.utcnow().tz_localize(None) - pd.Timedelta(days=days)
+    return pick_job(jobs, dataset, since, matches, states)
+
+
+def _lookup(dataset: str, request: dict, states: tuple[str, ...] = JOB_STATES) -> str | None:
+    try:
+        return _find_job(dataset, request, states=states)
+    except Exception as e:  # the lookup is an optimisation only
+        print(f"[cams] ADS job lookup failed ({e!r})")
+        return None
 
 
 def catalogue_end(dataset: str) -> pd.Timestamp:
@@ -114,8 +124,13 @@ def _ads_slot():
 
 
 def _retrieve(dataset: str, request: dict) -> list[Path]:
+    """A finished ADS job's result is only downloaded, so it takes no ADS slot (else it waits
+    hours behind another process's queued request). A new submission, or reattaching to one still
+    queued, waits for the slot."""
+    if job := _lookup(dataset, request, ("successful",)):
+        return _retrieve_one(dataset, request, job)
     with _ads_slot():
-        return _retrieve_one(dataset, request)
+        return _retrieve_one(dataset, request, _lookup(dataset, request))
 
 
 PART = 8 << 20  # bytes per ranged GET of an ADS result: each on a fresh connection, because a
@@ -165,17 +180,12 @@ def fetch_ranges(url: str, size: int, target: Path, get=_range_get, part: int = 
         raise OSError(f"downloaded {got} of {size} bytes")
 
 
-def _retrieve_one(dataset: str, request: dict) -> list[Path]:
+def _retrieve_one(dataset: str, request: dict, job: str | None) -> list[Path]:
     from ecmwf.datastores import Client
 
     CACHE.mkdir(parents=True, exist_ok=True)
     fd, tmp = tempfile.mkstemp(dir=CACHE, suffix=".download")
     os.close(fd)
-    try:
-        job = _find_job(dataset, request)
-    except Exception as e:  # the lookup is an optimisation only
-        print(f"[cams] ADS job lookup failed ({e!r}); submitting")
-        job = None
     client = Client(url=ADS, key=_key(), progress=False)
     if job:
         print(f"[cams] reattaching to ADS job {job}")

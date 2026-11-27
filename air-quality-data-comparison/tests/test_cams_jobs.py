@@ -32,6 +32,9 @@ def test_pick_job_newest_usable_match():
     assert pick_job(jobs, "ds", since, req) == "a"
     assert seen == ["b", "a"]  # newest first; wrong dataset/state/too old never fetched
     assert pick_job(jobs, "ds", since, lambda j: False) is None
+    # finished jobs only (downloaded without taking the ADS slot): "a" is still queued
+    assert pick_job(jobs, "ds", since, req, ("successful",)) is None
+    assert pick_job(jobs, "ds", since, lambda j: j == "b", ("successful",)) == "b"
 
 
 def test_forecast_blocks_are_clipped_calendar_months():
